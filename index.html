@@ -16,70 +16,85 @@ html,body{height:100%;overflow:hidden;}
 :root{
   --bg:#0D1117;--sf:#161C24;--s2:#1A2410;
   --gr:#00FF7F;--gd:#00994C;--rd:#FF4444;
-  --yw:#F5E642;--or:#FF8C00;--wh:#E8EEE8;--mu:#4A5A4A;
-  --mo:'Courier New',monospace;--sa:-apple-system,'Helvetica Neue',sans-serif;
+  --yw:#F5E642;--or:#FF8C00;--wh:#E8EEE8;--mu:#5A6A5A;
+  --pk:#FF4D8C;
+  --mo:'Courier New',monospace;
+  --sa:-apple-system,'Helvetica Neue',Arial,sans-serif;
   --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
 }
 body{background:var(--bg);color:var(--wh);font-family:var(--sa);
   display:flex;flex-direction:column;height:100dvh;height:100vh;}
 
-header{border-bottom:1px solid #1E2A1E;padding:7px 12px;
-  padding-top:calc(7px + var(--st));
-  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.logo{font-family:var(--mo);font-size:11px;letter-spacing:3px;color:var(--gr);}
-.logo span{color:var(--mu);}
-.nav-tabs{display:flex;gap:3px;}
+/* ── ヘッダー ── */
+header{border-bottom:1px solid #1E2A1E;padding:8px 14px;
+  padding-top:calc(8px + var(--st));
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  min-height:52px;}
+.logo{
+  font-family:'Impact','Arial Black','Helvetica Neue',sans-serif;
+  font-size:22px;
+  font-weight:900;
+  letter-spacing:2px;
+  color:var(--pk);
+  text-shadow:0 0 12px rgba(255,77,140,0.5), 0 2px 4px rgba(0,0,0,0.8);
+  line-height:1;
+}
+.nav-tabs{display:flex;gap:4px;}
 .nav-tab{background:none;border:1px solid transparent;color:var(--mu);
-  font-size:11px;letter-spacing:1px;padding:5px 10px;cursor:pointer;
-  border-radius:4px;transition:all .15s;font-family:var(--sa);}
-.nav-tab.active{border-color:var(--gd);color:var(--gr);background:rgba(0,255,127,.06);}
+  font-size:13px;font-weight:600;letter-spacing:1px;padding:6px 12px;cursor:pointer;
+  border-radius:5px;transition:all .15s;font-family:var(--sa);}
+.nav-tab.active{border-color:var(--gd);color:var(--gr);background:rgba(0,255,127,.08);}
 
+/* ── TRAINING ── */
 #view-training{display:none;flex-direction:column;
-  height:calc(100dvh - 44px);height:calc(100vh - 44px);
-  padding:5px 10px;overflow:hidden;}
+  height:calc(100dvh - 52px);height:calc(100vh - 52px);
+  padding:6px 12px;overflow:hidden;}
 #view-training.active{display:flex;}
 
 .view{display:none;}
-.view.active{display:block;padding:10px 12px;
-  height:calc(100dvh - 44px);height:calc(100vh - 44px);
+.view.active{display:block;padding:12px 14px;
+  height:calc(100dvh - 52px);height:calc(100vh - 52px);
   overflow-y:auto;overflow-x:hidden;}
 
+/* ── TOP CONTROLS ── */
 .top-controls{flex-shrink:0;}
-.stats-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:4px;}
-.stat-box{background:var(--sf);border:1px solid #1E2A1E;border-radius:6px;padding:4px;text-align:center;}
-.stat-val{font-family:var(--mo);font-size:16px;color:var(--yw);display:block;}
-.stat-lbl{font-size:9px;color:var(--mu);letter-spacing:1px;display:block;}
+.stats-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:5px;}
+.stat-box{background:var(--sf);border:1px solid #1E2A1E;border-radius:7px;padding:5px 4px;text-align:center;}
+.stat-val{font-family:var(--mo);font-size:20px;font-weight:bold;color:var(--yw);display:block;}
+.stat-lbl{font-size:11px;font-weight:600;color:var(--mu);letter-spacing:1px;display:block;margin-top:1px;}
 
-.ctrl-row{display:flex;gap:4px;margin-bottom:4px;}
-.ctrl-btn{flex:1;padding:5px 2px;border-radius:5px;border:1px solid #2A3A2A;
-  background:none;color:var(--mu);font-size:10px;cursor:pointer;
+.ctrl-row{display:flex;gap:5px;margin-bottom:5px;}
+.ctrl-btn{flex:1;padding:6px 2px;border-radius:6px;border:1px solid #2A3A2A;
+  background:none;color:var(--mu);font-size:12px;font-weight:600;cursor:pointer;
   transition:all .12s;font-family:var(--sa);text-align:center;line-height:1.3;}
-.ctrl-btn.active{border-color:var(--gd);color:var(--gr);background:rgba(0,255,127,.06);}
-.ctrl-btn .ci{display:block;font-size:13px;margin-bottom:1px;}
+.ctrl-btn.active{border-color:var(--gd);color:var(--gr);background:rgba(0,255,127,.08);}
+.ctrl-btn .ci{display:block;font-size:15px;margin-bottom:1px;}
 
-.settings-row{display:flex;flex-direction:column;gap:3px;margin-bottom:4px;}
-.settings-line{display:flex;gap:4px;align-items:center;flex-wrap:nowrap;}
+.settings-row{display:flex;flex-direction:column;gap:4px;margin-bottom:5px;}
+.settings-line{display:flex;gap:5px;align-items:center;flex-wrap:nowrap;}
 .sg{display:flex;gap:3px;align-items:center;}
-.slbl{font-size:9px;color:var(--mu);letter-spacing:1px;white-space:nowrap;margin-right:1px;}
-.pill{padding:3px 6px;border-radius:4px;border:1px solid #2A3A2A;
-  background:none;color:var(--mu);font-size:10px;cursor:pointer;
+.slbl{font-size:11px;font-weight:700;color:var(--mu);letter-spacing:1px;white-space:nowrap;margin-right:2px;}
+.pill{padding:4px 8px;border-radius:4px;border:1px solid #2A3A2A;
+  background:none;color:var(--mu);font-size:11px;font-weight:600;cursor:pointer;
   transition:all .12s;font-family:var(--sa);white-space:nowrap;}
-.pill.active{border-color:var(--gd);color:var(--gr);background:rgba(0,255,127,.06);}
-.vsep{width:1px;background:#2A3A2A;align-self:stretch;margin:0 2px;}
+.pill.active{border-color:var(--gd);color:var(--gr);background:rgba(0,255,127,.08);}
+.vsep{width:1px;background:#2A3A2A;align-self:stretch;margin:0 3px;}
 
-.timer-area{flex-shrink:0;margin-bottom:3px;display:none;}
-.timer-top{display:flex;align-items:baseline;justify-content:center;gap:4px;}
-.timer-num{font-family:var(--mo);font-size:26px;color:var(--or);}
+/* ── TIMER ── */
+.timer-area{flex-shrink:0;margin-bottom:4px;display:none;}
+.timer-top{display:flex;align-items:baseline;justify-content:center;gap:5px;}
+.timer-num{font-family:var(--mo);font-size:30px;font-weight:bold;color:var(--or);}
 .timer-num.danger{color:var(--rd);animation:pulse .5s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-.timer-lbl{font-size:10px;color:var(--mu);}
-.timer-bar{height:3px;background:var(--s2);border-radius:2px;overflow:hidden;margin-top:2px;}
+.timer-lbl{font-size:13px;color:var(--mu);}
+.timer-bar{height:4px;background:var(--s2);border-radius:2px;overflow:hidden;margin-top:2px;}
 .timer-fill{height:100%;background:var(--or);transition:width .1s linear;border-radius:2px;}
 .timer-fill.danger{background:var(--rd);}
 
+/* ── BOARD AREA ── */
 .board-area{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.score-badge{font-family:var(--mo);font-size:38px;font-weight:bold;color:var(--yw);line-height:1;text-align:center;flex-shrink:0;}
-.score-sub{font-size:9px;letter-spacing:2px;color:var(--mu);text-align:center;margin-bottom:3px;flex-shrink:0;}
+.score-badge{font-family:var(--mo);font-size:42px;font-weight:bold;color:var(--yw);line-height:1;text-align:center;flex-shrink:0;}
+.score-sub{font-size:11px;font-weight:600;letter-spacing:2px;color:var(--mu);text-align:center;margin-bottom:3px;flex-shrink:0;}
 
 .board-wrap{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;padding:0 6px;}
 .board-wrap svg{width:min(calc(100% - 4px),100%);height:100%;max-width:310px;max-height:310px;
@@ -87,103 +102,113 @@ header{border-bottom:1px solid #1E2A1E;padding:7px 12px;
 @keyframes segFlash{0%{opacity:1}40%{opacity:.15}100%{opacity:1}}
 .seg-flash{animation:segFlash .2s ease-out;}
 
+/* ── TA RESULT ── */
 .ta-result{display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center;gap:10px;}
 .ta-result.show{display:flex;}
-.ta-score-big{font-family:var(--mo);font-size:68px;color:var(--yw);line-height:1;}
-.ta-lbl{font-size:11px;letter-spacing:3px;color:var(--mu);}
+.ta-score-big{font-family:var(--mo);font-size:72px;font-weight:bold;color:var(--yw);line-height:1;}
+.ta-lbl{font-size:13px;font-weight:600;letter-spacing:3px;color:var(--mu);}
 .ta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:240px;}
 .ta-cell{background:var(--sf);border:1px solid #1E2A1E;border-radius:7px;padding:10px;}
-.ta-cv{font-family:var(--mo);font-size:20px;color:var(--wh);display:block;}
-.ta-cl{font-size:10px;color:var(--mu);letter-spacing:1px;}
+.ta-cv{font-family:var(--mo);font-size:22px;font-weight:bold;color:var(--wh);display:block;}
+.ta-cl{font-size:11px;font-weight:600;color:var(--mu);letter-spacing:1px;}
 
+/* ── BOTTOM PANEL ── */
 .bottom-panel{flex-shrink:0;}
-.throw-counter{text-align:center;font-size:10px;color:var(--mu);letter-spacing:1px;margin-bottom:2px;}
-.throw-log{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;min-height:26px;margin-bottom:3px;}
-.tchip{background:var(--s2);border:1px solid #2A3A2A;border-radius:4px;
-  padding:3px 8px;font-family:var(--mo);font-size:12px;color:var(--wh);
-  display:flex;align-items:center;gap:3px;}
+.throw-counter{text-align:center;font-size:12px;font-weight:600;color:var(--mu);letter-spacing:1px;margin-bottom:3px;}
+.throw-log{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;min-height:28px;margin-bottom:4px;}
+.tchip{background:var(--s2);border:1px solid #2A3A2A;border-radius:5px;
+  padding:4px 10px;font-family:var(--mo);font-size:13px;font-weight:bold;color:var(--wh);
+  display:flex;align-items:center;gap:4px;}
 .tchip.hit{border-color:var(--gd);color:var(--gr);}
 .tchip.miss{border-color:var(--rd);color:var(--rd);}
-/* △ partial — same numbers, different order */
 .tchip.partial{border-color:var(--or);color:var(--or);}
 
-.result-banner{border-radius:6px;padding:6px 10px;font-size:11px;
-  margin-bottom:3px;display:none;align-items:flex-start;gap:6px;}
+.result-banner{border-radius:6px;padding:7px 11px;font-size:12px;font-weight:600;
+  margin-bottom:4px;display:none;align-items:flex-start;gap:7px;}
 .result-banner.show{display:flex;}
 .result-banner.correct{background:rgba(0,255,127,.1);border:1px solid var(--gd);color:var(--gr);}
 .result-banner.wrong{background:rgba(255,68,68,.08);border:1px solid #662222;color:var(--rd);}
 .result-banner.partial{background:rgba(255,140,0,.08);border:1px solid #885500;color:var(--or);}
 
-.theory-toggle{display:flex;align-items:center;gap:5px;cursor:pointer;
-  font-size:10px;color:var(--mu);margin-bottom:2px;user-select:none;}
-.theory-toggle input{accent-color:var(--gr);width:12px;height:12px;cursor:pointer;}
+.theory-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;
+  font-size:12px;font-weight:600;color:var(--mu);margin-bottom:3px;user-select:none;}
+.theory-toggle input{accent-color:var(--gr);width:14px;height:14px;cursor:pointer;}
 
 .theory-panel{background:#0F1A0F;border:1px solid #1E3A1E;border-radius:6px;
-  padding:6px 9px;margin-bottom:3px;font-size:11px;line-height:1.65;
+  padding:7px 10px;margin-bottom:4px;font-size:12px;line-height:1.7;
   color:#8AB890;display:none;max-height:90px;overflow-y:auto;}
 .theory-panel.show{display:block;}
-.tpt{font-size:9px;letter-spacing:3px;color:var(--gd);margin-bottom:4px;display:flex;align-items:center;gap:4px;}
-.tpt::before{content:'';display:inline-block;width:4px;height:4px;background:var(--gd);border-radius:50%;}
-.tsec strong{color:var(--wh);font-family:var(--mo);}
+.tpt{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--gd);margin-bottom:4px;display:flex;align-items:center;gap:4px;}
+.tpt::before{content:'';display:inline-block;width:5px;height:5px;background:var(--gd);border-radius:50%;}
+.tsec strong{color:var(--wh);font-family:var(--mo);font-size:12px;}
 .miss-case{background:rgba(255,68,68,.07);border-left:2px solid #662222;
-  padding:3px 7px;border-radius:0 3px 3px 0;margin-top:3px;font-size:10px;color:#CC8888;}
+  padding:4px 8px;border-radius:0 3px 3px 0;margin-top:4px;font-size:11px;color:#CC8888;}
 .order-note{background:rgba(255,140,0,.07);border-left:2px solid #885500;
-  padding:3px 7px;border-radius:0 3px 3px 0;margin-top:3px;font-size:10px;color:#DDAA66;}
+  padding:4px 8px;border-radius:0 3px 3px 0;margin-top:4px;font-size:11px;color:#DDAA66;}
 
-.btn-row{display:flex;gap:6px;}
-.btn{flex:1;padding:9px;border-radius:6px;border:none;font-size:11px;
-  letter-spacing:1px;cursor:pointer;font-family:var(--sa);font-weight:600;transition:all .12s;}
+.btn-row{display:flex;gap:7px;}
+.btn{flex:1;padding:11px;border-radius:7px;border:none;font-size:13px;font-weight:700;
+  letter-spacing:1px;cursor:pointer;font-family:var(--sa);transition:all .12s;}
 .btn-primary{background:var(--gr);color:#0D1117;}
 .btn-secondary{background:var(--s2);color:var(--mu);border:1px solid #2A3A2A;}
 .btn-orange{background:var(--or);color:#0D1117;}
 
-
-
-.filter-row{display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap;}
-.filter-chip{background:none;border:1px solid #2A3A2A;color:var(--mu);font-size:11px;
-  padding:4px 10px;border-radius:20px;cursor:pointer;letter-spacing:1px;}
-.filter-chip.active{border-color:var(--gd);color:var(--gr);background:rgba(0,255,127,.06);}
-.arr-table{display:flex;flex-direction:column;gap:3px;}
-.arr-row{background:var(--sf);border:1px solid #1E2A1E;border-radius:6px;
-  padding:8px 11px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:border-color .12s;}
+/* ── TABLE ── */
+.filter-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.filter-chip{background:none;border:1px solid #2A3A2A;color:var(--mu);font-size:12px;font-weight:600;
+  padding:5px 12px;border-radius:20px;cursor:pointer;letter-spacing:1px;}
+.filter-chip.active{border-color:var(--gd);color:var(--gr);background:rgba(0,255,127,.08);}
+.arr-table{display:flex;flex-direction:column;gap:4px;}
+.arr-row{background:var(--sf);border:1px solid #1E2A1E;border-radius:7px;
+  padding:10px 13px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .12s;}
 .arr-row:hover{border-color:var(--gd);}
-.ar-s{font-family:var(--mo);font-size:16px;color:var(--yw);width:34px;text-align:right;flex-shrink:0;}
-.ar-t{flex:1;font-size:12px;color:var(--wh);}
-.ar-t small{color:var(--mu);font-size:10px;display:block;margin-top:1px;line-height:1.4;}
-.ar-tag{font-size:9px;letter-spacing:1px;padding:2px 5px;border-radius:3px;
+.ar-s{font-family:var(--mo);font-size:19px;font-weight:bold;color:var(--yw);width:36px;text-align:right;flex-shrink:0;}
+.ar-t{flex:1;font-size:13px;font-weight:600;color:var(--wh);}
+.ar-t small{color:var(--mu);font-size:11px;display:block;margin-top:2px;line-height:1.4;}
+.ar-tag{font-size:10px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:3px;
   background:var(--s2);color:var(--mu);flex-shrink:0;}
 .ar-tag.bull{background:rgba(245,230,66,.1);color:var(--yw);}
 .ar-tag.double{background:rgba(0,255,127,.07);color:var(--gd);}
 .ar-tag.key{background:rgba(255,140,0,.12);color:var(--or);}
 .arr-det{display:none;background:#0F1A0F;border:1px solid #1E3A1E;border-top:none;
-  padding:8px 11px;font-size:11px;color:#8AB890;line-height:1.8;border-radius:0 0 6px 6px;}
+  padding:10px 13px;font-size:12px;color:#8AB890;line-height:1.8;border-radius:0 0 7px 7px;}
 .arr-det.open{display:block;}
 .arr-det strong{color:var(--wh);font-family:var(--mo);}
-.arr-det .miss{color:#CC8888;font-size:10px;border-left:2px solid #442222;padding-left:6px;margin-top:4px;display:block;}
+.arr-det .miss{color:#CC8888;font-size:11px;border-left:2px solid #442222;padding-left:7px;margin-top:5px;display:block;}
 
-.hist-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.hist-ttl{font-size:11px;letter-spacing:3px;color:var(--mu);}
-.clr-btn{background:none;border:1px solid #2A3A2A;color:var(--mu);font-size:11px;padding:4px 9px;border-radius:4px;cursor:pointer;}
+/* ── HISTORY ── */
+.hist-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.hist-ttl{font-size:13px;font-weight:700;letter-spacing:3px;color:var(--mu);}
+.clr-btn{background:none;border:1px solid #2A3A2A;color:var(--mu);font-size:12px;font-weight:600;padding:5px 11px;border-radius:5px;cursor:pointer;}
 .clr-btn:hover{color:var(--rd);border-color:#662222;}
-.hist-list{display:flex;flex-direction:column;gap:4px;}
-.hist-item{background:var(--sf);border:1px solid #1E2A1E;border-radius:6px;padding:7px 11px;display:flex;align-items:center;gap:9px;}
-.hi-s{font-family:var(--mo);font-size:17px;color:var(--yw);width:38px;flex-shrink:0;}
-.hi-a{flex:1;font-size:11px;color:var(--wh);}
-.hi-a small{color:var(--mu);font-size:10px;display:block;}
-.hi-r{font-size:10px;letter-spacing:1px;padding:2px 7px;border-radius:3px;flex-shrink:0;}
+.hist-list{display:flex;flex-direction:column;gap:5px;}
+.hist-item{background:var(--sf);border:1px solid #1E2A1E;border-radius:7px;padding:9px 13px;display:flex;align-items:center;gap:10px;}
+.hi-s{font-family:var(--mo);font-size:19px;font-weight:bold;color:var(--yw);width:40px;flex-shrink:0;}
+.hi-a{flex:1;font-size:13px;font-weight:600;color:var(--wh);}
+.hi-a small{color:var(--mu);font-size:11px;display:block;}
+.hi-r{font-size:11px;font-weight:700;letter-spacing:1px;padding:3px 9px;border-radius:4px;flex-shrink:0;}
 .hi-r.ok{background:rgba(0,255,127,.1);color:var(--gr);}
 .hi-r.ng{background:rgba(255,68,68,.1);color:var(--rd);}
 .hi-r.half{background:rgba(255,140,0,.15);color:var(--or);}
 .hi-r.ta{background:rgba(255,140,0,.15);color:var(--or);}
-.empty-state{text-align:center;padding:40px 20px;color:var(--mu);font-size:12px;line-height:2.2;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--mu);font-size:13px;line-height:2.2;}
 
-
+/* ── PWA INSTALL BANNER ── */
+.install-banner{background:var(--sf);border-top:1px solid #1E2A1E;
+  padding:8px 14px;padding-bottom:calc(8px + var(--sb));
+  display:none;align-items:center;gap:9px;flex-shrink:0;}
+.install-banner.show{display:flex;}
+.install-txt{flex:1;font-size:12px;font-weight:600;color:var(--mu);line-height:1.5;}
+.install-txt b{color:var(--wh);}
+.install-btn{background:var(--gr);color:#0D1117;border:none;border-radius:6px;
+  padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;}
+.install-close{background:none;border:none;color:var(--mu);cursor:pointer;font-size:18px;padding:2px 5px;}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">CHECKOUT <span>//</span> MASTER</div>
+  <div class="logo">CHECKOUT MASTER</div>
   <nav class="nav-tabs">
     <button class="nav-tab active" onclick="switchView('training',this)">練習</button>
     <button class="nav-tab" onclick="switchView('table',this)">表</button>
@@ -311,7 +336,16 @@ header{border-bottom:1px solid #1E2A1E;padding:7px 12px;
 //  PHOENIX BOARD
 // ═══════════════════════════════════════════
 const CX=200,CY=200;
-const R={bi:18,bo:40,ti:105,to:133,di:166,do_:194};
+// タップしやすさ優先の半径設定
+// Bull内: 広め, アウターブル: 広め, トリプル: 広め, ダブル: 広め
+const R={
+  bi:26,   // インナーブル (実機比約1.5倍)
+  bo:52,   // アウターブル (実機比約1.5倍)
+  ti:98,   // トリプル内縁
+  to:132,  // トリプル外縁 (幅34→実機の約1.8倍)
+  di:158,  // ダブル内縁
+  do_:194  // ダブル外縁 (幅36→実機の約1.8倍)
+};
 const SECTORS=[20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
 const N=20,DEG=18;
 const PHX={
@@ -337,6 +371,7 @@ function arc(r1,r2,a1,a2){
 function mkPath(svg,label,val,d,fill,ev){
   const p=document.createElementNS(ns,'path');
   p.setAttribute('d',d);p.setAttribute('fill',fill);
+  p.setAttribute('data-orig-fill',fill); // ハイライト解除時の元色
   p.setAttribute('stroke',PHX.wire);p.setAttribute('stroke-width','0.4');
   p.setAttribute('data-seg',label);p.setAttribute('data-val',val);
   if(ev){p.style.cursor='pointer';p.addEventListener('click',()=>onTap(label,val));}
@@ -360,11 +395,12 @@ function buildBoard(){
   }
   // アウターブル (S25) — 赤
   mkPath(svg,'S25',25,arc(R.bi,R.bo,0,359.99),PHX.bull_out_fill,true);
-  // インナーブル (Bull) — 黒
+  // インナーブル (Bull) — 完全な黒、明示的に固定
   const bi=document.createElementNS(ns,'circle');
   bi.setAttribute('cx',CX);bi.setAttribute('cy',CY);bi.setAttribute('r',R.bi);
-  bi.setAttribute('fill',PHX.bull_in_fill);
-  bi.setAttribute('stroke',PHX.wire);bi.setAttribute('stroke-width','0.8');
+  bi.setAttribute('fill','#0A0A0A');
+  bi.setAttribute('data-orig-fill','#0A0A0A'); // clearHL用に元色を保持
+  bi.setAttribute('stroke','#6A6050');bi.setAttribute('stroke-width','1.2');
   bi.setAttribute('data-seg','Bull');bi.setAttribute('data-val','50');
   bi.style.cursor='pointer';bi.addEventListener('click',()=>onTap('Bull',50));
   svg.appendChild(bi);
@@ -392,10 +428,19 @@ function buildBoard(){
   }
 }
 let _hl=[];
-function clearHL(){_hl.forEach(({el,f})=>el.setAttribute('fill',f));_hl=[];}
+function clearHL(){
+  _hl.forEach(({el,f})=>{
+    // data-orig-fill が設定されている要素（インナーブル）はそちらを優先
+    const orig=el.getAttribute('data-orig-fill');
+    el.setAttribute('fill', orig||f);
+  });
+  _hl=[];
+}
 function hlSeg(label,color){
   document.querySelectorAll(`[data-seg="${label}"]`).forEach(el=>{
-    _hl.push({el,f:el.getAttribute('fill')});el.setAttribute('fill',color);
+    const orig=el.getAttribute('data-orig-fill');
+    _hl.push({el,f:orig||el.getAttribute('fill')});
+    el.setAttribute('fill',color);
   });
 }
 function flashSeg(label){
@@ -985,123 +1030,171 @@ const ARRANGES=[
    miss:'D1外れS1(1点)→残り1=上がり不可（次のラウンドも上がり不可が続く）。'},
 ];
 // ═══════════════════════════════════════════
-//  PHOENIX SOUND ENGINE
-//  Web Audio API でPhoenix実機風サウンドを合成
-//  ゾーン別: Single / Double / Triple / OuterBull(S25) / InnerBull
+//  PHOENIX SOUND ENGINE v2
+//  Phoenix実機イメージ:
+//    Single  = 「トゥン」     短く軽いヒット音
+//    Double  = 「トゥトゥーン」 2音符+余韻
+//    Triple  = 「トゥトゥトゥーン」 3音符+余韻
+//    OutBull = 「ドゥーン！」  重低音+迫力
+//    InBull  = 「ドゥドゥーン！」 超迫力、2段階爆発
 // ═══════════════════════════════════════════
-const SND = {
-  ctx: null,
-  enabled: true,
+const SND={
+  enabled:true,
+  _ac:null,
 
-  _ctx(){
-    if(!this.ctx) this.ctx = new (window.AudioContext||window.webkitAudioContext)();
-    // resume on user interaction (iOS対応)
-    if(this.ctx.state==='suspended') this.ctx.resume();
-    return this.ctx;
+  _getAC(){
+    if(!this._ac) this._ac=new(window.AudioContext||window.webkitAudioContext)();
+    if(this._ac.state==='suspended') this._ac.resume();
+    return this._ac;
   },
 
-  // 基本波形生成
-  _tone(freq, type, vol, dur, ac){
-    const osc = ac.createOscillator();
-    const gain = ac.createGain();
+  // 基本トーン: 「トゥ」の1音
+  // freq=周波数, vol=音量, dur=長さ, attack=立ち上がり, startTime=開始時刻
+  _tu(freq, vol, dur, attack, startTime){
+    const ac=this._getAC();
+    const t=startTime||ac.currentTime;
+    const osc=ac.createOscillator();
+    const gain=ac.createGain();
+    const filter=ac.createBiquadFilter();
+    filter.type='bandpass'; filter.frequency.value=freq*1.2; filter.Q.value=2;
+    osc.connect(filter); filter.connect(gain); gain.connect(ac.destination);
+    osc.type='triangle'; osc.frequency.setValueAtTime(freq*1.1,t);
+    osc.frequency.exponentialRampToValueAtTime(freq*0.95,t+dur*0.3);
+    gain.gain.setValueAtTime(0.001,t);
+    gain.gain.linearRampToValueAtTime(vol,t+attack);
+    gain.gain.setValueAtTime(vol,t+attack);
+    gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.start(t); osc.stop(t+dur+0.05);
+  },
+
+  // ノイズヒット: インパクト感
+  _hit(vol, dur, freq, startTime){
+    const ac=this._getAC();
+    const t=startTime||ac.currentTime;
+    const bufLen=Math.ceil(ac.sampleRate*dur);
+    const buf=ac.createBuffer(1,bufLen,ac.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<bufLen;i++) data[i]=(Math.random()*2-1);
+    const src=ac.createBufferSource(); src.buffer=buf;
+    const gain=ac.createGain();
+    const f=ac.createBiquadFilter(); f.type='bandpass';
+    f.frequency.value=freq||1200; f.Q.value=1.5;
+    src.connect(f); f.connect(gain); gain.connect(ac.destination);
+    gain.gain.setValueAtTime(vol,t);
+    gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    src.start(t); src.stop(t+dur+0.02);
+  },
+
+  // 低音ブースト: Bull用の迫力低音
+  _boom(freq, vol, dur, startTime){
+    const ac=this._getAC();
+    const t=startTime||ac.currentTime;
+    const osc=ac.createOscillator();
+    const gain=ac.createGain();
+    osc.type='sine'; osc.frequency.setValueAtTime(freq,t);
+    osc.frequency.exponentialRampToValueAtTime(freq*0.5,t+dur);
     osc.connect(gain); gain.connect(ac.destination);
-    osc.type = type; osc.frequency.value = freq;
-    gain.gain.setValueAtTime(vol, ac.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur);
-    osc.start(ac.currentTime);
-    osc.stop(ac.currentTime + dur);
+    gain.gain.setValueAtTime(vol,t);
+    gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.start(t); osc.stop(t+dur+0.05);
   },
 
-  // ノイズバースト（インパクト感用）
-  _noise(vol, dur, ac){
-    const buf = ac.createBuffer(1, ac.sampleRate * dur, ac.sampleRate);
-    const data = buf.getChannelData(0);
-    for(let i=0;i<data.length;i++) data[i]=(Math.random()*2-1);
-    const src = ac.createBufferSource();
-    src.buffer = buf;
-    const gain = ac.createGain();
-    const filt = ac.createBiquadFilter();
-    filt.type = 'bandpass'; filt.frequency.value = 2000; filt.Q.value = 0.8;
-    src.connect(filt); filt.connect(gain); gain.connect(ac.destination);
-    gain.gain.setValueAtTime(vol, ac.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur);
-    src.start(ac.currentTime);
-    src.stop(ac.currentTime + dur);
-  },
-
-  // ── SINGLE ── コツン、短めのアタック音
+  // ── SINGLE: 「トゥン」1音 ──
   single(){
-    if(!this.enabled) return;
+    if(!this.enabled)return;
     try{
-      const ac = this._ctx();
-      this._noise(0.18, 0.08, ac);
-      this._tone(320, 'triangle', 0.12, 0.10, ac);
+      const ac=this._getAC(); const t=ac.currentTime;
+      this._hit(0.15, 0.06, 1800, t);
+      this._tu(520, 0.10, 0.12, 0.005, t);
     }catch(e){}
   },
 
-  // ── DOUBLE ── ガッ、やや高め・明確なダブルリング音
+  // ── DOUBLE: 「トゥトゥーン」2音+余韻 ──
   double(){
-    if(!this.enabled) return;
+    if(!this.enabled)return;
     try{
-      const ac = this._ctx();
-      this._noise(0.25, 0.12, ac);
-      this._tone(520, 'square', 0.08, 0.14, ac);
-      this._tone(780, 'sine', 0.06, 0.18, ac);
+      const ac=this._getAC(); const t=ac.currentTime;
+      const gap=0.10; // 2音の間隔
+      // 1音目「トゥ」
+      this._hit(0.18, 0.05, 1600, t);
+      this._tu(620, 0.12, 0.10, 0.005, t);
+      // 2音目「トゥーン」(少し高め、長め)
+      this._hit(0.20, 0.07, 1800, t+gap);
+      this._tu(780, 0.15, 0.20, 0.005, t+gap);
+      // 余韻
+      this._tu(780*0.5, 0.04, 0.18, 0.01, t+gap+0.10);
     }catch(e){}
   },
 
-  // ── TRIPLE ── ガキッ、鋭いメタリックな音
+  // ── TRIPLE: 「トゥトゥトゥーン」3音+余韻 ──
   triple(){
-    if(!this.enabled) return;
+    if(!this.enabled)return;
     try{
-      const ac = this._ctx();
-      this._noise(0.30, 0.10, ac);
-      this._tone(880, 'sawtooth', 0.10, 0.08, ac);
-      this._tone(660, 'square',   0.08, 0.14, ac);
-      this._tone(1100,'sine',     0.05, 0.10, ac);
+      const ac=this._getAC(); const t=ac.currentTime;
+      const gap=0.09;
+      // 1音目「トゥ」
+      this._hit(0.18, 0.05, 1400, t);
+      this._tu(580, 0.11, 0.09, 0.005, t);
+      // 2音目「トゥ」
+      this._hit(0.20, 0.05, 1600, t+gap);
+      this._tu(700, 0.12, 0.09, 0.005, t+gap);
+      // 3音目「トゥーン」(高め、長め)
+      this._hit(0.24, 0.07, 1900, t+gap*2);
+      this._tu(880, 0.16, 0.22, 0.005, t+gap*2);
+      // 余韻(きらめき感)
+      this._tu(880*0.5, 0.05, 0.20, 0.01, t+gap*2+0.12);
+      this._tu(880*1.5, 0.03, 0.15, 0.01, t+gap*2+0.08);
     }catch(e){}
   },
 
-  // ── OUTER BULL (S25) ── ポン、柔らかめの中音
+  // ── OUTER BULL: 「ドゥーン！」重低音+迫力 ──
   outerBull(){
-    if(!this.enabled) return;
+    if(!this.enabled)return;
     try{
-      const ac = this._ctx();
-      this._noise(0.20, 0.10, ac);
-      this._tone(440, 'sine',     0.15, 0.20, ac);
-      this._tone(550, 'triangle', 0.08, 0.18, ac);
+      const ac=this._getAC(); const t=ac.currentTime;
+      // 重いインパクトノイズ
+      this._hit(0.40, 0.12, 300, t);
+      this._hit(0.25, 0.18, 1200, t);
+      // 重低音「ドゥ」
+      this._boom(80, 0.35, 0.35, t);
+      this._boom(120, 0.20, 0.30, t);
+      // 「ーン」余韻
+      this._tu(220, 0.18, 0.40, 0.02, t+0.05);
+      this._tu(180, 0.10, 0.50, 0.04, t+0.08);
     }catch(e){}
   },
 
-  // ── INNER BULL (Bull/50点) ── ドスッ＋高音ピン、Phoenixの華やかなブル音
+  // ── INNER BULL: 「ドゥドゥーン！！」超迫力2段階 ──
   innerBull(){
-    if(!this.enabled) return;
+    if(!this.enabled)return;
     try{
-      const ac = this._ctx();
-      // 低いインパクト
-      this._noise(0.35, 0.15, ac);
-      // 基音
-      this._tone(220, 'sine',     0.18, 0.30, ac);
-      // 輝き成分
-      this._tone(880, 'sine',     0.12, 0.25, ac);
-      this._tone(1320,'sine',     0.07, 0.20, ac);
-      // Phoenix的な上昇アルペジオ
-      const ac2 = this._ctx();
-      setTimeout(()=>{
-        try{
-          this._tone(660, 'sine', 0.10, 0.15, this._ctx());
-          setTimeout(()=>this._tone(990, 'sine', 0.08, 0.15, this._ctx()), 80);
-          setTimeout(()=>this._tone(1320,'sine', 0.06, 0.20, this._ctx()), 160);
-        }catch(e){}
-      }, 60);
+      const ac=this._getAC(); const t=ac.currentTime;
+      // 第1爆発「ドゥ」
+      this._hit(0.50, 0.10, 200, t);
+      this._hit(0.30, 0.14, 800, t);
+      this._boom(60, 0.45, 0.25, t);
+      this._boom(100, 0.30, 0.20, t);
+      this._tu(200, 0.20, 0.18, 0.01, t);
+
+      // 第2爆発「ドゥーン！！」(0.12秒後)
+      const t2=t+0.12;
+      this._hit(0.55, 0.14, 250, t2);
+      this._hit(0.35, 0.18, 1000, t2);
+      this._boom(55, 0.50, 0.45, t2);
+      this._boom(90, 0.35, 0.38, t2);
+      this._tu(160, 0.25, 0.55, 0.015, t2);
+
+      // 高音輝き(華やかさ追加)
+      this._tu(660, 0.12, 0.25, 0.02, t2+0.05);
+      this._tu(990, 0.08, 0.20, 0.02, t2+0.12);
+      this._tu(1320,0.05, 0.18, 0.02, t2+0.20);
     }catch(e){}
   },
 
-  // タップラベルからゾーンを判定して再生
   play(label){
-    if(!this.enabled) return;
-    if(label==='Bull')       this.innerBull();
-    else if(label==='S25')   this.outerBull();
+    if(!this.enabled)return;
+    if(label==='Bull')           this.innerBull();
+    else if(label==='S25')       this.outerBull();
     else if(label.startsWith('T')) this.triple();
     else if(label.startsWith('D')) this.double();
     else                           this.single();
@@ -1109,9 +1202,8 @@ const SND = {
 };
 
 function toggleSound(on){
-  SND.enabled = on;
-  // AudioContext を事前に初期化（iOS対応:ユーザー操作タイミングで作成）
-  if(on) try{ SND._ctx(); }catch(e){}
+  SND.enabled=on;
+  if(on)try{SND._getAC();}catch(e){}
 }
 
 // ═══════════════════════════════════════════
@@ -1131,24 +1223,58 @@ function getThrows(a){
   return ST.bullMode==='sep'?a.sep:a.fat;
 }
 
-// オープンアウト：最後の手がDxxならSxxも正解とみなす
+// ── オープンアウト正解判定 ──
+// オープンアウトルール:
+//   ① 途中の本数が正解と同じ
+//   ② 最後の1手が「同点で上がれる別表現」であれば◯
+//      - DxxならSxx（シングル）も上がり可 ← ダブルのシングル代替
+//      - スコア≤20 かつ 最後がSxx（シングル）ならそれ自体で上がり可
+//      - Bull(50)ならS25(25)は不可（点数が違う）
+//      - マスターアウトでは最後がDxx/Txx/Bullのみ上がり
 function isOpenOutCorrect(input, correct){
   if(input.length!==correct.length) return false;
+  // 途中の本(最後以外)は全て一致必須
   for(let i=0;i<correct.length-1;i++){
     if(input[i]!==correct[i]) return false;
   }
   const last=correct[correct.length-1];
   const inLast=input[input.length-1];
-  if(inLast===last) return true;
-  // DxxならSxxも可
+  if(inLast===last) return true; // 完全一致
+
+  // ── オープンアウト固有の許容 ──
+
+  // DxxのシングルSxx代替（例: 正解D16→S16も可）
   if(last.startsWith('D')){
-    const num=last.slice(1);
+    const num=parseInt(last.slice(1));
     if(inLast===`S${num}`) return true;
+    // さらにTxx（3本上がりで1本余剰にTripleを使う場合）は不可（点数違う）
   }
-  // Bull/S25の相互
-  if(last==='Bull'&&inLast==='S25') return true;
-  if(last==='S25'&&inLast==='Bull') return true;
+
+  // Txx(3×n)のSxx代替: オープンアウトではTxxもシングルアウト可
+  // ただしTxxで上がれるのはマスターアウトのみ（Tは1本でフィニッシュ可）
+  // オープンアウトではTxxはそのまま上がれる(既に一致チェック済)
+  // → Txx→Sxx代替は意味なし（Txx入れば上がれる）
+
+  // シングル(Sxx / 素の数字)で上がれるか: スコアがその点数以下
+  // 例えばスコア=17のとき: 正解はS17だが入力がS17はexact一致で処理済
+  // オープンアウトなので「正解がDxxで入力がSxx(同じ数字)」以外に
+  // 「正解がS17で入力もS17」もexact一致。
+  // 問題は「正解D16→S16」「正解Bull→S25」など
+
+  // Bullの場合: Bull(50点)とS25(25点)は点数が違うので代替不可
+  // ただしオープンアウトでS25で上がる = 25点丁度ならS25でアウト
+  // 本アプリのArrangeはBull=50点前提なので代替させない
+
   return false;
+}
+
+// ── オープンアウトにおける「出題」スロー数の決定 ──
+// オープンアウトモードでは最後の手がDxxの場合、Sxxでも上がれる。
+// 問題の正解はマスターアウト準拠で持つが、表示・採点時にオープンを考慮。
+// また、オープンアウト専用の「最短アレンジ」を返す関数も用意。
+function getOpenThrows(a){
+  // 基本はfat/sepと同じだが、最後がDxxの場合Sxxでも上がり可能を明示
+  return getThrows(a);
 }
 
 function getPool(){
@@ -1206,15 +1332,15 @@ function onTap(label,val){
   if(ST.input.length>=throws.length)setTimeout(checkAnswer,200);
 }
 
-function renderLog(){
+function renderLog(overallOk, openOk){
   const q=ST.current,throws=q?getThrows(q):[];
   const log=document.getElementById('throw-log'),ctr=document.getElementById('throw-counter');
   const maxT=throws.length,rem=maxT-ST.input.length;
-  let cls_func=(t,i)=>{
+  const cls_func=(t,i)=>{
     if(!ST.answered)return'tchip';
+    if(overallOk)return'tchip hit'; // 全体正解なら全部緑
     const ok=t===throws[i];
     if(ok)return'tchip hit';
-    // partial: same element exists in correct at different position
     if(checkOrder(ST.input,throws))return'tchip partial';
     return'tchip miss';
   };
@@ -1233,8 +1359,61 @@ function checkAnswer(){
   ST.answered=true;
   const q=ST.current,correct=getThrows(q),input=ST.input;
   const exactOk=JSON.stringify(input)===JSON.stringify(correct);
-  // オープンアウトモードでは最終手がSxx→Dxxの代替を許容
-  const openOk=!exactOk&&ST.outMode==='open'&&isOpenOutCorrect(input,correct);
+
+  // ── オープンアウト判定 ──
+  // 最後の手についてオープンアウト特有の許容:
+  //   ① 正解がDxxで入力がSxx(同数) → ◯
+  //   ② 正解がSxxで入力がSxx(同数) → exactOkで処理済
+  //   ③ スコア≤20 かつ 入力最後がSxx(そのスコア) → ◯  ← シングルアウト
+  //   ④ スコア=25 かつ 入力最後がS25 → ◯
+  //   ⑤ スコア=50 かつ 入力最後がBull → exactOkで処理済
+  const openOk=!exactOk&&ST.outMode==='open'&&(()=>{
+    // 途中の本が一致しているか確認
+    if(input.length!==correct.length) return false;
+    for(let i=0;i<correct.length-1;i++){
+      if(input[i]!==correct[i]) return false;
+    }
+    const last=correct[correct.length-1];
+    const inLast=input[input.length-1];
+    // ①: DxxのシングルSxx代替
+    if(last.startsWith('D')){
+      const num=parseInt(last.slice(1));
+      if(inLast===`S${num}`) return true;
+    }
+    // ③: スコア≤20でシングルフィニッシュ（1本上がりの場合のみ）
+    if(correct.length===1&&q.score<=20){
+      if(inLast===`S${q.score}`) return true;
+    }
+    // ③': 最後の1手がシングルで残り点数=その数値（多本アレンジの最後）
+    if(inLast.startsWith('S')){
+      const sVal=parseInt(inLast.slice(1));
+      // 最後の手だけの残り点数を計算
+      const prevSum=input.slice(0,-1).reduce((a,t)=>{
+        if(t==='Bull')return a+50;
+        if(t==='S25')return a+25;
+        if(t.startsWith('T'))return a+parseInt(t.slice(1))*3;
+        if(t.startsWith('D'))return a+parseInt(t.slice(1))*2;
+        if(t.startsWith('S'))return a+parseInt(t.slice(1));
+        return a;
+      },0);
+      const remaining=q.score-prevSum;
+      if(remaining===sVal&&remaining<=20) return true;
+    }
+    // ④: S25(25点)フィニッシュ
+    if(inLast==='S25'){
+      const prevSum=input.slice(0,-1).reduce((a,t)=>{
+        if(t==='Bull')return a+50;
+        if(t==='S25')return a+25;
+        if(t.startsWith('T'))return a+parseInt(t.slice(1))*3;
+        if(t.startsWith('D'))return a+parseInt(t.slice(1))*2;
+        if(t.startsWith('S'))return a+parseInt(t.slice(1));
+        return a;
+      },0);
+      if(q.score-prevSum===25) return true;
+    }
+    return false;
+  })();
+
   const ok=exactOk||openOk;
   const partial=!ok&&checkOrder(input,correct);
 
@@ -1242,7 +1421,7 @@ function checkAnswer(){
   if(ok){
     correct.forEach(s=>hlSeg(s,PHX.sel_ok));
   } else if(partial){
-    correct.forEach(s=>hlSeg(s,PHX.sel_or)); // orange for partial
+    correct.forEach(s=>hlSeg(s,PHX.sel_or));
   } else {
     correct.forEach(s=>hlSeg(s,PHX.sel_ok));
     input.forEach((s,i)=>{if(s!==correct[i])hlSeg(s,PHX.sel_ng);});
@@ -1261,7 +1440,9 @@ function checkAnswer(){
   if(ok){
     ban.className='result-banner show correct';
     document.getElementById('result-icon').textContent='✓';
-    document.getElementById('result-text').textContent='正解！ '+(q.theory||'').substring(0,50);
+    // オープンアウトでシングルで上がった場合の補足
+    const openMsg=(openOk&&!exactOk)?' (オープンアウト: シングル上がり◯)':'';
+    document.getElementById('result-text').textContent='正解！'+openMsg+' '+(q.theory||'').substring(0,45);
   } else if(partial){
     ban.className='result-banner show partial';
     document.getElementById('result-icon').textContent='△';
@@ -1272,8 +1453,8 @@ function checkAnswer(){
     document.getElementById('result-text').textContent='不正解。正解：'+correct.join(' → ');
   }
 
-  renderLog();
-  renderTheory(q,partial);
+  renderLog(ok,openOk);
+  renderTheory(q,partial,openOk);
   document.getElementById('theory-panel').classList.add('show');
   updateStats();
   document.getElementById('btn-hint').style.display='none';
@@ -1290,8 +1471,8 @@ function nextQuestion(){
   document.getElementById('btn-hint').style.display='';
   document.getElementById('theory-panel').classList.remove('show');
   renderLog();
-  if(ST.mode==='study'){renderTheory(ST.current,false);document.getElementById('theory-panel').classList.add('show');}
-  else if(ST.showTheory){renderTheory(ST.current,false);document.getElementById('theory-panel').classList.add('show');}
+  if(ST.mode==='study'){renderTheory(ST.current,false,false);document.getElementById('theory-panel').classList.add('show');}
+  else if(ST.showTheory){renderTheory(ST.current,false,false);document.getElementById('theory-panel').classList.add('show');}
 }
 
 function showAnswer(){
@@ -1304,20 +1485,53 @@ function showAnswer(){
   ban.className='result-banner show wrong';
   document.getElementById('result-icon').textContent='📖';
   document.getElementById('result-text').textContent='答え確認：'+correct.join(' → ');
-  renderTheory(q,false);document.getElementById('theory-panel').classList.add('show');
+  renderTheory(q,false,false);document.getElementById('theory-panel').classList.add('show');
   document.getElementById('btn-hint').style.display='none';
   updateStats();
 }
 
-function renderTheory(q,isPartial){
+function renderTheory(q,isPartial,isOpenOk){
+  const isOpen=ST.outMode==='open';
   let h='';
-  if(q.theory)h+=`<div class="tsec"><strong>■ セオリー</strong><br>${q.theory}</div>`;
-  if(isPartial&&q.order)h+=`<div class="order-note"><b>▲ 順序について：</b>${q.order}</div>`;
+
+  // ── セオリー(モード別) ──
+  if(q.theory_open&&isOpen){
+    h+=`<div class="tsec"><strong>■ セオリー [OPEN OUT]</strong><br>${q.theory_open}</div>`;
+  } else if(q.theory){
+    h+=`<div class="tsec"><strong>■ セオリー${isOpen?' [OPEN OUT対応]':''}</strong><br>${q.theory}</div>`;
+  }
+
+  // ── オープンアウト補足 ──
+  if(isOpen){
+    const last=getThrows(q).slice(-1)[0]||'';
+    if(last.startsWith('D')){
+      const num=last.slice(1);
+      h+=`<div class="order-note"><b>🔓 OPEN OUT：</b>最後の${last}はS${num}（シングル${num}）でも上がり可能。</div>`;
+    } else if(last.startsWith('S')||(!last.startsWith('T')&&!last.startsWith('D')&&last!=='Bull')){
+      // シングルで終わる場合はそのまま
+    }
+    if(q.score<=20){
+      h+=`<div class="order-note"><b>🔓 OPEN OUT：</b>残り${q.score}点→S${q.score}（シングル1本）でも上がり可能。</div>`;
+    }
+    if(isOpenOk&&!isPartial){
+      h+=`<div class="order-note" style="color:var(--gr);border-color:var(--gd);"><b>✓ シングルアウト成功！</b>オープンアウトルール適用。</div>`;
+    }
+  }
+
+  // ── 順序説明 ──
+  if(isPartial&&q.order){
+    h+=`<div class="order-note"><b>▲ 順序について：</b>${q.order}</div>`;
+  }
+  if(!isPartial&&q.order&&ST.mode==='study'){
+    h+=`<div class="order-note"><b>▲ 順序の理由：</b>${q.order}</div>`;
+  }
+
+  // ── ミス時の対策 ──
   if(q.miss&&q.miss.length>2){
     const missHtml=q.miss.replace(/\n/g,'<br>');
     h+=`<div class="tsec"><strong>■ ミス時の対策</strong><div class="miss-case">${missHtml}</div></div>`;
   }
-  if(!isPartial&&q.order&&ST.mode==='study')h+=`<div class="order-note"><b>▲ 順序の理由：</b>${q.order}</div>`;
+
   document.getElementById('theory-content').innerHTML=h||'詳細情報なし';
 }
 
