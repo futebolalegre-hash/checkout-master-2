@@ -159,6 +159,7 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
       <button class="ctrl-btn active" onclick="setMode(this,'quiz')"><span class="ci">🎯</span>QUIZ</button>
       <button class="ctrl-btn" onclick="setMode(this,'timeattack')"><span class="ci">⏱</span>TIME ATTACK</button>
       <button class="ctrl-btn" onclick="setMode(this,'study')"><span class="ci">📖</span>STUDY</button>
+      <button class="ctrl-btn" onclick="setMode(this,'weak')"><span class="ci">🔥</span>苦手TOP10</button>
     </div>
     <div class="settings-row">
       <div class="settings-line">
@@ -193,6 +194,32 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
     <div class="timer-bar"><div class="timer-fill" id="timer-bar" style="width:100%"></div></div>
   </div>
 
+  <!-- 苦手TOP10 モード専用パネル -->
+  <div id="weak-panel" style="display:none;flex-shrink:0;">
+    <div id="weak-header" style="
+      background:rgba(255,77,140,0.08);border:1px solid rgba(255,77,140,0.3);
+      border-radius:8px;padding:8px 12px;margin-bottom:5px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-size:12px;font-weight:700;color:var(--pk);letter-spacing:2px;">🔥 苦手 TOP10 モード</span>
+        <span id="weak-progress" style="font-size:11px;color:var(--mu);font-family:var(--mo);">0/10</span>
+      </div>
+      <div id="weak-list" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+    </div>
+  </div>
+
+  <!-- 苦手データ不足パネル -->
+  <div id="weak-empty" style="display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:20px;">
+    <div style="font-size:36px;">📊</div>
+    <div style="font-size:15px;font-weight:700;color:var(--wh);">データが足りません</div>
+    <div style="font-size:12px;color:var(--mu);line-height:1.8;max-width:260px;">
+      苦手TOP10を表示するには、<br>
+      QUIZモードで<strong style="color:var(--wh);">10問以上</strong>誤回答する必要があります。<br><br>
+      まずQUIZモードで練習してみましょう！
+    </div>
+    <div id="weak-current-count" style="font-size:12px;color:var(--or);"></div>
+    <button class="btn btn-primary" onclick="setMode(document.querySelector('.ctrl-btn'),\'quiz\')" style="width:140px;margin-top:4px;">QUIZ を始める</button>
+  </div>
+
   <div class="board-area" id="board-area">
     <div class="score-badge" id="current-score">—</div>
     <div class="score-sub">REMAINING</div>
@@ -202,13 +229,17 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
   </div>
 
   <div class="ta-result" id="ta-result">
+    <div id="ta-rank-badge" style="font-size:28px;font-weight:900;letter-spacing:2px;margin-bottom:2px;"></div>
+    <div id="ta-rank-label" style="font-size:12px;color:var(--mu);letter-spacing:2px;margin-bottom:8px;"></div>
     <div class="ta-score-big" id="ta-final-score">0</div>
     <div class="ta-lbl">CORRECT ANSWERS</div>
-    <div class="ta-grid">
+    <div class="ta-grid" style="grid-template-columns:1fr 1fr 1fr;max-width:300px;">
       <div class="ta-cell"><span class="ta-cv" id="ta-bd-total">0</span><span class="ta-cl">TOTAL</span></div>
-      <div class="ta-cell"><span class="ta-cv" id="ta-bd-rate">—</span><span class="ta-cl">RATE</span></div>
+      <div class="ta-cv-cell ta-cell"><span class="ta-cv" id="ta-bd-rate">—</span><span class="ta-cl">RATE</span></div>
+      <div class="ta-cell"><span class="ta-cv" id="ta-bd-speed">—</span><span class="ta-cl">SEC/問</span></div>
     </div>
-    <button class="btn btn-orange" onclick="startTimeAttack()" style="width:130px;margin-top:4px;">もう一度</button>
+    <div id="ta-rank-comment" style="font-size:12px;color:var(--mu);text-align:center;max-width:280px;line-height:1.6;margin-top:4px;padding:0 8px;"></div>
+    <button class="btn btn-orange" onclick="startTimeAttack()" style="width:130px;margin-top:8px;">もう一度</button>
   </div>
 
   <div class="bottom-panel">
@@ -360,50 +391,160 @@ function flashSeg(label){
 //  ARRANGE DATA (Compressed to fit within tokens beautifully)
 // ═══════════════════════════════════════════
 const ARRANGES=[
-  {score:170,fat:['T20','T20','Bull'],sep:['T20','T20','Bull'],tags:['bull','high'],order:'T20×2の後Bullへ。最後Bull移行が安定。',theory:'最高アレンジ。世界で唯一の完璧な3本フィニッシュ。',miss:'1本目T20外れS20→残り150=Bull→Bull→Bull。'},
-  {score:168,fat:['T20','T19','T17'],sep:['T20','T19','T17'],tags:['high'],theory:'T20(60)+T19(57)+T17(51)=168。T20→T19→T17。クリケットナンバーの王道ルート。',miss:'T19外れS19→残り89、T17外れS17→残り34=D17。'},
-  {score:167,fat:['Bull','T19','T20'],sep:['Bull','T19','T20'],tags:['bull','high'],order:'Bullから近くのT19へ流れる視線移動の自然なルート。',theory:'Bull→T19→T20。最初に難関のBullを1発クリアして精神を整える。',miss:'Bull外れS18→残り149=T20→T13→Bull。'},
-  {score:165,fat:['T20','T17','T18'],sep:['T20','T17','T18'],tags:['high'],theory:'T20(60)+T17(51)+T18(54)=165。左右移動なく、リズムよく振れる組合せ。'},
-  {score:164,fat:['Bull','T19','T19'],sep:['Bull','T19','T19'],tags:['bull','high'],theory:'Bull→T19×2。同じ場所に2本投げるためリズム維持。',miss:'Bull外れS18→残り146=T19→T19→D8。'},
-  {score:161,fat:['Bull','T17','T20'],sep:['Bull','T17','T20'],tags:['bull','high'],theory:'Bull→T17→T20。T17により安定したスコアメイク。'},
-  {score:160,fat:['Bull','Bull','T20'],sep:['Bull','Bull','T20'],tags:['bull','high'],theory:'Bull×2→T20。Bull連続狙いで腕を固定するイメージ。'},
-  {score:158,fat:['Bull','T18','T18'],sep:['Bull','T18','T18'],tags:['bull','high'],theory:'Bull→T18×2。T18(盤面右下)への流れ。'},
-  {score:157,fat:['Bull','Bull','T19'],sep:['Bull','Bull','T19'],tags:['bull','high'],theory:'Bull×2→T19。最後10時方向のトリプル。'},
-  {score:156,fat:['T20','T20','D18'],sep:['T20','T20','D18'],tags:['double','high'],theory:'T20×2→D18。ダブルアウト・セパ共通で最も好まれる高確率ルート。',miss:'D18外れS18→残り18=D9。'},
-  {score:155,fat:['T20','T15','Bull'],sep:['T20','T15','Bull'],tags:['bull','high'],theory:'T20(60)+T15(45)+Bull(50)=155。T20→T15→Bull。',miss:'T15外れS15→残り80=T16→D16（32残し）。'},
-  {score:154,fat:['Bull','Bull','T18'],sep:['Bull','Bull','T18'],tags:['bull','high'],theory:'Bull×2→T18。50+50+54=154。'},
-  {score:152,fat:['Bull','T17','T17'],sep:['Bull','T17','T17'],tags:['bull','high'],theory:'Bull→T17×2。命中させやすい盤面左端の9時クリケット。'},
-  {score:150,fat:['Bull','Bull','Bull'],sep:['Bull','Bull','Bull'],tags:['bull','high'],theory:'唯一Bull3本のみで完結可能な、美しき夢のアカデミックなフィニッシュ。'},
-  {score:144,fat:['T20','T20','D12'],sep:['T20','T20','D12'],tags:['double','high'],theory:'T20(60)×2+D12(24)=144。T20→T20→D12。'},
-  {score:141,fat:['Bull','T17','D20'],sep:['Bull','T17','D20'],tags:['bull','double','key'],theory:'【重要】Bull→T17→D20。9ダーツ等のプロ中継でも超頻出。T17が鍵。',miss:'Bull外れS18→残り123=T19→D12。'},
-  {score:140,fat:['T20','T20','D10'],sep:['T20','T20','D10'],tags:['double','high'],theory:'T20(60)×2+D10(20)=140。T20→T20→D10。'},
-  {score:139,fat:['T19','Bull','D16'],sep:['T19','Bull','D16'],tags:['bull','double'],theory:'T19(57)→Bull(50)→D16(32)。D16（ザンニ32）直行へアジャスト。'},
-  {score:136,fat:['T20','T20','D8'],sep:['T20','T20','D8'],tags:['double','high'],theory:'T20×2+D8(16)=136。D8はD16-D4へと続く強烈な偶数連鎖起点。'},
-  {score:132,fat:['Bull','Bull','D16'],sep:['Bull','Bull','D16'],tags:['bull','double','key'],theory:'【重要】Bull×2→D16。100点削ってD16(32点残し)にぴったり持っていく王道アレンジ。'},
-  {score:131,fat:['T17','T16','D16'],sep:['T17','T16','D16'],tags:['double','key'],theory:'T17→T16→D16。クリケット領域の移動だけで全て完結する非常に洗練された流れ。'},
-  {score:120,fat:['T20','T20'],sep:['T20','T20'],tags:['double','key'],theory:'【重要】T20×2=120。2本で上がれる最高点。無駄のない最強のショートアウト。'},
-  {score:110,fat:['Bull','T20'],sep:['Bull','T20'],tags:['bull','key'],theory:'【重要】Bull→T20。マスターアウト定番のハーフウェイ2本上がり。',miss:'Bull外れS18→残り92=T20→D16。'},
-  {score:100,fat:['Bull','Bull'],sep:['Bull','Bull'],tags:['bull','key'],theory:'【重要】Bull×2=100。実機対戦で決まると極めて爽快な100点フィニッシュ。'},
-  {score:99,fat:['T17','T16'],sep:['T17','T16'],tags:['double','key'],theory:'T17→T16（51+48）の2本上がり。万が一S17に外れても残り82で次の1本をBullへ立て直せる。'},
-  {score:98,fat:['Bull','T16'],sep:['Bull','T16'],tags:['bull','key'],theory:'【重要】Bull(50)+T16(48)=98。T16が外れS16となっても残り32=D16(最強のザンニ)になる最強セーフティ構造。'},
-  {score:97,fat:['T19','D20'],sep:['T19','D20'],tags:['double','key'],theory:'T19(57)→D20(40)。右上の最大ダブルエリアを使用。'},
-  {score:96,fat:['T20','D18'],sep:['T20','D18'],tags:['double','key'],theory:'T20(60)→D18(36)。20ラインの縦のブレから隣接のD18に逃げやすい。'},
-  {score:92,fat:['T20','D16'],sep:['T20','D16'],tags:['double','key'],theory:'【重要】T20(60)+D16(32)=92。マスター・オープンを問わず、最後が超優良ダブルのD16（32残し）で完結する鉄板。'},
-  {score:90,fat:['Bull','D20'],sep:['Bull','D20'],tags:['bull','double','key'],theory:'【重要】Bull(50)→D20(40)。Bullの中心からまっすぐ上に引き抜くだけで20に入れる完璧な縦軸。'},
-  {score:83,fat:['T17','D16'],sep:['T17','D16'],tags:['double','key'],theory:'【重要】T17(51)+D16(32)=83。左側のクリケットナンバーからD16に持ち込む大人気アレンジ。'},
-  {score:82,fat:['Bull','D16'],sep:['Bull','D16'],tags:['bull','double','key'],theory:'【重要】Bull(50)→D16(32)。D16直行のためにBullを先に当てる合理性。'},
-  {score:80,fat:['T16','D16'],sep:['T16','D16'],tags:['double','key'],theory:'【重要】T16(48)+D16(32)=80。32(ザンニ)残しのために、最初から16領域だけを見つめる究極の練習。'},
-  {score:71,fat:['T13','D16'],sep:['T13','D16'],tags:['double','key'],theory:'T13(39)→D16(32)。T13外れS13時でも、残り58=S8→Bullと、リカバリー手段が非常に豊富。'},
-  {score:70,fat:['S20','Bull'],sep:['S20','Bull'],tags:['bull','key'],theory:'【重要】S20(20)→Bull(50)。12時のS20から手首をそっと少し下げれば、真っ直ぐBullに吸い込まれる。'},
-  {score:60,fat:['T20'],sep:['T20'],tags:['key'],theory:'T20(60)の1本フィニッシュ。プロが数え切れないほど撃ち抜いてきた最重要ターゲット。'},
-  {score:50,fat:['Bull'],sep:['Bull'],tags:['bull','key'],theory:'【重要】Bull一本上がり。最大スコア50を一撃で仕留める瞬間。'},
-  {score:49,fat:['S17','D16'],sep:['S17','D16'],tags:['double','key'],theory:'【重要】S17(17)→D16(32)。49点という一見中途半端な点数を、S17経由で最強のD16に変えるプロお墨付きの技。'},
-  {score:40,fat:['D20'],sep:['D20'],tags:['double','key'],theory:'【重要】D20一本上がり。通称トップ(Top)。盤面最上部、最も狙い慣れた縦のリリースが生きる。'},
-  {score:36,fat:['D18'],sep:['D18'],tags:['double','key'],theory:'【重要】D18一本上がり。D20の隣にあり、右利きユーザーにとって最も自然に腕を伸ばせる理想のダブル。'},
-  {score:32,fat:['D16'],sep:['D16'],tags:['double','key'],theory:'【最重要】D16(ザンニ)一本上がり。外れても16→8→4→2→1と、偶数ダブルの連鎖でどこまでもバーストせずリカバリーできる最高にして最後の砦。'},
-  {score:16,fat:['D8'],sep:['D8'],tags:['double','key'],theory:'【重要】D8一本上がり。D16がハーフ(半分)になって降りてきた2段目の偶数セーフティ。'},
-  {score:2,fat:['D1'],sep:['D1'],tags:['double','key'],theory:'D1(数字の2)一本上がり。すべての数字を通過して最後に辿り着く、究極の緊張感を伴うダブル。'},
+  // ─── 高得点3本アレンジ ───
+  {score:170,fat:['T20','T20','Bull'],sep:['T20','T20','Bull'],tags:['bull','high'],
+   order:'T20×2後にBull。同一エリア→Bullの流れが最も自然。',
+   theory:'最高アレンジ。T20(12時真上)×2→Bull(中央)。世界で唯一の完璧な170フィニッシュ。T20を2本確実に当ててからBullで締める。',
+   miss:'T20外れS20(20点)→残り150=Bull→Bull→Bull。'},
+  {score:168,fat:['T20','T19','T17'],sep:['T20','T19','T17'],tags:['high'],
+   theory:'T20(60)+T19(57)+T17(51)=168。T20(12時)→T19(7時方向/左下)→T17(6時方向/真下付近)。クリケットナンバーを3本連続で狙う高難度アレンジ。',
+   miss:'T19外れS19→残り89=T19→D16。T17外れS17→残り34=D17。'},
+  {score:167,fat:['Bull','T19','T20'],sep:['Bull','T19','T20'],tags:['bull','high'],
+   order:'Bull先行で心理的重圧を先に解消。T19(7時方向/左下)→T20(12時)と視線を右上へ移動する流れ。',
+   theory:'Bull→T19→T20。Bull(50)+T19(57)+T20(60)=167。Bullから始めることで残り117を2本で処理。T20スタートより精神的に楽。',
+   miss:'Bull外れS18→残り149=T20→T13→Bull。'},
+  {score:165,fat:['T20','T17','T18'],sep:['T20','T17','T18'],tags:['high'],
+   theory:'T20(60)+T17(51)+T18(54)=165。T20(12時)→T17(6時方向)→T18(2時)。視線の移動は大きいが、クリケットナンバーを組み合わせた安定構成。',
+   miss:'T17外れS17→残り97=T19→D20。T18外れS18→残り36=D18。'},
+  {score:164,fat:['Bull','T19','T19'],sep:['Bull','T19','T19'],tags:['bull','high'],
+   theory:'Bull(50)+T19(57)+T19(57)=164。Bull→T19(10時)×2。T19を2本連続で狙えるためリズムを保てる。',
+   miss:'Bull外れS18→残り146=T19→T19→D8。T19外れS19→残り95=T15→D20。'},
+  {score:161,fat:['Bull','T17','T20'],sep:['Bull','T17','T20'],tags:['bull','high'],
+   theory:'Bull(50)+T17(51)+T20(60)=161。Bull→T17(6時方向/真下付近)→T20(12時)。T17(6時方向/真下付近)はクリケットナンバーで精度が高い。',
+   miss:'Bull外れS18→残り143=T20→T17→D16。T17外れS17→残り94=T18→D20。'},
+  {score:160,fat:['Bull','Bull','T20'],sep:['Bull','Bull','T20'],tags:['bull','high'],
+   theory:'Bull(50)×2+T20(60)=160。Bull連続狙いで体の軸を固定し、最後T20(12時)へ上げる。',
+   miss:'1本目Bull外れS18→残り142=T20→T20→D11。2本目Bull外れS18→残り62=S12→Bull。'},
+  {score:158,fat:['Bull','T18','T18'],sep:['Bull','T18','T18'],tags:['bull','high'],
+   theory:'Bull(50)+T18(54)×2=158。T18は2時方向(右上)のクリケットナンバー。Bull→T18連続でリズムよく。',
+   miss:'T18外れS18→残り50=Bull(1本上がり！)。'},
+  {score:157,fat:['Bull','Bull','T19'],sep:['Bull','Bull','T19'],tags:['bull','high'],
+   theory:'Bull(50)×2+T19(57)=157。Bull×2で100点を先取し、最後T19(7時方向/左下)で締める。',
+   miss:'2本目Bull外れS18→残り57=T19(1本上がり！)。'},
+  {score:156,fat:['T20','T20','D18'],sep:['T20','T20','D18'],tags:['double','high'],
+   theory:'T20(60)×2+D18(36)=156。T20(12時)×2→D18(2時右上)。ダブルアウト・セパブル共通で最も好まれる高確率フィニッシュ。D18は20の右隣のダブルエリア。',
+   miss:'T20外れS20→残り96=T20→D18(まだ同じルートで上がれる！)。D18外れS18→残り18=D9。'},
+  {score:155,fat:['T20','T15','Bull'],sep:['T20','T15','Bull'],tags:['bull','high'],
+   theory:'T20(60)+T15(45)+Bull(50)=155。T20(12時)→T15(6時半、真下付近)→Bull(中央)。T15は5時方向(右下)のクリケットナンバー。',
+   miss:'T15外れS15→残り80=T16→D16。Bull外れS25(25点)→残り25=Bull。'},
+  {score:154,fat:['Bull','Bull','T18'],sep:['Bull','Bull','T18'],tags:['bull','high'],
+   theory:'Bull(50)×2+T18(54)=154。Bull×2で100点確保後、T18(2時方向)で締め。',
+   miss:'2本目Bull外れS18→残り54=T18(1本上がり！)。'},
+  {score:152,fat:['Bull','T17','T17'],sep:['Bull','T17','T17'],tags:['bull','high'],
+   theory:'Bull(50)+T17(51)×2=152。Bull→T17(6時方向/真下付近)×2連続。T17はクリケットナンバーで命中率が高い。',
+   miss:'T17外れS17→残り85=T15→D20。'},
+  {score:150,fat:['Bull','Bull','Bull'],sep:['Bull','Bull','Bull'],tags:['bull','high'],
+   theory:'Bull(50)×3=150。全弾Bull集中の夢のフィニッシュ。実現すれば会場が沸く。',
+   miss:'3本目Bull外れS25(25点)→残り25=Bull(まだ上がれる！)。'},
+  {score:144,fat:['T20','T20','D12'],sep:['T20','T20','D12'],tags:['double','high'],
+   theory:'T20(60)×2+D12(24)=144。T20(12時)×2→D12(3時方向)。D12はD16倍数列の一つ。',
+   miss:'2本目T20外れS20→残り64=S14→Bull。D12外れS12→残り12=D6。'},
+  {score:141,fat:['Bull','T17','D20'],sep:['Bull','T17','D20'],tags:['bull','double','key'],
+   order:'BullでまずS17外れリスクを0にしてから、T17(6時方向)→D20(12時真上)。',
+   theory:'【重要】Bull(50)+T17(51)+D20(40)=141。9ダーツのハーフウェイで超頻出。T17(6時方向/真下付近)はクリケットナンバーで最も信頼できる。視線をBull→下→真上と大きく動かすが、D20(12時)は最大面積のダブル。',
+   miss:'Bull外れS18→残り123=T19→D12。T17外れS17→残り74=T14(10時方向)→D16(32残し！)。D20外れS20→残り20=D10。'},
+  {score:140,fat:['T20','T20','D10'],sep:['T20','T20','D10'],tags:['double','high'],
+   theory:'T20(60)×2+D10(20)=140。T20(12時)×2→D10(6時方向、右下)。',
+   miss:'2本目T20外れS20→残り60=T20(1本上がり！)。D10外れS10→残り10=D5。'},
+  {score:139,fat:['T19','Bull','D16'],sep:['T19','Bull','D16'],tags:['bull','double'],
+   order:'T19(10時)→Bull(中央)→D16(7〜8時(左下))と、ボード上で自然に流れる視線移動。',
+   theory:'T19(57)+Bull(50)+D16(32)=139。T19でスコアを稼いでBullで調整、D16(7〜8時方向/左下/ザンニ)でフィニッシュ。Bull外れS18でも残り50=Bull1本！',
+   miss:'T19外れS19→残り120=T20→T20(2本上がり！)。Bull外れS18→残り50=Bull(1本上がり！)。D16外れS16→残り16=D8。'},
+  {score:136,fat:['T20','T20','D8'],sep:['T20','T20','D8'],tags:['double','high'],
+   theory:'T20(60)×2+D8(16)=136。T20(12時)×2→D8(7〜8時(左下))。D8(8時半方向/左下)はD16偶数連鎖の2段目。',
+   miss:'2本目T20外れS20→残り56=S6→Bull。D8外れS8→残り8=D4。'},
+  {score:132,fat:['Bull','Bull','D16'],sep:['Bull','Bull','D16'],tags:['bull','double','key'],
+   order:'Bull×2で100点を確実に確保。残り32はD16一択でシンプル。',
+   theory:'【重要】Bull(50)×2+D16(32)=132。100点をBull×2で稼ぎ、D16(7〜8時方向/左下/ザンニ)で締める。計算がシンプルで迷いが生まれない。',
+   miss:'2本目Bull外れS18→残り64=S14→Bull。D16外れS16→残り16=D8(32残し連鎖！)。'},
+  {score:131,fat:['T17','T16','D16'],sep:['T17','T16','D16'],tags:['double','key'],
+   order:'T17(6時方向)→T16(7〜8時(左下))→D16(7〜8時(左下))。ボード左下エリアで完結する洗練されたルート。',
+   theory:'T17(51)+T16(48)+D16(32)=131。左側のクリケットエリアを縦に使うエレガントなアレンジ。T16外れS16時は残り32=D16(そのまま上がれる！)。',
+   miss:'T17外れS17→残り114=T20→T14→D6。T16外れS16→残り32=D16(絶好！)。D16外れS16→残り16=D8。'},
+  // ─── 2本アレンジ（マスターアウト定番） ───
+  {score:120,fat:['T20','T20'],sep:['T20','T20'],tags:['double','key'],
+   order:'T20(12時)を2連続。同一エリア集中で最高の2本フィニッシュ。',
+   theory:'【重要】T20(60)×2=120。2本で上がれる最高点。T20外れS20でも残り60=T20まだ上がれる。',
+   miss:'T20外れS20→残り60=T20(まだ1本！)。2本目T20外れS20→残り40=D20。'},
+  {score:110,fat:['Bull','T20'],sep:['Bull','T20'],tags:['bull','key'],
+   order:'Bull先行で50点確保。残り60=T20(12時)は最も慣れたターゲット。',
+   theory:'【重要】Bull(50)+T20(60)=110。マスターアウト定番の2本上がり。Bull外れS18でも残り92=T20→D16(32残し！)。',
+   miss:'Bull外れS18→残り92=T20→D16(32残し発動！)。T20外れS20→残り40=D20(1本上がり！)。'},
+  {score:100,fat:['Bull','Bull'],sep:['Bull','Bull'],tags:['bull','key'],
+   order:'Bull連続で100点。ファットブル時はS25×2本(25+25)でも50点だが計算注意。',
+   theory:'【重要】Bull(50)×2=100。2本Bull連続の爽快フィニッシュ。ファット:S25外れ→残り75=T17→D12。',
+   miss:'2本目Bull外れS18→残り32=D16(絶好の32残し！)。'},
+  {score:99,fat:['T17','T16'],sep:['T17','T16'],tags:['double','key'],
+   order:'T17(6時方向/真下付近)→T16(7〜8時(左下))。ボード左下エリア2本で完結する美しいアレンジ。',
+   theory:'T17(51)+T16(48)=99。S17に外れても残り82=Bull→D16でリカバリー可。',
+   miss:'T17外れS17→残り82=Bull→D16(32残し)。T16外れS16→残り33=S1→D16。'},
+  {score:98,fat:['Bull','T16'],sep:['Bull','T16'],tags:['bull','key'],
+   order:'Bull先行でT16(7〜8時(左下))に集中。T16外れS16でも残り32=D16という理想的セーフティネット。',
+   theory:'【重要】Bull(50)+T16(48)=98。T16外れS16→残り32=D16(最強のザンニ)。セーフティ構造が完璧なアレンジ。',
+   miss:'Bull外れS18→残り80=T16→D16。T16外れS16→残り32=D16(絶好！)。'},
+  {score:97,fat:['T19','D20'],sep:['T19','D20'],tags:['double','key'],
+   order:'T19(7時方向/左下)→D20(12時真上)。D20は最大ダブルで面積が最大、右利きに有利。',
+   theory:'T19(57)+D20(40)=97。T19外れS19→残り78=T18→D12で対応可。D20(12時/真上)は最大面積のダブルリング。',
+   miss:'T19外れS19→残り78=T18→D12。D20外れS20→残り17=S1→D8。'},
+  {score:96,fat:['T20','D18'],sep:['T20','D18'],tags:['double','key'],
+   order:'T20(12時)→D18(2時右上)。T20(12時)から右に視線を移してD18(2時)。同じ右上エリアで移動が少ない。',
+   theory:'T20(60)+D18(36)=96。T20外れS20→残り76=T20→D8で対応。D18は1(1時)の右隣、2時方向のダブル。',
+   miss:'T20外れS20→残り76=T20→D8。D18外れS18→残り18=D9(1本上がり！)。'},
+  {score:92,fat:['T20','D16'],sep:['T20','D16'],tags:['double','key'],
+   order:'T20(12時)→D16(7〜8時方向/左下)。T20外れS20でも残り32=D16(ザンニ)という完璧なセーフティ。',
+   theory:'【重要】T20(60)+D16(32)=92。T20外れS20→残り32→D16！セーフティ構造が最高のアレンジ。D16(7〜8時(左下))は偶数連鎖の起点。',
+   miss:'T20外れS20→残り32=D16(32残し発動！)。D16外れS16→残り16=D8(連鎖！)。'},
+  {score:90,fat:['Bull','D20'],sep:['Bull','D20'],tags:['bull','double','key'],
+   order:'Bull(中央)→D20(12時真上)。Bullから真上に引き上げるだけの縦軸一直線。',
+   theory:'【重要】Bull(50)+D20(40)=90。Bull(中央)からD20(12時/真上)は縦に一直線。自然な流れ。D20外れS20→残り20=D10。',
+   miss:'Bull外れS18→残り72=T12→D20。D20外れS20→残り20=D10(1本上がり！)。'},
+  {score:83,fat:['T17','D16'],sep:['T17','D16'],tags:['double','key'],
+   order:'T17(6時方向/真下付近)→D16(7〜8時方向/左下)。ボード左下エリアで完結する理想的コンビ。',
+   theory:'【重要】T17(51)+D16(32)=83。T17はクリケットナンバー。T17外れS17→残り32=D16(32残し発動！)という最高のセーフティ。',
+   miss:'T17外れS17→残り32=D16(絶好！32残し発動)。D16外れS16→残り16=D8。'},
+  {score:82,fat:['Bull','D16'],sep:['Bull','D16'],tags:['bull','double','key'],
+   order:'Bull(中央)でまず50点。残り32はD16(7〜8時方向/左下/ザンニ)一択でシンプル。',
+   theory:'【重要】Bull(50)+D16(32)=82。Bull外れS18→残り64=S14→Bullでリカバリー。D16は偶数連鎖の王様。',
+   miss:'Bull外れS18→残り64=S14→Bull。D16外れS16→残り16=D8(連鎖！)。'},
+  {score:80,fat:['T16','D16'],sep:['T16','D16'],tags:['double','key'],
+   order:'T16(7〜8時(左下))→D16(7〜8時(左下))。同じ方向を向いたまま力加減だけ変える究極練習。',
+   theory:'【重要】T16(48)+D16(32)=80。T16外れS16→残り32=D16(絶好！)。32残しの教科書的アレンジ。',
+   miss:'T16外れS16→残り32=D16(そのまま！32残し発動)。D16外れS16→残り16=D8。'},
+  {score:71,fat:['T13','D16'],sep:['T13','D16'],tags:['double','key'],
+   order:'T13(3時方向/右)→D16(7〜8時方向/左下)。視線移動は大きいが、D16でフィニッシュする鉄板構成。',
+   theory:'T13(39)+D16(32)=71。T13外れS13→残り58=S8→Bull、またはD16残し直行。',
+   miss:'T13外れS13→残り58=S8→Bull。D16外れS16→残り16=D8(連鎖！)。'},
+  {score:70,fat:['S20','Bull'],sep:['S20','Bull'],tags:['bull','key'],
+   order:'S20(12時真上)→Bull(中央)。真上から真ん中への縦軸一直線。視線を下げるだけ。',
+   theory:'【重要】S20(20)+Bull(50)=70。12時(真上)のS20から中央Bullへ。S20の真下がBull。S20外れT20→残り10=D5(1本上がり！)。',
+   miss:'S20外れT20(60点)→バースト注意！S20は慎重に。Bull外れS18→残り2=D1(1本上がり！)。'},
+  {score:60,fat:['T20'],sep:['T20'],tags:['key'],
+   theory:'T20(60)1本フィニッシュ。12時真上の最重要ターゲット。プロが最も投げ慣れたゾーン。T20外れS20→残り40=D20(1本上がり！)。',
+   miss:'T20外れS20→残り40=D20(1本上がり！)。'},
+  {score:50,fat:['Bull'],sep:['Bull'],tags:['bull','key'],
+   theory:'【重要】Bull(50)1本上がり。最高点を一撃で仕留める瞬間。ファット:S25外れ→残り25=Bull(アウターOK)。セパ:インナーBull限定。',
+   miss:'ファット:S25(25点)→残り25=再度Bull。セパ:S25→残り25=インナーBull必須。'},
+  {score:49,fat:['S17','D16'],sep:['S17','D16'],tags:['double','key'],
+   order:'S17(6時方向/真下付近)→D16(7〜8時方向/左下)(7〜8時方向/左下)。ボード左下エリアで完結。S17はT17の外側、力を抜いて投げる。',
+   theory:'【重要】S17(17)+D16(32)=49。S17はT17の外側なので丁寧に。S17外れT17(51点)→バースト注意！',
+   miss:'S17外れT17→バースト(51>49)！。S17外れS7→残り42=T14(1本上がり！)。D16外れS16→残り16=D8。'},
+  {score:40,fat:['D20'],sep:['D20'],tags:['double','key'],
+   theory:'【重要】D20(40)1本上がり。12時真上、最大面積のダブルリング。通称「トップ」。D20外れS20→残り20=D10(1本上がり！)。',
+   miss:'D20外れS20→残り20=D10(1本上がり！)。'},
+  {score:36,fat:['D18'],sep:['D18'],tags:['double','key'],
+   theory:'【重要】D18(36)1本上がり。D18は2時方向(右上)、20の右隣のダブル。右利きには自然に腕が伸びるエリア。D18外れS18→残り18=D9。',
+   miss:'D18外れS18→残り18=D9(1本上がり！)。'},
+  {score:32,fat:['D16'],sep:['D16'],tags:['double','key'],
+   theory:'【最重要】D16(32/ザンニ)1本上がり。7〜8時方向(左下)のダブル。外れてもD8→D4→D2→D1と偶数連鎖が続く最高の砦。',
+   miss:'D16外れS16→残り16=D8(連鎖1段目！)。D8外れS8→残り8=D4。D4外れS4→残り4=D2。D2外れS2→残り2=D1。'},
+  {score:16,fat:['D8'],sep:['D8'],tags:['double','key'],
+   theory:'【重要】D8(16)1本上がり。11時方向のダブル。D16偶数連鎖の2段目。D8外れS8→残り8=D4(連鎖継続！)。',
+   miss:'D8外れS8→残り8=D4(連鎖2段目！)。'},
+  {score:2,fat:['D1'],sep:['D1'],tags:['double','key'],
+   theory:'D1(2)1本上がり。すべての数字を通過して辿り着く究極の緊張感。ボード上の最小ダブル。',
+   miss:'D1外れS1→残り1=上がり不可。'},
 ];
+
 
 // ═══════════════════════════════════════════
 //  PHOENIX SOUND ENGINE v3 (Custom Cabinet Simulation)
@@ -513,43 +654,79 @@ try{ST.history=JSON.parse(localStorage.getItem('darts_h6')||'[]');}catch(e){}
 
 function getThrows(a){ return ST.bullMode==='sep'?a.sep:a.fat; }
 
+// ─── 点数計算ユーティリティ ───
+function segVal(label){
+  if(label==='Bull')return 50;
+  if(label==='S25')return 25;
+  if(label.startsWith('T'))return parseInt(label.slice(1),10)*3;
+  if(label.startsWith('D'))return parseInt(label.slice(1),10)*2;
+  if(label.startsWith('S'))return parseInt(label.slice(1),10);
+  return 0;
+}
+
+// ─── オープンアウト：正解判定 ───
+// オープンアウトでは最後の1手がシングルでも可。
+// 特にDxx→Sxx×2本など、本数が増えるケースもこの関数で処理。
+// input は実際に入力された本数分の配列。
+// correct は「マスターアウト基準の正解配列」。
 function isOpenOutCorrect(input, correct, currentScore){
-  if(input.length!==correct.length) return false;
-  // 最後の1手以外は完璧に一致している事
-  for(let i=0;i<correct.length-1;i++){
-    if(input[i]!==correct[i]) return false;
-  }
-  const last=correct[correct.length-1];
-  const inLast=input[input.length-1];
-  if(inLast===last) return true;
+  // ケース①: 完全一致
+  if(JSON.stringify(input)===JSON.stringify(correct)) return true;
 
-  // Dxxのシングル(Sxx代替)でオープン成立判定
-  if(last.startsWith('D')){
-    const num=parseInt(last.slice(1), 10);
-    if(inLast===`S${num}`) return true;
+  // ─ 最後の手のみ違う場合（本数同じ） ─
+  if(input.length===correct.length){
+    // 途中が一致しているか
+    for(let i=0;i<correct.length-1;i++){
+      if(input[i]!==correct[i]) return false;
+    }
+    const last=correct[correct.length-1];
+    const inLast=input[input.length-1];
+    // DxxのシングルSxx代替
+    if(last.startsWith('D')){
+      const num=parseInt(last.slice(1),10);
+      if(inLast===`S${num}`) return true;
+    }
+    // スコア<=20でシングル上がり
+    if(correct.length===1&&currentScore<=20&&inLast===`S${currentScore}`) return true;
+    // 残り点数がシングルでぴったり
+    if(inLast.startsWith('S')){
+      const sVal=parseInt(inLast.slice(1),10);
+      const prevSum=input.slice(0,-1).reduce((s,t)=>s+segVal(t),0);
+      if(currentScore-prevSum===sVal&&sVal<=20) return true;
+    }
   }
 
-  // 残り点数以下のシングル(Sxx)上がり判定 (1本上がりの場合など)
-  if(correct.length===1&&currentScore<=20){
-    if(inLast===`S${currentScore}`) return true;
-  }
-
-  // 残り1手がシングルでぴったり点数
-  if(inLast.startsWith('S')){
-    const sVal=parseInt(inLast.slice(1), 10);
-    const prevSum=input.slice(0,-1).reduce((sum, t)=>{
-      if(t==='Bull')return sum+50;
-      if(t==='S25')return sum+25;
-      if(t.startsWith('T'))return sum+parseInt(t.slice(1),10)*3;
-      if(t.startsWith('D'))return sum+parseInt(t.slice(1),10)*2;
-      if(t.startsWith('S'))return sum+parseInt(t.slice(1),10);
-      return sum;
-    }, 0);
-    const remaining=currentScore-prevSum;
-    if(remaining===sVal&&remaining<=20) return true;
+  // ─ 本数が1本多い場合: D→S×2 などのオープンアウト特有パターン ─
+  // 例: 正解D16(1本)→ 入力S16,S16(2本) のような場合
+  if(input.length===correct.length+1){
+    // 最後の正解手がDxxの場合
+    const lastCorrect=correct[correct.length-1];
+    if(lastCorrect.startsWith('D')){
+      const dNum=parseInt(lastCorrect.slice(1),10);
+      const sLabel=`S${dNum}`;
+      // 途中(correct.length-1本)が一致
+      for(let i=0;i<correct.length-1;i++){
+        if(input[i]!==correct[i]) return false;
+      }
+      // 残りの2本がS{num},S{num}
+      const last1=input[correct.length-1];
+      const last2=input[correct.length];
+      if(last1===sLabel&&last2===sLabel) return true;
+    }
   }
 
   return false;
+}
+
+// ─── オープンアウト時の最大入力本数 ───
+// マスター正解より最大1本多く受け付ける（D→S×2対応）
+function getMaxThrows(q){
+  const correct=getThrows(q);
+  if(ST.outMode==='open'){
+    const last=correct[correct.length-1];
+    if(last&&last.startsWith('D')) return correct.length+1; // S×2本を許容
+  }
+  return correct.length;
 }
 
 function getPool(){
@@ -581,14 +758,16 @@ function onTap(label,val){
   if(ST.answered)return;
   if(ST.mode==='timeattack'&&!ST.ta.active)return;
   const throws=ST.current?getThrows(ST.current):[];
-  if(ST.input.length>=throws.length)return;
+  const maxLen=ST.current?getMaxThrows(ST.current):(throws.length);
+  if(ST.input.length>=maxLen)return;
   const n=normBull(label);
   SND.play(label); flashSeg(label); ST.input.push(n); renderLog();
-  if(ST.input.length>=throws.length)setTimeout(checkAnswer,200);
+  const _maxT=ST.current?getMaxThrows(ST.current):throws.length;
+  if(ST.input.length>=_maxT)setTimeout(checkAnswer,200);
 }
 function renderLog(overallOk, openOk){
   const q=ST.current,throws=q?getThrows(q):[]; const log=document.getElementById('throw-log'),ctr=document.getElementById('throw-counter');
-  const maxT=throws.length,rem=maxT-ST.input.length;
+  const maxT=ST.current?getMaxThrows(ST.current):throws.length,rem=maxT-ST.input.length;
   const cls_func=(t,i)=>{
     if(!ST.answered)return'tchip';
     if(overallOk)return'tchip hit';
@@ -695,26 +874,89 @@ function tick(){
   el.textContent=Math.ceil(ST.ta.timeLeft); el.className='timer-num'+(ST.ta.timeLeft<=5?' danger':'');
   bar.style.width=(ST.ta.timeLeft/ST.ta.totalTime*100)+'%'; bar.className='timer-fill'+(ST.ta.timeLeft<=5?' danger':'');
 }
+function calcTARank(correct, total, timeUsed, level){
+  // ── 難易度係数 ──
+  const diffMult = level==='hard'?1.5 : level==='normal'?1.2 : 1.0;
+  // ── 正答率(%) ──
+  const rate = total>0 ? correct/total : 0;
+  // ── 速度スコア: 正答1問あたりの秒数(少ない=速い) ──
+  const speed = correct>0 ? timeUsed/correct : 999;
+  // ── 総合スコア(難易度×正答数×速度ボーナス×正答率) ──
+  const speedBonus = Math.max(0, 1 - speed/15); // 15秒/問を0基準
+  const raw = correct * diffMult * (0.5 + rate*0.5) * (1 + speedBonus);
+
+  if(total===0) return{rank:'評価するに値しないランク',color:'#4A5A4A',comment:'問題に1問も回答できませんでした。まずルールを確認してみましょう。',emoji:'💀'};
+  if(raw>=18) return{rank:'SA RANK',color:'#FF4D8C',comment:'圧倒的なスピードと正確さ。プロ並みのチェックアウト能力。世界トップクラスのアレンジ力です。',emoji:'👑'};
+  if(raw>=12) return{rank:'AA RANK',color:'#F5E642',comment:'非常に優秀。プロレベルに迫る精度とスピード。本番でも即座に対応できる実力です。',emoji:'⭐'};
+  if(raw>=8)  return{rank:'A RANK', color:'#00FF7F',comment:'高い実力の持ち主。アレンジの引き出しが豊富で、重要なフィニッシュを確実に理解しています。',emoji:'🎯'};
+  if(raw>=5)  return{rank:'BB RANK',color:'#FF8C00',comment:'平均以上の理解度。主要アレンジは把握できています。さらにスピードと精度を磨きましょう。',emoji:'🔥'};
+  if(raw>=3)  return{rank:'B RANK', color:'#88AAFF',comment:'基礎的なアレンジは理解できています。高得点帯のアレンジの練習を増やしていきましょう。',emoji:'📊'};
+  if(raw>=1)  return{rank:'C RANK', color:'#8AB890',comment:'まだ学習段階です。D16の32残し、Bullアレンジなどの基本から反復練習しましょう。',emoji:'📝'};
+  return{rank:'評価するに値しないランク',color:'#4A5A4A',comment:'継続は力なり。毎日少しずつ練習すれば必ず上達します。諦めないでください。',emoji:'💀'};
+}
+
 function showTAResult(){
-  document.getElementById('board-area').style.display='none'; document.getElementById('ta-result').classList.add('show');
-  document.getElementById('current-score').textContent='—'; document.getElementById('throw-log').innerHTML='';
-  document.getElementById('throw-counter').textContent=''; document.getElementById('main-btns').style.display='none';clearHL();
-  document.getElementById('ta-final-score').textContent=ST.ta.correct; document.getElementById('ta-bd-total').textContent=ST.ta.total;
-  const r=ST.ta.total>0?Math.round(ST.ta.correct/ST.ta.total*100)+'%':'—'; document.getElementById('ta-bd-rate').textContent=r;
-  saveHist({type:'ta',score:ST.ta.correct,label:`TA(${ST.ta.totalTime}s): ${ST.ta.correct}正解/${ST.ta.total}問 (${r})`,ts:Date.now()});
+  document.getElementById('board-area').style.display='none';
+  document.getElementById('ta-result').classList.add('show');
+  document.getElementById('current-score').textContent='—';
+  document.getElementById('throw-log').innerHTML='';
+  document.getElementById('throw-counter').textContent='';
+  document.getElementById('main-btns').style.display='none';
+  clearHL();
+
+  const correct=ST.ta.correct, total=ST.ta.total;
+  const timeUsed=ST.ta.totalTime - Math.max(0,ST.ta.timeLeft);
+  const rate=total>0?Math.round(correct/total*100)+'%':'—';
+  const speed=correct>0?(timeUsed/correct).toFixed(1):'—';
+
+  document.getElementById('ta-final-score').textContent=correct;
+  document.getElementById('ta-bd-total').textContent=total;
+  document.getElementById('ta-bd-rate').textContent=rate;
+  document.getElementById('ta-bd-speed').textContent=speed;
+
+  const rankInfo=calcTARank(correct, total, timeUsed, ST.level);
+  const badge=document.getElementById('ta-rank-badge');
+  const label=document.getElementById('ta-rank-label');
+  const comment=document.getElementById('ta-rank-comment');
+  badge.textContent=rankInfo.emoji+' '+rankInfo.rank;
+  badge.style.color=rankInfo.color;
+  badge.style.textShadow=`0 0 16px ${rankInfo.color}80`;
+  label.textContent='ARRANGE RANK';
+  comment.textContent=rankInfo.comment;
+
+  saveHist({
+    type:'ta',score:correct,
+    label:`TA(${ST.ta.totalTime}s)[${ST.level.toUpperCase()}]: ${correct}正解/${total}問 (${rate}) ${rankInfo.rank}`,
+    ts:Date.now()
+  });
 }
 function setMode(btn,mode){
   document.querySelectorAll('.ctrl-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
   if(ST.ta.timer){clearInterval(ST.ta.timer);ST.ta.timer=null;} ST.ta.active=false;ST.mode=mode;
   ST._queue=[];ST._lastScore=null;
-  const ta=mode==='timeattack'; document.getElementById('ta-timer-area').style.display=ta?'block':'none';
+
+  // 苦手モード専用UI制御
+  const isWeak = mode==='weak';
+  document.getElementById('weak-panel').style.display='none';
+  document.getElementById('weak-empty').style.display='none';
+  document.getElementById('level-group').style.display = isWeak?'none':'flex';
+
+  const ta=mode==='timeattack';
+  document.getElementById('ta-timer-area').style.display=ta?'block':'none';
   const tg=document.getElementById('ta-time-group'),vs=document.getElementById('ta-vsep');
   if(tg)tg.style.display=ta?'flex':'none';if(vs)vs.style.display=ta?'block':'none';
-  document.getElementById('ta-result').classList.remove('show'); document.getElementById('board-area').style.display='flex';
-  document.getElementById('main-btns').style.display=ta?'none':'flex'; document.getElementById('ta-start-btn').style.display=ta?'flex':'none';
-  document.getElementById('theory-toggle-label').style.display=ta?'none':'flex';
+  document.getElementById('ta-result').classList.remove('show');
+  document.getElementById('board-area').style.display= isWeak?'none':'flex';
+  document.getElementById('main-btns').style.display=(ta||isWeak)?'none':'flex';
+  document.getElementById('ta-start-btn').style.display=ta?'flex':'none';
+  document.getElementById('theory-toggle-label').style.display=(ta||isWeak)?'none':'flex';
   if(ta){document.getElementById('timer-display').textContent=ST.taTime;document.getElementById('timer-bar').style.width='100%';}
-  nextQuestion();
+
+  if(isWeak){
+    startWeakMode();
+  } else {
+    nextQuestion();
+  }
 }
 function setOutMode(btn,mode){
   document.querySelectorAll('#out-master,#out-open').forEach(b=>b.classList.remove('active'));
@@ -774,6 +1016,144 @@ function renderHistory(){
 }
 function clearHistory(){ST.history=[];try{localStorage.removeItem('darts_h6');}catch(e){}renderHistory();}
 function saveHist(e){ST.history.unshift(e);if(ST.history.length>80)ST.history.pop();try{localStorage.setItem('darts_h6',JSON.stringify(ST.history));}catch(e){}}
+
+// ═══════════════════════════════════════════
+//  苦手TOP10 モード
+// ═══════════════════════════════════════════
+
+// 履歴から誤回答の多いスコアトップ10を集計
+function getWeakTop10(){
+  // スコア別の誤回答数・正解数をカウント
+  const map = {}; // { score: {ng:0, ok:0} }
+  for(const h of ST.history){
+    if(h.type!=='quiz_ok'&&h.type!=='quiz_ng'&&h.type!=='quiz_partial') continue;
+    if(!h.score) continue;
+    if(!map[h.score]) map[h.score]={ng:0,ok:0};
+    if(h.type==='quiz_ng') map[h.score].ng++;
+    else if(h.type==='quiz_partial') map[h.score].ng++; // △も苦手にカウント
+    else map[h.score].ok++;
+  }
+  // 誤回答があるもののみ抽出し、誤回答数降順→正答率昇順でソート
+  const scored = Object.entries(map)
+    .filter(([s,v])=>v.ng>0)
+    .map(([s,v])=>{
+      const total=v.ng+v.ok;
+      const ngRate = total>0 ? v.ng/total : 0;
+      return {score:parseInt(s), ng:v.ng, ok:v.ok, total, ngRate};
+    })
+    .sort((a,b)=> b.ng!==a.ng ? b.ng-a.ng : b.ngRate-a.ngRate)
+    .slice(0,10);
+  return scored;
+}
+
+// 苦手プールをARRANGESから取得
+function getWeakPool(){
+  const top10 = getWeakTop10();
+  const scores = new Set(top10.map(x=>x.score));
+  return ARRANGES.filter(a=>{
+    const t=getThrows(a);
+    return t&&t.length>0&&scores.has(a.score);
+  });
+}
+
+// 苦手パネルのバッジ描画
+function renderWeakHeader(){
+  const top10 = getWeakTop10();
+  const list = document.getElementById('weak-list');
+  const prog = document.getElementById('weak-progress');
+  const answered = ST._weakAnswered||new Set();
+  prog.textContent = `${answered.size}/${top10.length}問クリア`;
+  list.innerHTML = top10.map(({score,ng,ok,ngRate})=>{
+    const done = answered.has(score);
+    const pct = Math.round(ngRate*100);
+    const col = pct>=70?'var(--rd)':pct>=40?'var(--or)':'var(--yw)';
+    return `<div style="
+      background:${done?'rgba(0,255,127,0.12)':'rgba(255,77,140,0.1)'};
+      border:1px solid ${done?'var(--gd)':'rgba(255,77,140,0.3)'};
+      border-radius:5px;padding:3px 7px;font-size:11px;font-weight:700;
+      color:${done?'var(--gr)':col};
+      font-family:var(--mo);
+    ">${done?'✓':''} ${score}<span style="font-size:9px;color:var(--mu);margin-left:3px;">✗${ng}</span></div>`;
+  }).join('');
+}
+
+// 苦手モード開始・次問管理
+function startWeakMode(){
+  const top10 = getWeakTop10();
+  const pool = getWeakPool();
+
+  // データ不足チェック（誤回答スコアが1つもない）
+  if(top10.length===0){
+    document.getElementById('weak-panel').style.display='none';
+    document.getElementById('weak-empty').style.display='flex';
+    document.getElementById('board-area').style.display='none';
+    document.getElementById('main-btns').style.display='none';
+    document.getElementById('ta-start-btn').style.display='none';
+    document.getElementById('theory-toggle-label').style.display='none';
+    const ngTotal = ST.history.filter(h=>h.type==='quiz_ng').length;
+    document.getElementById('weak-current-count').textContent =
+      ngTotal>0 ? `現在の誤回答数: ${ngTotal}問` : '誤回答の記録がまだありません';
+    return;
+  }
+
+  // データあり：パネル表示
+  document.getElementById('weak-empty').style.display='none';
+  document.getElementById('weak-panel').style.display='block';
+  document.getElementById('board-area').style.display='flex';
+  document.getElementById('main-btns').style.display='flex';
+
+  ST._weakAnswered = ST._weakAnswered||new Set();
+  ST._weakPool = pool;
+  // シャッフルキューを苦手プールで再構築
+  ST._queue = [...pool].sort(()=>Math.random()-0.5);
+  ST._lastScore = null;
+
+  renderWeakHeader();
+  nextQuestion();
+}
+
+// 苦手モードの正解時に記録
+function markWeakAnswered(score, ok){
+  if(!ST._weakAnswered) ST._weakAnswered=new Set();
+  if(ok) ST._weakAnswered.add(score);
+  renderWeakHeader();
+
+  // 全問クリア判定
+  const top10 = getWeakTop10();
+  const allClear = top10.every(x=>ST._weakAnswered.has(x.score));
+  if(allClear && top10.length>0){
+    setTimeout(()=>{
+      showWeakComplete(top10.length);
+    },600);
+  }
+}
+
+function showWeakComplete(count){
+  const board = document.getElementById('board-area');
+  board.innerHTML = `
+    <div style="text-align:center;padding:20px;">
+      <div style="font-size:48px;margin-bottom:8px;">🏆</div>
+      <div style="font-size:20px;font-weight:900;color:var(--pk);margin-bottom:6px;">苦手${count}問 全クリア！</div>
+      <div style="font-size:12px;color:var(--mu);line-height:1.8;margin-bottom:16px;">
+        苦手だったアレンジを全て正解しました。<br>引き続き練習を続けましょう！
+      </div>
+      <button class="btn btn-primary" onclick="restartWeakMode()" style="width:160px;margin-bottom:8px;">もう一度挑戦</button>
+    </div>`;
+}
+
+function restartWeakMode(){
+  // 回答記録リセットして再挑戦
+  ST._weakAnswered = new Set();
+  // board-areaを元に戻す
+  document.getElementById('board-area').innerHTML=`
+    <div class="score-badge" id="current-score">—</div>
+    <div class="score-sub">REMAINING</div>
+    <div class="board-wrap">
+      <svg id="dartboard" viewBox="-15 -15 430 430" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>`;
+  buildBoard();
+  startWeakMode();
+}
 
 function switchView(name,btn){
   document.getElementById('view-training').className='';
