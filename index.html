@@ -254,7 +254,10 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
         <input type="checkbox" id="theory-toggle" onchange="toggleTheory(this.checked)">解説モードON
       </label>
       <label class="theory-toggle" id="sound-toggle-label">
-        <input type="checkbox" id="sound-toggle" checked onchange="toggleSound(this.checked)">🔊 効果音ON
+        <input type="checkbox" id="sound-toggle" checked onchange="toggleSound(this.checked)">🔊 効果音
+      </label>
+      <label class="theory-toggle" id="bgm-toggle-label">
+        <input type="checkbox" id="bgm-toggle" checked onchange="toggleBGM(this.checked)">🎵 BGM
       </label>
     </div>
     <div class="theory-panel" id="theory-panel">
@@ -426,7 +429,7 @@ const ARRANGES=[
    miss:'T20外れS20→残り96=T20→D18(まだ同じルートで上がれる！)。D18外れS18→残り18=D9。'},
   {score:155,fat:['T20','T15','Bull'],sep:['T20','T15','Bull'],tags:['bull','high'],
    theory:'T20(60)+T15(45)+Bull(50)=155。T20(12時)→T15(6時半、真下付近)→Bull(中央)。T15は5時方向(右下)のクリケットナンバー。',
-   miss:'T15外れS15→残り80=T16→D16。Bull外れS25(25点)→残り25=Bull。'},
+   miss:'T15外れS15→残り80=T16→D16。【FAT】BullがS25(アウターブル/25点)→残り25=再度Bull(アウター可)。【SEP】S25着弾→残り25=インナーBull必須。'},
   {score:154,fat:['Bull','Bull','T18'],sep:['Bull','Bull','T18'],tags:['bull','high'],
    theory:'Bull(50)×2+T18(54)=154。Bull×2で100点確保後、T18(2時方向)で締め。',
    miss:'2本目Bull外れS18→残り54=T18(1本上がり！)。'},
@@ -435,7 +438,7 @@ const ARRANGES=[
    miss:'T17外れS17→残り85=T15→D20。'},
   {score:150,fat:['Bull','Bull','Bull'],sep:['Bull','Bull','Bull'],tags:['bull','high'],
    theory:'Bull(50)×3=150。全弾Bull集中の夢のフィニッシュ。実現すれば会場が沸く。',
-   miss:'3本目Bull外れS25(25点)→残り25=Bull(まだ上がれる！)。'},
+   miss:'【FAT】3本目BullがS25(25点)→残り25=再度Bull(アウター可)。【SEP】3本目BullがS25→残り25=インナーBull必須。'},
   {score:144,fat:['T20','T20','D12'],sep:['T20','T20','D12'],tags:['double','high'],
    theory:'T20(60)×2+D12(24)=144。T20(12時)×2→D12(3時方向)。D12はD16倍数列の一つ。',
    miss:'2本目T20外れS20→残り64=S14→Bull。D12外れS12→残り12=D6。'},
@@ -471,8 +474,8 @@ const ARRANGES=[
    theory:'【重要】Bull(50)+T20(60)=110。マスターアウト定番の2本上がり。Bull外れS18でも残り92=T20→D16(32残し！)。',
    miss:'Bull外れS18→残り92=T20→D16(32残し発動！)。T20外れS20→残り40=D20(1本上がり！)。'},
   {score:100,fat:['Bull','Bull'],sep:['Bull','Bull'],tags:['bull','key'],
-   order:'Bull連続で100点。ファットブル時はS25×2本(25+25)でも50点だが計算注意。',
-   theory:'【重要】Bull(50)×2=100。2本Bull連続の爽快フィニッシュ。ファット:S25外れ→残り75=T17→D12。',
+   order:'Bull連続で100点。【FAT】1本目がS25(アウターブル/25点)着弾→残り75=T17→D12等へ組み替え。【SEP】インナーBull(50点)×2本のみ有効。',
+   theory:'【重要】Bull(50)×2=100。2本Bull連続の爽快フィニッシュ。【FAT】S25(アウターブル/25点)着弾→残り75=T17→D12。【SEP】インナーBull(50点)×2本限定。',
    miss:'2本目Bull外れS18→残り32=D16(絶好の32残し！)。'},
   {score:99,fat:['T17','T16'],sep:['T17','T16'],tags:['double','key'],
    order:'T17(6時方向/真下付近)→T16(7〜8時(左下))。ボード左下エリア2本で完結する美しいアレンジ。',
@@ -522,8 +525,8 @@ const ARRANGES=[
    theory:'T20(60)1本フィニッシュ。12時真上の最重要ターゲット。プロが最も投げ慣れたゾーン。T20外れS20→残り40=D20(1本上がり！)。',
    miss:'T20外れS20→残り40=D20(1本上がり！)。'},
   {score:50,fat:['Bull'],sep:['Bull'],tags:['bull','key'],
-   theory:'【重要】Bull(50)1本上がり。最高点を一撃で仕留める瞬間。ファット:S25外れ→残り25=Bull(アウターOK)。セパ:インナーBull限定。',
-   miss:'ファット:S25(25点)→残り25=再度Bull。セパ:S25→残り25=インナーBull必須。'},
+   theory:'【重要】Bull(50点)1本上がり。最高点を一撃で仕留める瞬間。【FAT】S25(アウターブル/25点)着弾→残り25=再度Bull(アウター可)。【SEP】インナーBull(50点)限定。',
+   miss:'【FAT】S25(アウターブル/25点)着弾→残り25=再度Bull(アウターでもOK)。【SEP】S25(25点)着弾→残り25=インナーBull必須（アウターでは上がれない）。'},
   {score:49,fat:['S17','D16'],sep:['S17','D16'],tags:['double','key'],
    order:'S17(6時方向/真下付近)→D16(7〜8時方向/左下)(7〜8時方向/左下)。ボード左下エリアで完結。S17はT17の外側、力を抜いて投げる。',
    theory:'【重要】S17(17)+D16(32)=49。S17はT17の外側なので丁寧に。S17外れT17(51点)→バースト注意！',
@@ -639,6 +642,299 @@ const SND={
 };
 
 function toggleSound(on){ SND.enabled=on; if(on)try{SND._getAC();}catch(e){} }
+
+// ═══════════════════════════════════════════
+//  EDM BGM ENGINE  (タイムアタック専用)
+//  - クールなシンセEDMループ
+//  - 残り時間に応じてテンポアップ
+//  - タイムアップ時に爆発的なドーン
+// ═══════════════════════════════════════════
+const BGM = {
+  enabled: true,
+  _ac: null,
+  _nodes: [],   // 停止用ノードリスト
+  _bpmTimer: null,
+  _step: 0,
+  _bpm: 128,
+  _playing: false,
+
+  _getAC(){
+    if(!this._ac) this._ac = new(window.AudioContext||window.webkitAudioContext)();
+    if(this._ac.state==='suspended') this._ac.resume();
+    return this._ac;
+  },
+
+  // マスターゲイン（音量調整用）
+  _masterGain: null,
+  _getMaster(){
+    const ac = this._getAC();
+    if(!this._masterGain){
+      this._masterGain = ac.createGain();
+      // コンプレッサーで音割れ防止
+      const comp = ac.createDynamicsCompressor();
+      comp.threshold.value = -12;
+      comp.knee.value = 6;
+      comp.ratio.value = 4;
+      comp.attack.value = 0.003;
+      comp.release.value = 0.25;
+      this._masterGain.connect(comp);
+      comp.connect(ac.destination);
+    }
+    return this._masterGain;
+  },
+
+  // ── シンセノート1発 ──
+  _note(freq, type, vol, dur, t, detune=0){
+    try{
+      const ac=this._getAC(), master=this._getMaster();
+      const osc=ac.createOscillator();
+      const gain=ac.createGain();
+      // ローパスフィルタでEDM感
+      const lpf=ac.createBiquadFilter();
+      lpf.type='lowpass'; lpf.frequency.value=3000; lpf.Q.value=1.5;
+      osc.connect(lpf); lpf.connect(gain); gain.connect(master);
+      osc.type=type; osc.frequency.value=freq;
+      osc.detune.value=detune;
+      gain.gain.setValueAtTime(0.001,t);
+      gain.gain.linearRampToValueAtTime(vol,t+0.005);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+      osc.start(t); osc.stop(t+dur+0.05);
+      this._nodes.push(osc);
+    }catch(e){}
+  },
+
+  // ── キック（重低音ドラム） ──
+  _kick(vol, t){
+    try{
+      const ac=this._getAC(), master=this._getMaster();
+      const osc=ac.createOscillator();
+      const gain=ac.createGain();
+      osc.connect(gain); gain.connect(master);
+      osc.type='sine';
+      osc.frequency.setValueAtTime(180,t);
+      osc.frequency.exponentialRampToValueAtTime(35,t+0.12);
+      gain.gain.setValueAtTime(vol,t);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+0.25);
+      osc.start(t); osc.stop(t+0.3);
+      this._nodes.push(osc);
+      // ノイズ成分（スナッピー感）
+      const buf=ac.createBuffer(1,Math.ceil(ac.sampleRate*0.08),ac.sampleRate);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/d.length*20);
+      const src=ac.createBufferSource(); src.buffer=buf;
+      const ng=ac.createGain(); ng.gain.setValueAtTime(vol*0.4,t);
+      src.connect(ng); ng.connect(master);
+      src.start(t); src.stop(t+0.08);
+      this._nodes.push(src);
+    }catch(e){}
+  },
+
+  // ── ハイハット ──
+  _hihat(vol, t, open=false){
+    try{
+      const ac=this._getAC(), master=this._getMaster();
+      const buf=ac.createBuffer(1,Math.ceil(ac.sampleRate*(open?0.15:0.05)),ac.sampleRate);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+      const src=ac.createBufferSource(); src.buffer=buf;
+      const hpf=ac.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=7000;
+      const gain=ac.createGain();
+      src.connect(hpf); hpf.connect(gain); gain.connect(master);
+      gain.gain.setValueAtTime(vol,t);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+(open?0.15:0.05));
+      src.start(t); src.stop(t+(open?0.18:0.06));
+      this._nodes.push(src);
+    }catch(e){}
+  },
+
+  // ── スネア ──
+  _snare(vol, t){
+    try{
+      const ac=this._getAC(), master=this._getMaster();
+      const buf=ac.createBuffer(1,Math.ceil(ac.sampleRate*0.15),ac.sampleRate);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/d.length*18);
+      const src=ac.createBufferSource(); src.buffer=buf;
+      const bpf=ac.createBiquadFilter(); bpf.type='bandpass'; bpf.frequency.value=1800; bpf.Q.value=0.6;
+      const gain=ac.createGain();
+      src.connect(bpf); bpf.connect(gain); gain.connect(master);
+      gain.gain.setValueAtTime(vol,t);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+0.15);
+      src.start(t); src.stop(t+0.18);
+      this._nodes.push(src);
+    }catch(e){}
+  },
+
+  // ── ベースライン ──
+  _bass(freq, vol, dur, t){
+    this._note(freq,'sawtooth',vol*0.5,dur,t);
+    this._note(freq,'sine',vol*0.8,dur*0.6,t);
+  },
+
+  // ── EDMリード（メロディー） ──
+  // Eマイナーペンタ: E4(330),G4(392),A4(440),B4(494),D5(587)
+  _lead(freq, vol, dur, t){
+    this._note(freq,'sawtooth',vol*0.3,dur,t,0);
+    this._note(freq,'sawtooth',vol*0.2,dur,t,7);   // コーラス感
+    this._note(freq,'square',vol*0.15,dur*0.5,t,-5);
+  },
+
+  // ── 1小節(4拍)を生成 ──
+  _bar(startT, bpm, intensity){
+    const beat = 60/bpm;  // 1拍の秒数
+    const b16  = beat/4;  // 16分音符
+
+    // キックパターン (1,3拍)
+    this._kick(0.9*intensity, startT);
+    this._kick(0.9*intensity, startT + beat*2);
+
+    // スネア (2,4拍)
+    this._snare(0.7*intensity, startT + beat);
+    this._snare(0.7*intensity, startT + beat*3);
+
+    // ハイハット (8分刻み)
+    for(let i=0;i<8;i++){
+      const open = (i===3||i===7);
+      this._hihat(0.3*intensity, startT + i*beat/2, open);
+    }
+
+    // ベースライン (Eマイナー)
+    const bassNotes=[41,41,41,49, 41,41,44,46]; // E2,E2,E2,B2...
+    const bassFreqs=[82,82,82,98, 82,82,110,116];
+    bassNotes.forEach((_,i)=>{
+      this._bass(bassFreqs[i],0.6*intensity,b16*1.8,startT+i*b16);
+    });
+
+    // リードメロ (高強度時のみ)
+    if(intensity>0.5){
+      const lead=[330,0,392,0,440,392,0,330];
+      lead.forEach((f,i)=>{
+        if(f>0) this._lead(f,0.25*intensity,b16*1.6,startT+i*b16);
+      });
+    }
+
+    // パッドコード (バックグラウンド)
+    [[164,0.06],[196,0.05],[246,0.04]].forEach(([f,v])=>{
+      this._note(f,'sine',v*intensity,beat*4,startT);
+    });
+  },
+
+  // ── ループスケジューラー ──
+  _scheduleNext(){
+    if(!this._playing) return;
+    try{
+      const ac=this._getAC();
+      const bpm=this._bpm;
+      const barDur=60/bpm*4;
+      const t=Math.max(ac.currentTime+0.05, this._nextBarTime||ac.currentTime);
+      const intensity=this._intensity||0.7;
+      this._bar(t, bpm, intensity);
+      this._nextBarTime=t+barDur;
+      // 次の小節の0.1秒前にスケジュール
+      const delay=(this._nextBarTime - ac.currentTime - 0.1)*1000;
+      this._loopTimer=setTimeout(()=>this._scheduleNext(), Math.max(50,delay));
+    }catch(e){}
+  },
+
+  // ── 開始 ──
+  start(totalTime){
+    if(!this.enabled) return;
+    try{
+      this._getAC();
+      this.stop();
+      this._playing=true;
+      this._bpm=128;
+      this._intensity=0.6;
+      this._totalTime=totalTime;
+      this._startWallTime=Date.now();
+      this._nextBarTime=null;
+      this._scheduleNext();
+      // テンポ・強度を時間で更新
+      this._bpmTimer=setInterval(()=>this._updateTempo(), 500);
+    }catch(e){}
+  },
+
+  // ── テンポ更新（残り時間に応じて） ──
+  _updateTempo(){
+    if(!this._playing) return;
+    const elapsed=(Date.now()-this._startWallTime)/1000;
+    const total=this._totalTime||60;
+    const remaining=Math.max(0, total-elapsed);
+    const progress=elapsed/total; // 0→1
+
+    // BPM: 128→180にかけてアップ
+    this._bpm = 128 + Math.floor(progress*52);
+
+    // 強度: 徐々に上げる（緊迫感）
+    this._intensity = 0.6 + progress*0.35;
+
+    // マスターゲイン音量も少し上げる
+    if(this._masterGain){
+      const vol=0.7+progress*0.25;
+      try{ this._masterGain.gain.setTargetAtTime(vol,this._getAC().currentTime,0.5); }catch(e){}
+    }
+  },
+
+  // ── 停止 ──
+  stop(){
+    this._playing=false;
+    if(this._loopTimer){ clearTimeout(this._loopTimer); this._loopTimer=null; }
+    if(this._bpmTimer){ clearInterval(this._bpmTimer); this._bpmTimer=null; }
+    // 全ノードのゲインをフェードアウト
+    try{
+      if(this._masterGain&&this._ac){
+        this._masterGain.gain.setTargetAtTime(0,this._ac.currentTime,0.1);
+        setTimeout(()=>{
+          try{ this._masterGain.gain.setValueAtTime(0.7,this._ac.currentTime); }catch(e){}
+        },600);
+      }
+    }catch(e){}
+    this._nodes=[];
+    this._nextBarTime=null;
+  },
+
+  // ── タイムアップ爆発音 ──
+  timeupBoom(){
+    try{
+      const ac=this._getAC(), master=this._getMaster();
+      const t=ac.currentTime;
+
+      // 第1爆発（超重低音）
+      for(const [f,v,d] of [[40,1.2,1.5],[55,0.9,1.2],[30,1.0,1.8],[80,0.7,0.9]]){
+        const osc=ac.createOscillator(), g=ac.createGain();
+        osc.connect(g); g.connect(master);
+        osc.type='sine'; osc.frequency.setValueAtTime(f*2,t);
+        osc.frequency.exponentialRampToValueAtTime(f*0.3,t+d);
+        g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.001,t+d);
+        osc.start(t); osc.stop(t+d+0.1);
+      }
+      // ノイズ爆発
+      const bufLen=Math.ceil(ac.sampleRate*2.0);
+      const buf=ac.createBuffer(1,bufLen,ac.sampleRate);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<bufLen;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/bufLen*4);
+      const src=ac.createBufferSource(); src.buffer=buf;
+      const lpf=ac.createBiquadFilter(); lpf.type='lowpass'; lpf.frequency.value=600;
+      const g=ac.createGain(); g.gain.setValueAtTime(1.5,t); g.gain.exponentialRampToValueAtTime(0.001,t+2.0);
+      src.connect(lpf); lpf.connect(g); g.connect(master);
+      src.start(t); src.stop(t+2.1);
+      // 高音シャー（金属感）
+      const buf2=ac.createBuffer(1,Math.ceil(ac.sampleRate*0.5),ac.sampleRate);
+      const d2=buf2.getChannelData(0);
+      for(let i=0;i<d2.length;i++) d2[i]=Math.random()*2-1;
+      const src2=ac.createBufferSource(); src2.buffer=buf2;
+      const hpf=ac.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=4000;
+      const g2=ac.createGain(); g2.gain.setValueAtTime(0.8,t); g2.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+      src2.connect(hpf); hpf.connect(g2); g2.connect(master);
+      src2.start(t); src2.stop(t+0.55);
+    }catch(e){}
+  },
+};
+
+function toggleBGM(on){
+  BGM.enabled=on;
+  if(!on) BGM.stop();
+}
 
 // ═══════════════════════════════════════════
 //  GAME ENGINE
@@ -865,11 +1161,19 @@ function startTimeAttack(){
   document.getElementById('main-btns').style.display='flex'; document.getElementById('btn-hint').style.display='none';
   document.getElementById('ta-start-btn').style.display='none';
   ST.ta={active:true,timeLeft:ST.taTime,totalTime:ST.taTime,correct:0,total:0,timer:null};
-  ST.ta.timer=setInterval(tick,100); nextQuestion();
+  ST.ta.timer=setInterval(tick,100);
+  BGM.start(ST.taTime);  // BGM開始
+  nextQuestion();
 }
 function tick(){
   ST.ta.timeLeft-=0.1;
-  if(ST.ta.timeLeft<=0){ ST.ta.timeLeft=0;clearInterval(ST.ta.timer);ST.ta.timer=null;ST.ta.active=false;showTAResult(); }
+  if(ST.ta.timeLeft<=0){
+    ST.ta.timeLeft=0;
+    clearInterval(ST.ta.timer);ST.ta.timer=null;ST.ta.active=false;
+    BGM.stop();        // BGM停止
+    BGM.timeupBoom();  // タイムアップ爆発音
+    showTAResult();
+  }
   const el=document.getElementById('timer-display'),bar=document.getElementById('timer-bar');
   el.textContent=Math.ceil(ST.ta.timeLeft); el.className='timer-num'+(ST.ta.timeLeft<=5?' danger':'');
   bar.style.width=(ST.ta.timeLeft/ST.ta.totalTime*100)+'%'; bar.className='timer-fill'+(ST.ta.timeLeft<=5?' danger':'');
@@ -933,6 +1237,7 @@ function showTAResult(){
 function setMode(btn,mode){
   document.querySelectorAll('.ctrl-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
   if(ST.ta.timer){clearInterval(ST.ta.timer);ST.ta.timer=null;} ST.ta.active=false;ST.mode=mode;
+  BGM.stop(); // モード切替時BGM停止
   ST._queue=[];ST._lastScore=null;
 
   // 苦手モード専用UI制御
