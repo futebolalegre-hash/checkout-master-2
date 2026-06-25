@@ -8,7 +8,9 @@
 <meta name="apple-mobile-web-app-title" content="CheckoutMaster">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0D1117">
-<link rel="manifest" id="pwa-manifest">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon.png">
+<link rel="icon" type="image/png" href="./icon.png">
 <title>CHECKOUT MASTER</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -63,11 +65,12 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
 .board-wrap svg{width:min(calc(100% - 4px),100%);height:100%;max-width:310px;max-height:310px;display:block;overflow:visible;filter:drop-shadow(0 3px 14px rgba(0,0,0,.85));touch-action:manipulation;}
 @keyframes segFlash{0%{opacity:1}40%{opacity:.15}100%{opacity:1}}
 .seg-flash{animation:segFlash .2s ease-out;}
-.ta-result{display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center;gap:10px;}
+/* タイムアタックリザルト画面のスクロール対応化 */
+.ta-result{display:none;flex-direction:column;align-items:center;justify-content:flex-start;flex:1;text-align:center;gap:10px; padding:10px 0 20px 0; overflow-y:auto; width:100%;}
 .ta-result.show{display:flex;}
 .ta-score-big{font-family:var(--mo);font-size:72px;font-weight:bold;color:var(--yw);line-height:1;}
 .ta-lbl{font-size:13px;font-weight:600;letter-spacing:3px;color:var(--mu);}
-.ta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:240px;}
+.ta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:100%;max-width:300px;}
 .ta-cell{background:var(--sf);border:1px solid #1E2A1E;border-radius:7px;padding:10px;}
 .ta-cv{font-family:var(--mo);font-size:22px;font-weight:bold;color:var(--wh);display:block;}
 .ta-cl{font-size:11px;font-weight:600;color:var(--mu);letter-spacing:1px;}
@@ -215,7 +218,7 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
       まずQUIZモードで練習してみましょう！
     </div>
     <div id="weak-current-count" style="font-size:12px;color:var(--or);"></div>
-    <button class="btn btn-primary" onclick="setMode(document.querySelector('.ctrl-btn'),\'quiz\')" style="width:140px;margin-top:4px;">QUIZ を始める</button>
+    <button class="btn btn-primary" onclick="setMode(document.querySelector('.ctrl-btn'),'quiz')" style="width:140px;margin-top:4px;">QUIZ を始める</button>
   </div>
 
   <div class="board-area" id="board-area">
@@ -227,17 +230,20 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
   </div>
 
   <div class="ta-result" id="ta-result">
-    <div id="ta-rank-badge" style="font-size:28px;font-weight:900;letter-spacing:2px;margin-bottom:2px;"></div>
-    <div id="ta-rank-label" style="font-size:12px;color:var(--mu);letter-spacing:2px;margin-bottom:8px;"></div>
-    <div class="ta-score-big" id="ta-final-score">0</div>
-    <div class="ta-lbl">CORRECT ANSWERS</div>
-    <div class="ta-grid" style="grid-template-columns:1fr 1fr 1fr;max-width:300px;">
-      <div class="ta-cell"><span class="ta-cv" id="ta-bd-total">0</span><span class="ta-cl">TOTAL</span></div>
-      <div class="ta-cv-cell ta-cell"><span class="ta-cv" id="ta-bd-rate">—</span><span class="ta-cl">RATE</span></div>
-      <div class="ta-cell"><span class="ta-cv" id="ta-bd-speed">—</span><span class="ta-cl">SEC/問</span></div>
+    <div style="flex-shrink:0; width:100%; display:flex; flex-direction:column; align-items:center;">
+      <div id="ta-rank-badge" style="font-size:28px;font-weight:900;letter-spacing:2px;margin-bottom:2px;"></div>
+      <div id="ta-rank-label" style="font-size:12px;color:var(--mu);letter-spacing:2px;margin-bottom:8px;"></div>
+      <div class="ta-score-big" id="ta-final-score">0</div>
+      <div class="ta-lbl">CORRECT ANSWERS</div>
+      <div class="ta-grid" style="grid-template-columns:1fr 1fr 1fr;max-width:300px;margin:10px 0;">
+        <div class="ta-cell"><span class="ta-cv" id="ta-bd-total">0</span><span class="ta-cl">TOTAL</span></div>
+        <div class="ta-cv-cell ta-cell"><span class="ta-cv" id="ta-bd-rate">—</span><span class="ta-cl">RATE</span></div>
+        <div class="ta-cell"><span class="ta-cv" id="ta-bd-speed">—</span><span class="ta-cl">SEC/問</span></div>
+      </div>
+      <div id="ta-rank-comment" style="font-size:12px;color:var(--mu);text-align:center;max-width:280px;line-height:1.6;margin-top:4px;padding:0 8px;"></div>
+      <button class="btn btn-orange" onclick="startTimeAttack()" style="width:130px;margin-top:12px;margin-bottom:10px;">もう一度</button>
     </div>
-    <div id="ta-rank-comment" style="font-size:12px;color:var(--mu);text-align:center;max-width:280px;line-height:1.6;margin-top:4px;padding:0 8px;"></div>
-    <button class="btn btn-orange" onclick="startTimeAttack()" style="width:130px;margin-top:8px;">もう一度</button>
+    <div id="ta-review-list" style="width:100%; max-width:320px; padding-bottom:10px;"></div>
   </div>
 
   <div class="bottom-panel">
@@ -386,7 +392,7 @@ function flashSeg(label){
 }
 
 // ═══════════════════════════════════════════
-//  ARRANGE DATA (Refined Logic & Terminology)
+//  ARRANGE DATA 
 // ═══════════════════════════════════════════
 const ARRANGES=[
   {score:180,fat:["T20","T20","T20"],sep:["T20","T20","T20"],tags:['high','key'],
@@ -901,357 +907,14 @@ const ARRANGES=[
    miss:'D1外れS1→残り1点となりバースト扱いです(上がり目消滅)。'},
 ]
 
-
 // ═══════════════════════════════════════════
-//  PHOENIX SOUND ENGINE v3 (Custom Cabinet Simulation)
-// ═══════════════════════════════════════════
-const SND={
-  enabled:true,
-  _ac:null,
-  _getAC(){
-    if(!this._ac) this._ac=new(window.AudioContext||window.webkitAudioContext)();
-    if(this._ac.state==='suspended') this._ac.resume();
-    return this._ac;
-  },
-  _tu(freq, vol, dur, attack, startTime){
-    const ac=this._getAC(); const t=startTime||ac.currentTime;
-    const osc=ac.createOscillator(); const gain=ac.createGain();
-    const filter=ac.createBiquadFilter(); filter.type='bandpass'; filter.frequency.value=freq*1.2; filter.Q.value=2;
-    osc.connect(filter); filter.connect(gain); gain.connect(ac.destination);
-    osc.type='triangle'; osc.frequency.setValueAtTime(freq*1.1,t);
-    osc.frequency.exponentialRampToValueAtTime(freq*0.95,t+dur*0.3);
-    gain.gain.setValueAtTime(0.001,t); gain.gain.linearRampToValueAtTime(vol,t+attack);
-    gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
-    osc.start(t); osc.stop(t+dur+0.05);
-  },
-  _hit(vol, dur, freq, startTime){
-    const ac=this._getAC(); const t=startTime||ac.currentTime;
-    const bufLen=Math.ceil(ac.sampleRate*dur); const buf=ac.createBuffer(1,bufLen,ac.sampleRate);
-    const data=buf.getChannelData(0);
-    for(let i=0;i<bufLen;i++) data[i]=(Math.random()*2-1);
-    const src=ac.createBufferSource(); src.buffer=buf;
-    const gain=ac.createGain(); const f=ac.createBiquadFilter(); f.type='bandpass'; f.frequency.value=freq||1200; f.Q.value=1.5;
-    src.connect(f); f.connect(gain); gain.connect(ac.destination);
-    gain.gain.setValueAtTime(vol,t); gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
-    src.start(t); src.stop(t+dur+0.02);
-  },
-  _boom(freq, vol, dur, startTime){
-    const ac=this._getAC(); const t=startTime||ac.currentTime;
-    const osc=ac.createOscillator(); const gain=ac.createGain();
-    osc.type='sine'; osc.frequency.setValueAtTime(freq,t); osc.frequency.exponentialRampToValueAtTime(freq*0.5,t+dur);
-    osc.connect(gain); gain.connect(ac.destination);
-    gain.gain.setValueAtTime(vol,t); gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
-    osc.start(t); osc.stop(t+dur+0.05);
-  },
-  single(){
-    if(!this.enabled)return;
-    try{ const ac=this._getAC(); const t=ac.currentTime; this._hit(0.15, 0.06, 1800, t); this._tu(520, 0.10, 0.12, 0.005, t); }catch(e){}
-  },
-  double(){
-    if(!this.enabled)return;
-    try{
-      const ac=this._getAC(); const t=ac.currentTime; const gap=0.10;
-      this._hit(0.18, 0.05, 1600, t); this._tu(620, 0.12, 0.10, 0.005, t);
-      this._hit(0.20, 0.07, 1800, t+gap); this._tu(780, 0.15, 0.20, 0.005, t+gap);
-      this._tu(780*0.5, 0.04, 0.18, 0.01, t+gap+0.10);
-    }catch(e){}
-  },
-  triple(){
-    if(!this.enabled)return;
-    try{
-      const ac=this._getAC(); const t=ac.currentTime; const gap=0.09;
-      this._hit(0.18, 0.05, 1400, t); this._tu(580, 0.11, 0.09, 0.005, t);
-      this._hit(0.20, 0.05, 1600, t+gap); this._tu(700, 0.12, 0.09, 0.005, t+gap);
-      this._hit(0.24, 0.07, 1900, t+gap*2); this._tu(880, 0.16, 0.22, 0.005, t+gap*2);
-      this._tu(880*0.5, 0.05, 0.20, 0.01, t+gap*2+0.12); this._tu(880*1.5, 0.03, 0.15, 0.01, t+gap*2+0.08);
-    }catch(e){}
-  },
-  outerBull(){
-    if(!this.enabled)return;
-    try{
-      const ac=this._getAC(); const t=ac.currentTime; this._hit(0.40, 0.12, 300, t); this._hit(0.25, 0.18, 1200, t);
-      this._boom(80, 0.35, 0.35, t); this._boom(120, 0.20, 0.30, t);
-      this._tu(220, 0.18, 0.40, 0.02, t+0.05); this._tu(180, 0.10, 0.50, 0.04, t+0.08);
-    }catch(e){}
-  },
-  innerBull(){
-    if(!this.enabled)return;
-    try{
-      const ac=this._getAC(); const t=ac.currentTime;
-      this._hit(0.50, 0.10, 200, t); this._hit(0.30, 0.14, 800, t); this._boom(60, 0.45, 0.25, t); this._boom(100, 0.30, 0.20, t); this._tu(200, 0.20, 0.18, 0.01, t);
-      const t2=t+0.12;
-      this._hit(0.55, 0.14, 250, t2); this._hit(0.35, 0.18, 1000, t2); this._boom(55, 0.50, 0.45, t2); this._boom(90, 0.35, 0.38, t2); this._tu(160, 0.25, 0.55, 0.015, t2);
-      this._tu(660, 0.12, 0.25, 0.02, t2+0.05); this._tu(990, 0.08, 0.20, 0.02, t2+0.12); this._tu(1320,0.05, 0.18, 0.02, t2+0.20);
-    }catch(e){}
-  },
-  play(label){
-    if(!this.enabled)return;
-    if(label==='Bull') this.innerBull();
-    else if(label==='S25') this.outerBull();
-    else if(label.startsWith('T')) this.triple();
-    else if(label.startsWith('D')) this.double();
-    else this.single();
-  }
-};
-
-function toggleSound(on){ SND.enabled=on; if(on)try{SND._getAC();}catch(e){} }
-
-// ═══════════════════════════════════════════
-//  EDM BGM ENGINE  (タイムアタック専用)
-// ═══════════════════════════════════════════
-const BGM = {
-  enabled: true,
-  _ac: null,
-  _nodes: [],
-  _bpmTimer: null,
-  _step: 0,
-  _bpm: 128,
-  _playing: false,
-
-  _getAC(){
-    if(!this._ac) this._ac = new(window.AudioContext||window.webkitAudioContext)();
-    if(this._ac.state==='suspended') this._ac.resume();
-    return this._ac;
-  },
-
-  _masterGain: null,
-  _getMaster(){
-    const ac = this._getAC();
-    if(!this._masterGain){
-      this._masterGain = ac.createGain();
-      const comp = ac.createDynamicsCompressor();
-      comp.threshold.value = -12;
-      comp.knee.value = 6;
-      comp.ratio.value = 4;
-      comp.attack.value = 0.003;
-      comp.release.value = 0.25;
-      this._masterGain.connect(comp);
-      comp.connect(ac.destination);
-    }
-    return this._masterGain;
-  },
-
-  _note(freq, type, vol, dur, t, detune=0){
-    try{
-      const ac=this._getAC(), master=this._getMaster();
-      const osc=ac.createOscillator();
-      const gain=ac.createGain();
-      const lpf=ac.createBiquadFilter();
-      lpf.type='lowpass'; lpf.frequency.value=3000; lpf.Q.value=1.5;
-      osc.connect(lpf); lpf.connect(gain); gain.connect(master);
-      osc.type=type; osc.frequency.value=freq;
-      osc.detune.value=detune;
-      gain.gain.setValueAtTime(0.001,t);
-      gain.gain.linearRampToValueAtTime(vol,t+0.005);
-      gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
-      osc.start(t); osc.stop(t+dur+0.05);
-      this._nodes.push(osc);
-    }catch(e){}
-  },
-
-  _kick(vol, t){
-    try{
-      const ac=this._getAC(), master=this._getMaster();
-      const osc=ac.createOscillator();
-      const gain=ac.createGain();
-      osc.connect(gain); gain.connect(master);
-      osc.type='sine';
-      osc.frequency.setValueAtTime(180,t);
-      osc.frequency.exponentialRampToValueAtTime(35,t+0.12);
-      gain.gain.setValueAtTime(vol,t);
-      gain.gain.exponentialRampToValueAtTime(0.001,t+0.25);
-      osc.start(t); osc.stop(t+0.3);
-      this._nodes.push(osc);
-      const buf=ac.createBuffer(1,Math.ceil(ac.sampleRate*0.08),ac.sampleRate);
-      const d=buf.getChannelData(0);
-      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/d.length*20);
-      const src=ac.createBufferSource(); src.buffer=buf;
-      const ng=ac.createGain(); ng.gain.setValueAtTime(vol*0.4,t);
-      src.connect(ng); ng.connect(master);
-      src.start(t); src.stop(t+0.08);
-      this._nodes.push(src);
-    }catch(e){}
-  },
-
-  _hihat(vol, t, open=false){
-    try{
-      const ac=this._getAC(), master=this._getMaster();
-      const buf=ac.createBuffer(1,Math.ceil(ac.sampleRate*(open?0.15:0.05)),ac.sampleRate);
-      const d=buf.getChannelData(0);
-      for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
-      const src=ac.createBufferSource(); src.buffer=buf;
-      const hpf=ac.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=7000;
-      const gain=ac.createGain();
-      src.connect(hpf); hpf.connect(gain); gain.connect(master);
-      gain.gain.setValueAtTime(vol,t);
-      gain.gain.exponentialRampToValueAtTime(0.001,t+(open?0.15:0.05));
-      src.start(t); src.stop(t+(open?0.18:0.06));
-      this._nodes.push(src);
-    }catch(e){}
-  },
-
-  _snare(vol, t){
-    try{
-      const ac=this._getAC(), master=this._getMaster();
-      const buf=ac.createBuffer(1,Math.ceil(ac.sampleRate*0.15),ac.sampleRate);
-      const d=buf.getChannelData(0);
-      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/d.length*18);
-      const src=ac.createBufferSource(); src.buffer=buf;
-      const bpf=ac.createBiquadFilter(); bpf.type='bandpass'; bpf.frequency.value=1800; bpf.Q.value=0.6;
-      const gain=ac.createGain();
-      src.connect(bpf); bpf.connect(gain); gain.connect(master);
-      gain.gain.setValueAtTime(vol,t);
-      gain.gain.exponentialRampToValueAtTime(0.001,t+0.15);
-      src.start(t); src.stop(t+0.18);
-      this._nodes.push(src);
-    }catch(e){}
-  },
-
-  _bass(freq, vol, dur, t){
-    this._note(freq,'sawtooth',vol*0.5,dur,t);
-    this._note(freq,'sine',vol*0.8,dur*0.6,t);
-  },
-
-  _lead(freq, vol, dur, t){
-    this._note(freq,'sawtooth',vol*0.3,dur,t,0);
-    this._note(freq,'sawtooth',vol*0.2,dur,t,7);
-    this._note(freq,'square',vol*0.15,dur*0.5,t,-5);
-  },
-
-  _bar(startT, bpm, intensity){
-    const beat = 60/bpm;
-    const b16  = beat/4;
-    this._kick(0.9*intensity, startT);
-    this._kick(0.9*intensity, startT + beat*2);
-    this._snare(0.7*intensity, startT + beat);
-    this._snare(0.7*intensity, startT + beat*3);
-    for(let i=0;i<8;i++){
-      const open = (i===3||i===7);
-      this._hihat(0.3*intensity, startT + i*beat/2, open);
-    }
-    const bassNotes=[41,41,41,49, 41,41,44,46];
-    const bassFreqs=[82,82,82,98, 82,82,110,116];
-    bassNotes.forEach((_,i)=>{
-      this._bass(bassFreqs[i],0.6*intensity,b16*1.8,startT+i*b16);
-    });
-    if(intensity>0.5){
-      const lead=[330,0,392,0,440,392,0,330];
-      lead.forEach((f,i)=>{
-        if(f>0) this._lead(f,0.25*intensity,b16*1.6,startT+i*b16);
-      });
-    }
-    [[164,0.06],[196,0.05],[246,0.04]].forEach(([f,v])=>{
-      this._note(f,'sine',v*intensity,beat*4,startT);
-    });
-  },
-
-  _scheduleNext(){
-    if(!this._playing) return;
-    try{
-      const ac=this._getAC();
-      const bpm=this._bpm;
-      const barDur=60/bpm*4;
-      const t=Math.max(ac.currentTime+0.05, this._nextBarTime||ac.currentTime);
-      const intensity=this._intensity||0.7;
-      this._bar(t, bpm, intensity);
-      this._nextBarTime=t+barDur;
-      const delay=(this._nextBarTime - ac.currentTime - 0.1)*1000;
-      this._loopTimer=setTimeout(()=>this._scheduleNext(), Math.max(50,delay));
-    }catch(e){}
-  },
-
-  start(totalTime){
-    if(!this.enabled) return;
-    try{
-      this._getAC();
-      this.stop();
-      this._playing=true;
-      this._bpm=128;
-      this._intensity=0.6;
-      this._totalTime=totalTime;
-      this._startWallTime=Date.now();
-      this._nextBarTime=null;
-      this._scheduleNext();
-      this._bpmTimer=setInterval(()=>this._updateTempo(), 500);
-    }catch(e){}
-  },
-
-  _updateTempo(){
-    if(!this._playing) return;
-    const elapsed=(Date.now()-this._startWallTime)/1000;
-    const total=this._totalTime||60;
-    const remaining=Math.max(0, total-elapsed);
-    const progress=elapsed/total;
-    this._bpm = 128 + Math.floor(progress*52);
-    this._intensity = 0.6 + progress*0.35;
-    if(this._masterGain){
-      const vol=0.7+progress*0.25;
-      try{ this._masterGain.gain.setTargetAtTime(vol,this._getAC().currentTime,0.5); }catch(e){}
-    }
-  },
-
-  stop(){
-    this._playing=false;
-    if(this._loopTimer){ clearTimeout(this._loopTimer); this._loopTimer=null; }
-    if(this._bpmTimer){ clearInterval(this._bpmTimer); this._bpmTimer=null; }
-    try{
-      if(this._masterGain&&this._ac){
-        this._masterGain.gain.setTargetAtTime(0,this._ac.currentTime,0.1);
-        setTimeout(()=>{
-          try{ this._masterGain.gain.setValueAtTime(0.7,this._ac.currentTime); }catch(e){}
-        },600);
-      }
-    }catch(e){}
-    this._nodes=[];
-    this._nextBarTime=null;
-  },
-
-  timeupBoom(){
-    try{
-      const ac=this._getAC(), master=this._getMaster();
-      const t=ac.currentTime;
-      for(const [f,v,d] of [[40,1.2,1.5],[55,0.9,1.2],[30,1.0,1.8],[80,0.7,0.9]]){
-        const osc=ac.createOscillator(), g=ac.createGain();
-        osc.connect(g); g.connect(master);
-        osc.type='sine'; osc.frequency.setValueAtTime(f*2,t);
-        osc.frequency.exponentialRampToValueAtTime(f*0.3,t+d);
-        g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.001,t+d);
-        osc.start(t); osc.stop(t+d+0.1);
-      }
-      const bufLen=Math.ceil(ac.sampleRate*2.0);
-      const buf=ac.createBuffer(1,bufLen,ac.sampleRate);
-      const d=buf.getChannelData(0);
-      for(let i=0;i<bufLen;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/bufLen*4);
-      const src=ac.createBufferSource(); src.buffer=buf;
-      const lpf=ac.createBiquadFilter(); lpf.type='lowpass'; lpf.frequency.value=600;
-      const g=ac.createGain(); g.gain.setValueAtTime(1.5,t); g.gain.exponentialRampToValueAtTime(0.001,t+2.0);
-      src.connect(lpf); lpf.connect(g); g.connect(master);
-      src.start(t); src.stop(t+2.1);
-      const buf2=ac.createBuffer(1,Math.ceil(ac.sampleRate*0.5),ac.sampleRate);
-      const d2=buf2.getChannelData(0);
-      for(let i=0;i<d2.length;i++) d2[i]=Math.random()*2-1;
-      const src2=ac.createBufferSource(); src2.buffer=buf2;
-      const hpf=ac.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=4000;
-      const g2=ac.createGain(); g2.gain.setValueAtTime(0.8,t); g2.gain.exponentialRampToValueAtTime(0.001,t+0.5);
-      src2.connect(hpf); hpf.connect(g2); g2.connect(master);
-      src2.start(t); src2.stop(t+0.55);
-    }catch(e){}
-  },
-};
-
-function toggleBGM(on){
-  BGM.enabled=on;
-  if(!on) BGM.stop();
-}
-
-// ═══════════════════════════════════════════
-//  GAME ENGINE
+//  GAME ENGINE & RESULT LOGIC
 // ═══════════════════════════════════════════
 let ST={
   mode:'quiz',level:'easy',bullMode:'fat',outMode:'master',taTime:15,
   current:null,answered:false,showTheory:false,
   input:[],stats:{total:0,correct:0},history:[],
-  ta:{active:false,timeLeft:15,totalTime:15,correct:0,total:0,timer:null},
+  ta:{active:false,timeLeft:15,totalTime:15,correct:0,total:0,timer:null,history:[]},
   _queue:[],_lastScore:null,
 };
 try{ST.history=JSON.parse(localStorage.getItem('darts_h6')||'[]');}catch(e){}
@@ -1380,7 +1043,17 @@ function checkAnswer(){
     input.forEach((s,i)=>{if(s!==correct[i])hlSeg(s,PHX.sel_ng);});
   }
   if(ST.mode==='timeattack'){
-    ST.ta.total++; if(ok||partial)ST.ta.correct++; renderLog(ok,openOk);
+    ST.ta.total++; if(ok||partial)ST.ta.correct++;
+    ST.ta.history.push({
+      score: q.score,
+      input: [...input],
+      correct: [...correct],
+      ok: ok,
+      partial: partial,
+      theory: q.theory,
+      timeout: false
+    });
+    renderLog(ok,openOk);
     setTimeout(()=>{clearHL();if(ST.ta.active){ST.input=[];nextQuestion();}},800); return;
   }
   ST.stats.total++;if(ok)ST.stats.correct++;
@@ -1448,7 +1121,7 @@ function startTimeAttack(){
   document.getElementById('ta-result').classList.remove('show'); document.getElementById('board-area').style.display='flex';
   document.getElementById('main-btns').style.display='flex'; document.getElementById('btn-hint').style.display='none';
   document.getElementById('ta-start-btn').style.display='none';
-  ST.ta={active:true,timeLeft:ST.taTime,totalTime:ST.taTime,correct:0,total:0,timer:null};
+  ST.ta={active:true,timeLeft:ST.taTime,totalTime:ST.taTime,correct:0,total:0,timer:null,history:[]};
   ST.ta.timer=setInterval(tick,100);
   BGM.start(ST.taTime);
   nextQuestion();
@@ -1460,6 +1133,20 @@ function tick(){
     clearInterval(ST.ta.timer);ST.ta.timer=null;ST.ta.active=false;
     BGM.stop();
     BGM.timeupBoom();
+    
+    // 時間切れになった時点の入力を記録する
+    if(ST.current && !ST.answered) {
+      ST.ta.total++;
+      ST.ta.history.push({
+        score: ST.current.score,
+        input: [...ST.input],
+        correct: getThrows(ST.current),
+        ok: false,
+        partial: false,
+        theory: ST.current.theory,
+        timeout: true
+      });
+    }
     showTAResult();
   }
   const el=document.getElementById('timer-display'),bar=document.getElementById('timer-bar');
@@ -1517,7 +1204,39 @@ function showTAResult(){
     label:`TA(${ST.ta.totalTime}s)[${ST.level.toUpperCase()}]: ${correct}正解/${total}問 (${rate}) ${rankInfo.rank}`,
     ts:Date.now()
   });
+
+  // レビュー(答え合わせ)リストの表示生成
+  const revContainer = document.getElementById('ta-review-list');
+  if(ST.ta.history.length === 0) {
+    revContainer.innerHTML = '';
+  } else {
+    const reviewHtml = ST.ta.history.map((h, i) => {
+      const icon = h.ok ? '✓' : h.partial ? '△' : '✗';
+      const color = h.ok ? 'var(--gr)' : h.partial ? 'var(--or)' : 'var(--rd)';
+      const inStr = h.timeout ? (h.input.length ? h.input.join(' → ') + ' (時間切れ)' : '時間切れ') : h.input.join(' → ');
+      const correctStr = h.correct.join(' → ');
+      return `
+        <div style="background:var(--sf); border:1px solid #1E2A1E; border-radius:6px; padding:10px; font-size:12px; margin-bottom:6px; text-align:left;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px; align-items:center;">
+            <span style="color:var(--yw); font-family:var(--mo); font-size:15px; font-weight:bold;">Q${i+1}. ${h.score}</span>
+            <span style="color:${color}; font-weight:bold; font-size:12px;">${icon} ${h.ok ? '正解' : h.partial ? '部分点' : '不正解'}</span>
+          </div>
+          <div style="color:var(--wh); margin-bottom:4px;">
+            <span style="color:var(--mu); font-size:10px;">あなたの回答:</span> <span style="font-family:var(--mo); font-weight:bold; font-size:13px;">${inStr || 'なし'}</span>
+          </div>
+          ${!h.ok ? `<div style="color:var(--gr); margin-bottom:6px;">
+            <span style="color:var(--mu); font-size:10px;">正解:</span> <span style="font-family:var(--mo); font-weight:bold; font-size:13px;">${correctStr}</span>
+          </div>` : ''}
+          <div style="color:#8AB890; font-size:11px; line-height:1.5; background:#0F1A0F; padding:6px; border-radius:4px; border:1px solid #1E3A1E; margin-top:6px;">
+            ${h.theory || '解説なし'}
+          </div>
+        </div>
+      `;
+    }).join('');
+    revContainer.innerHTML = `<div style="font-size:12px; font-weight:700; color:var(--mu); letter-spacing:2px; margin-bottom:10px; text-align:center; padding-top:20px; border-top:1px solid #1E2A1E;">REVIEW (答え合わせ)</div>` + reviewHtml;
+  }
 }
+
 function setMode(btn,mode){
   document.querySelectorAll('.ctrl-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
   if(ST.ta.timer){clearInterval(ST.ta.timer);ST.ta.timer=null;} ST.ta.active=false;ST.mode=mode;
@@ -1733,68 +1452,6 @@ function switchView(name,btn){
   if(name==='table')renderTable(); if(name==='history')renderHistory();
 }
 
-function makePWAIcon(size) {
-  const canvas = document.createElement('canvas');
-  canvas.width = size; canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  const grad = ctx.createRadialGradient(size/2, size/2, size*0.05, size/2, size/2, size/2);
-  grad.addColorStop(0, '#1F2937'); grad.addColorStop(1, '#0D1117');
-  ctx.fillStyle = grad; ctx.fillRect(0, 0, size, size);
-  ctx.beginPath(); ctx.arc(size/2, size/2, size * 0.4, 0, 2 * Math.PI);
-  ctx.strokeStyle = '#D8CCA0'; ctx.lineWidth = size * 0.03; ctx.stroke();
-  ctx.beginPath(); ctx.arc(size/2, size/2, size * 0.25, 0, 2 * Math.PI);
-  ctx.strokeStyle = '#1A6535'; ctx.lineWidth = size * 0.04; ctx.stroke();
-  ctx.beginPath(); ctx.arc(size/2, size/2, size * 0.1, 0, 2 * Math.PI);
-  ctx.fillStyle = '#FF4D8C'; ctx.fill();
-  ctx.strokeStyle = 'rgba(218,204,160,0.35)'; ctx.lineWidth = size * 0.01;
-  ctx.beginPath(); ctx.moveTo(size*0.1, size/2); ctx.lineTo(size*0.9, size/2);
-  ctx.moveTo(size/2, size*0.1); ctx.lineTo(size/2, size*0.9); ctx.stroke();
-  return canvas.toDataURL('image/png');
-}
-
-function setupPWA(){
-  const icon192=makePWAIcon(192); const icon512=makePWAIcon(512); const icon180=makePWAIcon(180);
-  const MANIFEST={
-    name:'Checkout Master', short_name:'CheckoutMaster',
-    description:'ダーツチェックアウト練習アプリ — Phoenix配色インタラクティブボード搭載',
-    start_url:'./', scope:'./', display:'standalone', orientation:'portrait',
-    background_color:'#0D1117', theme_color:'#0D1117',
-    icons:[
-      {src:icon192,sizes:'192x192',type:'image/png',purpose:'any'},
-      {src:icon192,sizes:'192x192',type:'image/png',purpose:'maskable'},
-      {src:icon512,sizes:'512x512',type:'image/png',purpose:'any'},
-      {src:icon512,sizes:'512x512',type:'image/png',purpose:'maskable'},
-    ]
-  };
-  const mBlob=new Blob([JSON.stringify(MANIFEST)],{type:'application/json'});
-  document.getElementById('pwa-manifest').setAttribute('href',URL.createObjectURL(mBlob));
-  const fi=document.createElement('link');fi.rel='icon';fi.type='image/png';fi.href=makePWAIcon(64);document.head.appendChild(fi);
-  const ai=document.createElement('link');ai.rel='apple-touch-icon';ai.sizes='180x180';ai.href=icon180;document.head.appendChild(ai);
-
-  if('serviceWorker' in navigator){
-    const swCode=`
-const CACHE='checkout-master-v1';
-self.addEventListener('install',e=>{
-  e.waitUntil(caches.open(CACHE).then(cache=>cache.put(self.registration.scope,new Response('',{status:200}))));
-  self.skipWaiting();
-});
-self.addEventListener('activate',e=>{
-  e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
-  self.clients.claim();
-});
-self.addEventListener('fetch',e=>{
-  if(e.request.mode==='navigate'){
-    e.respondWith(caches.match(self.registration.scope).then(r=>r||fetch(e.request)).catch(()=>caches.match(self.registration.scope)));
-    return;
-  }
-  e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
-});
-`;
-    const swBlob=new Blob([swCode],{type:'application/javascript'});
-    navigator.serviceWorker.register(URL.createObjectURL(swBlob),{scope:'./'}).catch(()=>{});
-  }
-}
-
 let _dp=null;
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault();_dp=e; document.getElementById('install-banner').classList.add('show'); });
 window.addEventListener('appinstalled',()=>{ document.getElementById('install-banner').classList.remove('show');_dp=null; });
@@ -1820,7 +1477,12 @@ function checkIOSInstall(){
   }
 }
 
-buildBoard();nextQuestion();setupPWA();setTimeout(checkIOSInstall,1500);
+// 外部ファイル化したService Workerの登録
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+buildBoard();nextQuestion();setTimeout(checkIOSInstall,1500);
 </script>
 </body>
 </html>
