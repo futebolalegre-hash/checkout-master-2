@@ -9,8 +9,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0D1117">
 <link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" sizes="180x180" href="./icon.png">
-<link rel="icon" type="image/png" href="./icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon.jpg">
+<link rel="icon" type="image/jpeg" href="./icon.jpg">
 <title>CHECKOUT MASTER</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -242,6 +242,7 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
       <div id="ta-rank-comment" style="font-size:12px;color:var(--mu);text-align:center;max-width:280px;line-height:1.6;margin-top:4px;padding:0 8px;"></div>
       <button class="btn btn-orange" onclick="startTimeAttack()" style="width:130px;margin-top:12px;margin-bottom:10px;">もう一度</button>
     </div>
+    <!-- ここにレビューリストが動的に挿入されます -->
     <div id="ta-review-list" style="width:100%; max-width:320px; padding-bottom:10px;"></div>
   </div>
 
@@ -303,6 +304,29 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
 </div>
 
 <script>
+// ==========================================
+//  AUDIO / SOUND (エラー回避のためのダミー実装)
+// ==========================================
+let soundEnabled = true;
+let bgmEnabled = true;
+window.toggleSound = function(on) { soundEnabled = on; };
+window.toggleBGM = function(on) { bgmEnabled = on; };
+
+const SND = {
+  play: function(label) {
+    if(!soundEnabled) return;
+    // 音声ファイルの再生処理などをここに追加可能
+  }
+};
+
+const BGM = {
+  start: function(time) {
+    if(!bgmEnabled) return;
+  },
+  stop: function() {},
+  timeupBoom: function() {}
+};
+
 // ==========================================
 //  描画・基本ロジック
 // ==========================================
@@ -395,8 +419,6 @@ function flashSeg(label){
 
 // ==========================================
 //  ARRANGE DATA (完全改修版 v3.0)
-//  MyArrangeデータとPDC王道セオリーの統合
-//  すべての計算ミス・ルール矛盾を排除
 // ==========================================
 const ARRANGES = [
   {score:180, fat:["T20","T20","T20"], sep:["T20","T20","T20"], tags:['high','key'],
@@ -981,7 +1003,12 @@ function getPool(){
   return v;
 }
 function _buildQueue(){
-  const pool=getPool(); const arr=[...pool];
+  let pool = getPool();
+  if(ST.mode === 'weak' && ST._weakPool) {
+    pool = ST._weakPool.filter(a => !ST._weakAnswered.has(a.score));
+    if(pool.length === 0) pool = ST._weakPool; 
+  }
+  const arr=[...pool];
   for(let i=arr.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
     [arr[i],arr[j]]=[arr[j],arr[i]];
@@ -1055,6 +1082,8 @@ function checkAnswer(){
     setTimeout(()=>{clearHL();if(ST.ta.active){ST.input=[];nextQuestion();}},800); return;
   }
   ST.stats.total++;if(ok)ST.stats.correct++;
+  if(ST.mode==='weak' && ok) markWeakAnswered(q.score, true);
+
   const ban=document.getElementById('result-banner');
   if(ok){
     ban.className='result-banner show correct'; document.getElementById('result-icon').textContent='✓';
@@ -1117,7 +1146,7 @@ function toggleTheory(on){
 }
 function startTimeAttack(){
   document.getElementById('ta-result').classList.remove('show'); document.getElementById('board-area').style.display='flex';
-  document.getElementById('main-btns').style.display='flex'; document.getElementById('btn-hint').style.display='none';
+  document.getElementById('main-btns').style.display='none'; document.getElementById('btn-hint').style.display='none';
   document.getElementById('ta-start-btn').style.display='none';
   ST.ta={active:true,timeLeft:ST.taTime,totalTime:ST.taTime,correct:0,total:0,timer:null,history:[]};
   ST.ta.timer=setInterval(tick,100);
