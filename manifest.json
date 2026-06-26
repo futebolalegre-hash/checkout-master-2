@@ -1,0 +1,17 @@
+{
+  "name": "Checkout Master",
+  "short_name": "CheckoutMaster",
+  "description": "ダーツチェックアウト練習アプリ",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0D1117",
+  "theme_color": "#0D1117",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
