@@ -15,14 +15,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;}
-:root{
-  --bg:#0D1117;--sf:#161C24;--s2:#1A2410;
-  --gr:#00FF7F;--gd:#00994C;--rd:#FF4444;
-  --yw:#F5E642;--or:#FF8C00;--wh:#E8EEE8;--mu:#5A6A5A;
-  --pk:#FF4D8C;--mo:'Courier New',monospace;
-  --sa:-apple-system,'Helvetica Neue',Arial,sans-serif;
-  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
-}
+:root{--bg:#0D1117;--sf:#161C24;--s2:#1A2410;--gr:#00FF7F;--gd:#00994C;--rd:#FF4444;--yw:#F5E642;--or:#FF8C00;--wh:#E8EEE8;--mu:#5A6A5A;--pk:#FF4D8C;--mo:'Courier New',monospace;--sa:-apple-system,'Helvetica Neue',Arial,sans-serif;--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);}
 body{background:var(--bg);color:var(--wh);font-family:var(--sa);display:flex;flex-direction:column;height:100dvh;height:100vh;}
 header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + var(--st));display:flex;align-items:center;justify-content:space-between;flex-shrink:0;min-height:52px;}
 .logo{font-family:'Impact','Arial Black','Helvetica Neue',sans-serif;font-size:22px;font-weight:900;letter-spacing:2px;color:var(--pk);text-shadow:0 0 12px rgba(255,77,140,0.5), 0 2px 4px rgba(0,0,0,0.8);line-height:1;}
@@ -62,7 +55,6 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
 .score-badge{font-family:var(--mo);font-size:42px;font-weight:bold;color:var(--yw);line-height:1;text-align:center;flex-shrink:0;}
 .score-sub{font-size:11px;font-weight:600;letter-spacing:2px;color:var(--mu);text-align:center;margin-bottom:3px;flex-shrink:0;}
 .board-wrap{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;padding:0 6px;}
-/* 盤面拡大のため max-width/height を大きめに設定 */
 .board-wrap svg{width:100%;height:100%;max-width:400px;max-height:400px;display:block;overflow:visible;filter:drop-shadow(0 3px 14px rgba(0,0,0,.85));touch-action:manipulation;}
 @keyframes segFlash{0%{opacity:1}40%{opacity:.15}100%{opacity:1}}
 .seg-flash{animation:segFlash .2s ease-out;}
@@ -313,9 +305,6 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
 </div>
 
 <script>
-// ═══════════════════════════════════════════
-//  PHOENIX SOUND ENGINE v3 (Custom Cabinet Simulation)
-// ═══════════════════════════════════════════
 const SND={
   enabled:true,
   _ac:null,
@@ -402,21 +391,32 @@ const SND={
     else if(label.startsWith('T')) this.triple();
     else if(label.startsWith('D')) this.double();
     else this.single();
+  },
+  ok(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime;
+      this._tu(523.25, 0.1, 0.1, 0.01, t);
+      this._tu(659.25, 0.1, 0.1, 0.01, t+0.1);
+      this._tu(783.99, 0.15, 0.2, 0.01, t+0.2);
+    }catch(e){}
+  },
+  ng(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime;
+      this._tu(300, 0.15, 0.2, 0.02, t);
+      this._tu(250, 0.15, 0.3, 0.02, t+0.15);
+    }catch(e){}
   }
 };
 
 function toggleSound(on){ SND.enabled=on; if(on)try{SND._getAC();}catch(e){} }
 
-// ═══════════════════════════════════════════
-//  EDM BGM ENGINE  (タイムアタック専用)
-//  - クールなシンセEDMループ
-//  - 残り時間に応じてテンポアップ
-//  - タイムアップ時に爆発的なドーン
-// ═══════════════════════════════════════════
 const BGM = {
   enabled: true,
   _ac: null,
-  _nodes: [],   // 停止用ノードリスト
+  _nodes: [],
   _bpmTimer: null,
   _step: 0,
   _bpm: 128,
@@ -427,282 +427,144 @@ const BGM = {
     if(this._ac.state==='suspended') this._ac.resume();
     return this._ac;
   },
-
-  // マスターゲイン（音量調整用）
   _masterGain: null,
   _getMaster(){
     const ac = this._getAC();
     if(!this._masterGain){
       this._masterGain = ac.createGain();
-      // コンプレッサーで音割れ防止
       const comp = ac.createDynamicsCompressor();
-      comp.threshold.value = -12;
-      comp.knee.value = 6;
-      comp.ratio.value = 4;
-      comp.attack.value = 0.003;
-      comp.release.value = 0.25;
-      this._masterGain.connect(comp);
-      comp.connect(ac.destination);
+      comp.threshold.value = -12; comp.knee.value = 6; comp.ratio.value = 4;
+      comp.attack.value = 0.003; comp.release.value = 0.25;
+      this._masterGain.connect(comp); comp.connect(ac.destination);
     }
     return this._masterGain;
   },
-
-  // ── シンセノート1発 ──
   _note(freq, type, vol, dur, t, detune=0){
     try{
       const ac=this._getAC(), master=this._getMaster();
-      const osc=ac.createOscillator();
-      const gain=ac.createGain();
-      // ローパスフィルタでEDM感
-      const lpf=ac.createBiquadFilter();
-      lpf.type='lowpass'; lpf.frequency.value=3000; lpf.Q.value=1.5;
+      const osc=ac.createOscillator(), gain=ac.createGain();
+      const lpf=ac.createBiquadFilter(); lpf.type='lowpass'; lpf.frequency.value=3000; lpf.Q.value=1.5;
       osc.connect(lpf); lpf.connect(gain); gain.connect(master);
-      osc.type=type; osc.frequency.value=freq;
-      osc.detune.value=detune;
-      gain.gain.setValueAtTime(0.001,t);
-      gain.gain.linearRampToValueAtTime(vol,t+0.005);
+      osc.type=type; osc.frequency.value=freq; osc.detune.value=detune;
+      gain.gain.setValueAtTime(0.001,t); gain.gain.linearRampToValueAtTime(vol,t+0.005);
       gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
-      osc.start(t); osc.stop(t+dur+0.05);
-      this._nodes.push(osc);
+      osc.start(t); osc.stop(t+dur+0.05); this._nodes.push(osc);
     }catch(e){}
   },
-
-  // ── キック（重低音ドラム） ──
   _kick(vol, t){
     try{
       const ac=this._getAC(), master=this._getMaster();
-      const osc=ac.createOscillator();
-      const gain=ac.createGain();
-      osc.connect(gain); gain.connect(master);
-      osc.type='sine';
-      osc.frequency.setValueAtTime(180,t);
-      osc.frequency.exponentialRampToValueAtTime(35,t+0.12);
-      gain.gain.setValueAtTime(vol,t);
-      gain.gain.exponentialRampToValueAtTime(0.001,t+0.25);
-      osc.start(t); osc.stop(t+0.3);
-      this._nodes.push(osc);
-      // ノイズ成分（スナッピー感）
+      const osc=ac.createOscillator(), gain=ac.createGain();
+      osc.connect(gain); gain.connect(master); osc.type='sine';
+      osc.frequency.setValueAtTime(180,t); osc.frequency.exponentialRampToValueAtTime(35,t+0.12);
+      gain.gain.setValueAtTime(vol,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.25);
+      osc.start(t); osc.stop(t+0.3); this._nodes.push(osc);
       const buf=ac.createBuffer(1,Math.ceil(ac.sampleRate*0.08),ac.sampleRate);
-      const d=buf.getChannelData(0);
-      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/d.length*20);
+      const d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/d.length*20);
       const src=ac.createBufferSource(); src.buffer=buf;
       const ng=ac.createGain(); ng.gain.setValueAtTime(vol*0.4,t);
-      src.connect(ng); ng.connect(master);
-      src.start(t); src.stop(t+0.08);
-      this._nodes.push(src);
+      src.connect(ng); ng.connect(master); src.start(t); src.stop(t+0.08); this._nodes.push(src);
     }catch(e){}
   },
-
-  // ── ハイハット ──
   _hihat(vol, t, open=false){
     try{
       const ac=this._getAC(), master=this._getMaster();
       const buf=ac.createBuffer(1,Math.ceil(ac.sampleRate*(open?0.15:0.05)),ac.sampleRate);
-      const d=buf.getChannelData(0);
-      for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+      const d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
       const src=ac.createBufferSource(); src.buffer=buf;
       const hpf=ac.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=7000;
-      const gain=ac.createGain();
-      src.connect(hpf); hpf.connect(gain); gain.connect(master);
-      gain.gain.setValueAtTime(vol,t);
-      gain.gain.exponentialRampToValueAtTime(0.001,t+(open?0.15:0.05));
-      src.start(t); src.stop(t+(open?0.18:0.06));
-      this._nodes.push(src);
+      const gain=ac.createGain(); src.connect(hpf); hpf.connect(gain); gain.connect(master);
+      gain.gain.setValueAtTime(vol,t); gain.gain.exponentialRampToValueAtTime(0.001,t+(open?0.15:0.05));
+      src.start(t); src.stop(t+(open?0.18:0.06)); this._nodes.push(src);
     }catch(e){}
   },
-
-  // ── スネア ──
   _snare(vol, t){
     try{
       const ac=this._getAC(), master=this._getMaster();
       const buf=ac.createBuffer(1,Math.ceil(ac.sampleRate*0.15),ac.sampleRate);
-      const d=buf.getChannelData(0);
-      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/d.length*18);
+      const d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/d.length*18);
       const src=ac.createBufferSource(); src.buffer=buf;
       const bpf=ac.createBiquadFilter(); bpf.type='bandpass'; bpf.frequency.value=1800; bpf.Q.value=0.6;
-      const gain=ac.createGain();
-      src.connect(bpf); bpf.connect(gain); gain.connect(master);
-      gain.gain.setValueAtTime(vol,t);
-      gain.gain.exponentialRampToValueAtTime(0.001,t+0.15);
-      src.start(t); src.stop(t+0.18);
-      this._nodes.push(src);
+      const gain=ac.createGain(); src.connect(bpf); bpf.connect(gain); gain.connect(master);
+      gain.gain.setValueAtTime(vol,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.15);
+      src.start(t); src.stop(t+0.18); this._nodes.push(src);
     }catch(e){}
   },
-
-  // ── ベースライン ──
-  _bass(freq, vol, dur, t){
-    this._note(freq,'sawtooth',vol*0.5,dur,t);
-    this._note(freq,'sine',vol*0.8,dur*0.6,t);
-  },
-
-  // ── EDMリード（メロディー） ──
-  // Eマイナーペンタ: E4(330),G4(392),A4(440),B4(494),D5(587)
+  _bass(freq, vol, dur, t){ this._note(freq,'sawtooth',vol*0.5,dur,t); this._note(freq,'sine',vol*0.8,dur*0.6,t); },
   _lead(freq, vol, dur, t){
-    this._note(freq,'sawtooth',vol*0.3,dur,t,0);
-    this._note(freq,'sawtooth',vol*0.2,dur,t,7);   // コーラス感
+    this._note(freq,'sawtooth',vol*0.3,dur,t,0); this._note(freq,'sawtooth',vol*0.2,dur,t,7);
     this._note(freq,'square',vol*0.15,dur*0.5,t,-5);
   },
-
-  // ── 1小節(4拍)を生成 ──
   _bar(startT, bpm, intensity){
-    const beat = 60/bpm;  // 1拍の秒数
-    const b16  = beat/4;  // 16分音符
-
-    // キックパターン (1,3拍)
-    this._kick(0.9*intensity, startT);
-    this._kick(0.9*intensity, startT + beat*2);
-
-    // スネア (2,4拍)
-    this._snare(0.7*intensity, startT + beat);
-    this._snare(0.7*intensity, startT + beat*3);
-
-    // ハイハット (8分刻み)
-    for(let i=0;i<8;i++){
-      const open = (i===3||i===7);
-      this._hihat(0.3*intensity, startT + i*beat/2, open);
-    }
-
-    // ベースライン (Eマイナー)
-    const bassNotes=[41,41,41,49, 41,41,44,46]; // E2,E2,E2,B2...
-    const bassFreqs=[82,82,82,98, 82,82,110,116];
-    bassNotes.forEach((_,i)=>{
-      this._bass(bassFreqs[i],0.6*intensity,b16*1.8,startT+i*b16);
-    });
-
-    // リードメロ (高強度時のみ)
+    const beat = 60/bpm; const b16 = beat/4;
+    this._kick(0.9*intensity, startT); this._kick(0.9*intensity, startT + beat*2);
+    this._snare(0.7*intensity, startT + beat); this._snare(0.7*intensity, startT + beat*3);
+    for(let i=0;i<8;i++) this._hihat(0.3*intensity, startT + i*beat/2, (i===3||i===7));
+    const bassNotes=[41,41,41,49, 41,41,44,46]; const bassFreqs=[82,82,82,98, 82,82,110,116];
+    bassNotes.forEach((_,i)=> this._bass(bassFreqs[i],0.6*intensity,b16*1.8,startT+i*b16) );
     if(intensity>0.5){
-      const lead=[330,0,392,0,440,392,0,330];
-      lead.forEach((f,i)=>{
-        if(f>0) this._lead(f,0.25*intensity,b16*1.6,startT+i*b16);
-      });
+      [330,0,392,0,440,392,0,330].forEach((f,i)=>{ if(f>0) this._lead(f,0.25*intensity,b16*1.6,startT+i*b16); });
     }
-
-    // パッドコード (バックグラウンド)
-    [[164,0.06],[196,0.05],[246,0.04]].forEach(([f,v])=>{
-      this._note(f,'sine',v*intensity,beat*4,startT);
-    });
+    [[164,0.06],[196,0.05],[246,0.04]].forEach(([f,v])=> this._note(f,'sine',v*intensity,beat*4,startT) );
   },
-
-  // ── ループスケジューラー ──
   _scheduleNext(){
     if(!this._playing) return;
     try{
-      const ac=this._getAC();
-      const bpm=this._bpm;
-      const barDur=60/bpm*4;
+      const ac=this._getAC(), bpm=this._bpm, barDur=60/bpm*4;
       const t=Math.max(ac.currentTime+0.05, this._nextBarTime||ac.currentTime);
-      const intensity=this._intensity||0.7;
-      this._bar(t, bpm, intensity);
-      this._nextBarTime=t+barDur;
-      // 次の小節の0.1秒前にスケジュール
+      this._bar(t, bpm, this._intensity||0.7); this._nextBarTime=t+barDur;
       const delay=(this._nextBarTime - ac.currentTime - 0.1)*1000;
       this._loopTimer=setTimeout(()=>this._scheduleNext(), Math.max(50,delay));
     }catch(e){}
   },
-
-  // ── 開始 ──
   start(totalTime){
     if(!this.enabled) return;
     try{
-      this._getAC();
-      this.stop();
-      this._playing=true;
-      this._bpm=128;
-      this._intensity=0.6;
-      this._totalTime=totalTime;
-      this._startWallTime=Date.now();
-      this._nextBarTime=null;
-      this._scheduleNext();
-      // テンポ・強度を時間で更新
-      this._bpmTimer=setInterval(()=>this._updateTempo(), 500);
+      this._getAC(); this.stop(); this._playing=true; this._bpm=128; this._intensity=0.6;
+      this._totalTime=totalTime; this._startWallTime=Date.now(); this._nextBarTime=null;
+      this._scheduleNext(); this._bpmTimer=setInterval(()=>this._updateTempo(), 500);
     }catch(e){}
   },
-
-  // ── テンポ更新（残り時間に応じて） ──
   _updateTempo(){
     if(!this._playing) return;
-    const elapsed=(Date.now()-this._startWallTime)/1000;
-    const total=this._totalTime||60;
-    const remaining=Math.max(0, total-elapsed);
-    const progress=elapsed/total; // 0→1
-
-    // BPM: 128→180にかけてアップ
-    this._bpm = 128 + Math.floor(progress*52);
-
-    // 強度: 徐々に上げる（緊迫感）
-    this._intensity = 0.6 + progress*0.35;
-
-    // マスターゲイン音量も少し上げる
-    if(this._masterGain){
-      const vol=0.7+progress*0.25;
-      try{ this._masterGain.gain.setTargetAtTime(vol,this._getAC().currentTime,0.5); }catch(e){}
-    }
+    const elapsed=(Date.now()-this._startWallTime)/1000, total=this._totalTime||60;
+    const progress=elapsed/total;
+    this._bpm = 128 + Math.floor(progress*52); this._intensity = 0.6 + progress*0.35;
+    if(this._masterGain){ try{ this._masterGain.gain.setTargetAtTime(0.7+progress*0.25,this._getAC().currentTime,0.5); }catch(e){} }
   },
-
-  // ── 停止 ──
   stop(){
     this._playing=false;
     if(this._loopTimer){ clearTimeout(this._loopTimer); this._loopTimer=null; }
     if(this._bpmTimer){ clearInterval(this._bpmTimer); this._bpmTimer=null; }
-    // 全ノードのゲインをフェードアウト
     try{
       if(this._masterGain&&this._ac){
         this._masterGain.gain.setTargetAtTime(0,this._ac.currentTime,0.1);
-        setTimeout(()=>{
-          try{ this._masterGain.gain.setValueAtTime(0.7,this._ac.currentTime); }catch(e){}
-        },600);
+        setTimeout(()=>{ try{ this._masterGain.gain.setValueAtTime(0.7,this._ac.currentTime); }catch(e){} },600);
       }
     }catch(e){}
-    this._nodes=[];
-    this._nextBarTime=null;
+    this._nodes=[]; this._nextBarTime=null;
   },
-
-  // ── タイムアップ爆発音 ──
   timeupBoom(){
     try{
-      const ac=this._getAC(), master=this._getMaster();
-      const t=ac.currentTime;
-
-      // 第1爆発（超重低音）
+      const ac=this._getAC(), master=this._getMaster(), t=ac.currentTime;
       for(const [f,v,d] of [[40,1.2,1.5],[55,0.9,1.2],[30,1.0,1.8],[80,0.7,0.9]]){
         const osc=ac.createOscillator(), g=ac.createGain();
-        osc.connect(g); g.connect(master);
-        osc.type='sine'; osc.frequency.setValueAtTime(f*2,t);
+        osc.connect(g); g.connect(master); osc.type='sine'; osc.frequency.setValueAtTime(f*2,t);
         osc.frequency.exponentialRampToValueAtTime(f*0.3,t+d);
         g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.001,t+d);
         osc.start(t); osc.stop(t+d+0.1);
       }
-      // ノイズ爆発
-      const bufLen=Math.ceil(ac.sampleRate*2.0);
-      const buf=ac.createBuffer(1,bufLen,ac.sampleRate);
-      const d=buf.getChannelData(0);
+      const bufLen=Math.ceil(ac.sampleRate*2.0), buf=ac.createBuffer(1,bufLen,ac.sampleRate), d=buf.getChannelData(0);
       for(let i=0;i<bufLen;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/bufLen*4);
       const src=ac.createBufferSource(); src.buffer=buf;
       const lpf=ac.createBiquadFilter(); lpf.type='lowpass'; lpf.frequency.value=600;
       const g=ac.createGain(); g.gain.setValueAtTime(1.5,t); g.gain.exponentialRampToValueAtTime(0.001,t+2.0);
-      src.connect(lpf); lpf.connect(g); g.connect(master);
-      src.start(t); src.stop(t+2.1);
-      // 高音シャー（金属感）
-      const buf2=ac.createBuffer(1,Math.ceil(ac.sampleRate*0.5),ac.sampleRate);
-      const d2=buf2.getChannelData(0);
-      for(let i=0;i<d2.length;i++) d2[i]=Math.random()*2-1;
-      const src2=ac.createBufferSource(); src2.buffer=buf2;
-      const hpf=ac.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=4000;
-      const g2=ac.createGain(); g2.gain.setValueAtTime(0.8,t); g2.gain.exponentialRampToValueAtTime(0.001,t+0.5);
-      src2.connect(hpf); hpf.connect(g2); g2.connect(master);
-      src2.start(t); src2.stop(t+0.55);
+      src.connect(lpf); lpf.connect(g); g.connect(master); src.start(t); src.stop(t+2.1);
     }catch(e){}
   },
 };
+function toggleBGM(on){ BGM.enabled=on; if(!on) BGM.stop(); }
 
-function toggleBGM(on){
-  BGM.enabled=on;
-  if(!on) BGM.stop();
-}
-
-// ==========================================
-//  描画・基本ロジック
-// ==========================================
 const CX=200,CY=200;
 const R={bi:25,bo:50,ti:100,to:132,di:160,do_:194};
 const SECTORS=[20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
@@ -723,63 +585,48 @@ function arc(r1,r2,a1,a2){
   return`M${x1},${y1}L${x2},${y2}A${r2},${r2} 0 ${lg},1 ${x3},${y3}L${x4},${y4}A${r1},${r1} 0 ${lg},0 ${x1},${y1}Z`;
 }
 
-// SVGの座標を取得する関数（ダーツを刺す用）
 function getSvgCoords(svg, e) {
   let pt = svg.createSVGPoint();
   if (e.touches && e.touches.length > 0) {
-    pt.x = e.touches[0].clientX;
-    pt.y = e.touches[0].clientY;
+    pt.x = e.touches[0].clientX; pt.y = e.touches[0].clientY;
   } else if (e.changedTouches && e.changedTouches.length > 0) {
-    pt.x = e.changedTouches[0].clientX;
-    pt.y = e.changedTouches[0].clientY;
+    pt.x = e.changedTouches[0].clientX; pt.y = e.changedTouches[0].clientY;
   } else {
-    pt.x = e.clientX;
-    pt.y = e.clientY;
+    pt.x = e.clientX; pt.y = e.clientY;
   }
   return pt.matrixTransform(svg.getScreenCTM().inverse());
 }
 
-// ダーツを描画する関数
 function drawDart(x, y) {
   const svg = document.getElementById('dartboard');
   const dart = document.createElementNS(ns, 'g');
   dart.setAttribute('class', 'thrown-dart');
-  
-  // ランダムな角度で刺さるように
   const angle = 20 + Math.random() * 20; 
   dart.setAttribute('transform', `translate(${x}, ${y}) scale(1.2) rotate(${angle})`);
   
-  // ピンクのフライト
   const flight = document.createElementNS(ns, 'path');
   flight.setAttribute('d', 'M0,-12 L-10,-22 L-8,-30 L0,-24 L8,-30 L10,-22 Z');
   flight.setAttribute('fill', 'var(--pk)');
   flight.setAttribute('stroke', '#1C100A');
   flight.setAttribute('stroke-width', '1');
 
-  // シャフト
   const shaft = document.createElementNS(ns, 'line');
   shaft.setAttribute('x1', '0'); shaft.setAttribute('y1', '-18');
   shaft.setAttribute('x2', '0'); shaft.setAttribute('y2', '-4');
   shaft.setAttribute('stroke', '#E8EEE8');
   shaft.setAttribute('stroke-width', '2');
   
-  // バレル
   const barrel = document.createElementNS(ns, 'line');
   barrel.setAttribute('x1', '0'); barrel.setAttribute('y1', '-10');
   barrel.setAttribute('x2', '0'); barrel.setAttribute('y2', '-4');
   barrel.setAttribute('stroke', '#aaa');
   barrel.setAttribute('stroke-width', '3');
 
-  // チップ
   const tip = document.createElementNS(ns, 'polygon');
   tip.setAttribute('points', '-1,-4 1,-4 0,0');
   tip.setAttribute('fill', '#ccc');
 
-  dart.appendChild(shaft);
-  dart.appendChild(barrel);
-  dart.appendChild(flight);
-  dart.appendChild(tip);
-  
+  dart.appendChild(shaft); dart.appendChild(barrel); dart.appendChild(flight); dart.appendChild(tip);
   dart.setAttribute('pointer-events', 'none');
   svg.appendChild(dart);
 }
@@ -789,7 +636,6 @@ function mkPath(svg,label,val,d,fill,ev){
   p.setAttribute('d',d);p.setAttribute('fill',fill);
   p.setAttribute('data-orig-fill',fill);p.setAttribute('stroke',PHX.wire);p.setAttribute('stroke-width','0.4');
   p.setAttribute('data-seg',label);p.setAttribute('data-val',val);
-  // eを渡せるように変更
   if(ev){p.style.cursor='pointer';p.addEventListener('click',(e)=>onTap(label,val,e));}
   svg.appendChild(p);return p;
 }
@@ -819,13 +665,11 @@ function buildBoard(){
   bi.style.cursor='pointer';bi.addEventListener('click',(e)=>onTap('Bull',50,e));
   svg.appendChild(bi);
   for(let i=0;i<N;i++){
-    // テキスト位置をさらに外側(R.do_+20)に、フォントサイズを22に拡大
     const num=SECTORS[i],[lx,ly]=polar(R.do_+20,i*DEG);
     const t=document.createElementNS(ns,'text');
     t.setAttribute('x',lx);t.setAttribute('y',ly);
     t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','middle');
-    t.setAttribute('font-size','22');
-    t.setAttribute('font-family','Courier New,monospace');
+    t.setAttribute('font-size','22');t.setAttribute('font-family','Courier New,monospace');
     t.setAttribute('fill','#D8CCA0');t.setAttribute('font-weight','bold');
     t.setAttribute('pointer-events','none');t.textContent=num;svg.appendChild(t);
   }
@@ -845,7 +689,6 @@ let _hl=[];
 function clearHL(){
   _hl.forEach(({el,f})=>{const orig=el.getAttribute('data-orig-fill');el.setAttribute('fill',orig||f);});
   _hl=[];
-  // リセット時に刺さったダーツもすべて消す
   document.querySelectorAll('.thrown-dart').forEach(el => el.remove());
 }
 function hlSeg(label,color){
@@ -858,9 +701,6 @@ function flashSeg(label){
   document.querySelectorAll(`[data-seg="${label}"]`).forEach(el=>{el.classList.remove('seg-flash');void el.offsetWidth;el.classList.add('seg-flash');});
 }
 
-// ==========================================
-//  ARRANGE DATA (完全改修版 v3.0)
-// ==========================================
 const ARRANGES = [
   {score:180, fat:["T20","T20","T20"], sep:["T20","T20","T20"], tags:['high','key'],
    theory:'【◎ 王道】T20→T20→T20 (TON80。最高のフィニッシュ)\n【◯ 次点】MyArrangeでも満場一致のルートです。',
@@ -1463,11 +1303,9 @@ function onTap(label,val,e){
   if(ST.answered)return;
   if(ST.mode==='timeattack'&&!ST.ta.active)return;
   
-  // 常に最大3本まで自由に投げられるように修正
   if(ST.input.length>=3)return;
   
   const n=normBull(label);
-  
   SND.play(label); 
   flashSeg(label); 
   
@@ -1479,14 +1317,12 @@ function onTap(label,val,e){
 
   ST.input.push(n); 
   renderLog();
-  // setTimeoutによる自動判定を削除し、完全に「確定ボタン」でのみ完了するようにしました
 }
 
 function renderLog(overallOk, openOk){
   const q=ST.current,throws=q?getThrows(q):[]; 
   const log=document.getElementById('throw-log'),ctr=document.getElementById('throw-counter');
   
-  // 常に3本分の枠を表示
   const maxT=3;
   const rem=maxT-ST.input.length;
   
@@ -1651,7 +1487,6 @@ function tick(){
     BGM.stop();
     BGM.timeupBoom();
     
-    // 時間切れになった時点の入力を記録する
     if(ST.current && !ST.answered) {
       ST.ta.total++;
       ST.ta.history.push({
