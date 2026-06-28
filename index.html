@@ -304,28 +304,392 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
 </div>
 
 <script>
-// ==========================================
-//  AUDIO / SOUND (エラー回避のためのダミー実装)
-// ==========================================
-let soundEnabled = true;
-let bgmEnabled = true;
-window.toggleSound = function(on) { soundEnabled = on; };
-window.toggleBGM = function(on) { bgmEnabled = on; };
-
-const SND = {
-  play: function(label) {
-    if(!soundEnabled) return;
-    // 音声ファイルの再生処理などをここに追加可能
+// ═══════════════════════════════════════════
+//  PHOENIX SOUND ENGINE v3 (Custom Cabinet Simulation)
+// ═══════════════════════════════════════════
+const SND={
+  enabled:true,
+  _ac:null,
+  _getAC(){
+    if(!this._ac) this._ac=new(window.AudioContext||window.webkitAudioContext)();
+    if(this._ac.state==='suspended') this._ac.resume();
+    return this._ac;
+  },
+  _tu(freq, vol, dur, attack, startTime){
+    const ac=this._getAC(); const t=startTime||ac.currentTime;
+    const osc=ac.createOscillator(); const gain=ac.createGain();
+    const filter=ac.createBiquadFilter(); filter.type='bandpass'; filter.frequency.value=freq*1.2; filter.Q.value=2;
+    osc.connect(filter); filter.connect(gain); gain.connect(ac.destination);
+    osc.type='triangle'; osc.frequency.setValueAtTime(freq*1.1,t);
+    osc.frequency.exponentialRampToValueAtTime(freq*0.95,t+dur*0.3);
+    gain.gain.setValueAtTime(0.001,t); gain.gain.linearRampToValueAtTime(vol,t+attack);
+    gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.start(t); osc.stop(t+dur+0.05);
+  },
+  _hit(vol, dur, freq, startTime){
+    const ac=this._getAC(); const t=startTime||ac.currentTime;
+    const bufLen=Math.ceil(ac.sampleRate*dur); const buf=ac.createBuffer(1,bufLen,ac.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<bufLen;i++) data[i]=(Math.random()*2-1);
+    const src=ac.createBufferSource(); src.buffer=buf;
+    const gain=ac.createGain(); const f=ac.createBiquadFilter(); f.type='bandpass'; f.frequency.value=freq||1200; f.Q.value=1.5;
+    src.connect(f); f.connect(gain); gain.connect(ac.destination);
+    gain.gain.setValueAtTime(vol,t); gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    src.start(t); src.stop(t+dur+0.02);
+  },
+  _boom(freq, vol, dur, startTime){
+    const ac=this._getAC(); const t=startTime||ac.currentTime;
+    const osc=ac.createOscillator(); const gain=ac.createGain();
+    osc.type='sine'; osc.frequency.setValueAtTime(freq,t); osc.frequency.exponentialRampToValueAtTime(freq*0.5,t+dur);
+    osc.connect(gain); gain.connect(ac.destination);
+    gain.gain.setValueAtTime(vol,t); gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.start(t); osc.stop(t+dur+0.05);
+  },
+  single(){
+    if(!this.enabled)return;
+    try{ const ac=this._getAC(); const t=ac.currentTime; this._hit(0.15, 0.06, 1800, t); this._tu(520, 0.10, 0.12, 0.005, t); }catch(e){}
+  },
+  double(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime; const gap=0.10;
+      this._hit(0.18, 0.05, 1600, t); this._tu(620, 0.12, 0.10, 0.005, t);
+      this._hit(0.20, 0.07, 1800, t+gap); this._tu(780, 0.15, 0.20, 0.005, t+gap);
+      this._tu(780*0.5, 0.04, 0.18, 0.01, t+gap+0.10);
+    }catch(e){}
+  },
+  triple(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime; const gap=0.09;
+      this._hit(0.18, 0.05, 1400, t); this._tu(580, 0.11, 0.09, 0.005, t);
+      this._hit(0.20, 0.05, 1600, t+gap); this._tu(700, 0.12, 0.09, 0.005, t+gap);
+      this._hit(0.24, 0.07, 1900, t+gap*2); this._tu(880, 0.16, 0.22, 0.005, t+gap*2);
+      this._tu(880*0.5, 0.05, 0.20, 0.01, t+gap*2+0.12); this._tu(880*1.5, 0.03, 0.15, 0.01, t+gap*2+0.08);
+    }catch(e){}
+  },
+  outerBull(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime; this._hit(0.40, 0.12, 300, t); this._hit(0.25, 0.18, 1200, t);
+      this._boom(80, 0.35, 0.35, t); this._boom(120, 0.20, 0.30, t);
+      this._tu(220, 0.18, 0.40, 0.02, t+0.05); this._tu(180, 0.10, 0.50, 0.04, t+0.08);
+    }catch(e){}
+  },
+  innerBull(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime;
+      this._hit(0.50, 0.10, 200, t); this._hit(0.30, 0.14, 800, t); this._boom(60, 0.45, 0.25, t); this._boom(100, 0.30, 0.20, t); this._tu(200, 0.20, 0.18, 0.01, t);
+      const t2=t+0.12;
+      this._hit(0.55, 0.14, 250, t2); this._hit(0.35, 0.18, 1000, t2); this._boom(55, 0.50, 0.45, t2); this._boom(90, 0.35, 0.38, t2); this._tu(160, 0.25, 0.55, 0.015, t2);
+      this._tu(660, 0.12, 0.25, 0.02, t2+0.05); this._tu(990, 0.08, 0.20, 0.02, t2+0.12); this._tu(1320,0.05, 0.18, 0.02, t2+0.20);
+    }catch(e){}
+  },
+  play(label){
+    if(!this.enabled)return;
+    if(label==='Bull') this.innerBull();
+    else if(label==='S25') this.outerBull();
+    else if(label.startsWith('T')) this.triple();
+    else if(label.startsWith('D')) this.double();
+    else this.single();
   }
 };
 
+function toggleSound(on){ SND.enabled=on; if(on)try{SND._getAC();}catch(e){} }
+
+// ═══════════════════════════════════════════
+//  EDM BGM ENGINE  (タイムアタック専用)
+//  - クールなシンセEDMループ
+//  - 残り時間に応じてテンポアップ
+//  - タイムアップ時に爆発的なドーン
+// ═══════════════════════════════════════════
 const BGM = {
-  start: function(time) {
-    if(!bgmEnabled) return;
+  enabled: true,
+  _ac: null,
+  _nodes: [],   // 停止用ノードリスト
+  _bpmTimer: null,
+  _step: 0,
+  _bpm: 128,
+  _playing: false,
+
+  _getAC(){
+    if(!this._ac) this._ac = new(window.AudioContext||window.webkitAudioContext)();
+    if(this._ac.state==='suspended') this._ac.resume();
+    return this._ac;
   },
-  stop: function() {},
-  timeupBoom: function() {}
+
+  // マスターゲイン（音量調整用）
+  _masterGain: null,
+  _getMaster(){
+    const ac = this._getAC();
+    if(!this._masterGain){
+      this._masterGain = ac.createGain();
+      // コンプレッサーで音割れ防止
+      const comp = ac.createDynamicsCompressor();
+      comp.threshold.value = -12;
+      comp.knee.value = 6;
+      comp.ratio.value = 4;
+      comp.attack.value = 0.003;
+      comp.release.value = 0.25;
+      this._masterGain.connect(comp);
+      comp.connect(ac.destination);
+    }
+    return this._masterGain;
+  },
+
+  // ── シンセノート1発 ──
+  _note(freq, type, vol, dur, t, detune=0){
+    try{
+      const ac=this._getAC(), master=this._getMaster();
+      const osc=ac.createOscillator();
+      const gain=ac.createGain();
+      // ローパスフィルタでEDM感
+      const lpf=ac.createBiquadFilter();
+      lpf.type='lowpass'; lpf.frequency.value=3000; lpf.Q.value=1.5;
+      osc.connect(lpf); lpf.connect(gain); gain.connect(master);
+      osc.type=type; osc.frequency.value=freq;
+      osc.detune.value=detune;
+      gain.gain.setValueAtTime(0.001,t);
+      gain.gain.linearRampToValueAtTime(vol,t+0.005);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+      osc.start(t); osc.stop(t+dur+0.05);
+      this._nodes.push(osc);
+    }catch(e){}
+  },
+
+  // ── キック（重低音ドラム） ──
+  _kick(vol, t){
+    try{
+      const ac=this._getAC(), master=this._getMaster();
+      const osc=ac.createOscillator();
+      const gain=ac.createGain();
+      osc.connect(gain); gain.connect(master);
+      osc.type='sine';
+      osc.frequency.setValueAtTime(180,t);
+      osc.frequency.exponentialRampToValueAtTime(35,t+0.12);
+      gain.gain.setValueAtTime(vol,t);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+0.25);
+      osc.start(t); osc.stop(t+0.3);
+      this._nodes.push(osc);
+      // ノイズ成分（スナッピー感）
+      const buf=ac.createBuffer(1,Math.ceil(ac.sampleRate*0.08),ac.sampleRate);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/d.length*20);
+      const src=ac.createBufferSource(); src.buffer=buf;
+      const ng=ac.createGain(); ng.gain.setValueAtTime(vol*0.4,t);
+      src.connect(ng); ng.connect(master);
+      src.start(t); src.stop(t+0.08);
+      this._nodes.push(src);
+    }catch(e){}
+  },
+
+  // ── ハイハット ──
+  _hihat(vol, t, open=false){
+    try{
+      const ac=this._getAC(), master=this._getMaster();
+      const buf=ac.createBuffer(1,Math.ceil(ac.sampleRate*(open?0.15:0.05)),ac.sampleRate);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+      const src=ac.createBufferSource(); src.buffer=buf;
+      const hpf=ac.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=7000;
+      const gain=ac.createGain();
+      src.connect(hpf); hpf.connect(gain); gain.connect(master);
+      gain.gain.setValueAtTime(vol,t);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+(open?0.15:0.05));
+      src.start(t); src.stop(t+(open?0.18:0.06));
+      this._nodes.push(src);
+    }catch(e){}
+  },
+
+  // ── スネア ──
+  _snare(vol, t){
+    try{
+      const ac=this._getAC(), master=this._getMaster();
+      const buf=ac.createBuffer(1,Math.ceil(ac.sampleRate*0.15),ac.sampleRate);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/d.length*18);
+      const src=ac.createBufferSource(); src.buffer=buf;
+      const bpf=ac.createBiquadFilter(); bpf.type='bandpass'; bpf.frequency.value=1800; bpf.Q.value=0.6;
+      const gain=ac.createGain();
+      src.connect(bpf); bpf.connect(gain); gain.connect(master);
+      gain.gain.setValueAtTime(vol,t);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+0.15);
+      src.start(t); src.stop(t+0.18);
+      this._nodes.push(src);
+    }catch(e){}
+  },
+
+  // ── ベースライン ──
+  _bass(freq, vol, dur, t){
+    this._note(freq,'sawtooth',vol*0.5,dur,t);
+    this._note(freq,'sine',vol*0.8,dur*0.6,t);
+  },
+
+  // ── EDMリード（メロディー） ──
+  // Eマイナーペンタ: E4(330),G4(392),A4(440),B4(494),D5(587)
+  _lead(freq, vol, dur, t){
+    this._note(freq,'sawtooth',vol*0.3,dur,t,0);
+    this._note(freq,'sawtooth',vol*0.2,dur,t,7);   // コーラス感
+    this._note(freq,'square',vol*0.15,dur*0.5,t,-5);
+  },
+
+  // ── 1小節(4拍)を生成 ──
+  _bar(startT, bpm, intensity){
+    const beat = 60/bpm;  // 1拍の秒数
+    const b16  = beat/4;  // 16分音符
+
+    // キックパターン (1,3拍)
+    this._kick(0.9*intensity, startT);
+    this._kick(0.9*intensity, startT + beat*2);
+
+    // スネア (2,4拍)
+    this._snare(0.7*intensity, startT + beat);
+    this._snare(0.7*intensity, startT + beat*3);
+
+    // ハイハット (8分刻み)
+    for(let i=0;i<8;i++){
+      const open = (i===3||i===7);
+      this._hihat(0.3*intensity, startT + i*beat/2, open);
+    }
+
+    // ベースライン (Eマイナー)
+    const bassNotes=[41,41,41,49, 41,41,44,46]; // E2,E2,E2,B2...
+    const bassFreqs=[82,82,82,98, 82,82,110,116];
+    bassNotes.forEach((_,i)=>{
+      this._bass(bassFreqs[i],0.6*intensity,b16*1.8,startT+i*b16);
+    });
+
+    // リードメロ (高強度時のみ)
+    if(intensity>0.5){
+      const lead=[330,0,392,0,440,392,0,330];
+      lead.forEach((f,i)=>{
+        if(f>0) this._lead(f,0.25*intensity,b16*1.6,startT+i*b16);
+      });
+    }
+
+    // パッドコード (バックグラウンド)
+    [[164,0.06],[196,0.05],[246,0.04]].forEach(([f,v])=>{
+      this._note(f,'sine',v*intensity,beat*4,startT);
+    });
+  },
+
+  // ── ループスケジューラー ──
+  _scheduleNext(){
+    if(!this._playing) return;
+    try{
+      const ac=this._getAC();
+      const bpm=this._bpm;
+      const barDur=60/bpm*4;
+      const t=Math.max(ac.currentTime+0.05, this._nextBarTime||ac.currentTime);
+      const intensity=this._intensity||0.7;
+      this._bar(t, bpm, intensity);
+      this._nextBarTime=t+barDur;
+      // 次の小節の0.1秒前にスケジュール
+      const delay=(this._nextBarTime - ac.currentTime - 0.1)*1000;
+      this._loopTimer=setTimeout(()=>this._scheduleNext(), Math.max(50,delay));
+    }catch(e){}
+  },
+
+  // ── 開始 ──
+  start(totalTime){
+    if(!this.enabled) return;
+    try{
+      this._getAC();
+      this.stop();
+      this._playing=true;
+      this._bpm=128;
+      this._intensity=0.6;
+      this._totalTime=totalTime;
+      this._startWallTime=Date.now();
+      this._nextBarTime=null;
+      this._scheduleNext();
+      // テンポ・強度を時間で更新
+      this._bpmTimer=setInterval(()=>this._updateTempo(), 500);
+    }catch(e){}
+  },
+
+  // ── テンポ更新（残り時間に応じて） ──
+  _updateTempo(){
+    if(!this._playing) return;
+    const elapsed=(Date.now()-this._startWallTime)/1000;
+    const total=this._totalTime||60;
+    const remaining=Math.max(0, total-elapsed);
+    const progress=elapsed/total; // 0→1
+
+    // BPM: 128→180にかけてアップ
+    this._bpm = 128 + Math.floor(progress*52);
+
+    // 強度: 徐々に上げる（緊迫感）
+    this._intensity = 0.6 + progress*0.35;
+
+    // マスターゲイン音量も少し上げる
+    if(this._masterGain){
+      const vol=0.7+progress*0.25;
+      try{ this._masterGain.gain.setTargetAtTime(vol,this._getAC().currentTime,0.5); }catch(e){}
+    }
+  },
+
+  // ── 停止 ──
+  stop(){
+    this._playing=false;
+    if(this._loopTimer){ clearTimeout(this._loopTimer); this._loopTimer=null; }
+    if(this._bpmTimer){ clearInterval(this._bpmTimer); this._bpmTimer=null; }
+    // 全ノードのゲインをフェードアウト
+    try{
+      if(this._masterGain&&this._ac){
+        this._masterGain.gain.setTargetAtTime(0,this._ac.currentTime,0.1);
+        setTimeout(()=>{
+          try{ this._masterGain.gain.setValueAtTime(0.7,this._ac.currentTime); }catch(e){}
+        },600);
+      }
+    }catch(e){}
+    this._nodes=[];
+    this._nextBarTime=null;
+  },
+
+  // ── タイムアップ爆発音 ──
+  timeupBoom(){
+    try{
+      const ac=this._getAC(), master=this._getMaster();
+      const t=ac.currentTime;
+
+      // 第1爆発（超重低音）
+      for(const [f,v,d] of [[40,1.2,1.5],[55,0.9,1.2],[30,1.0,1.8],[80,0.7,0.9]]){
+        const osc=ac.createOscillator(), g=ac.createGain();
+        osc.connect(g); g.connect(master);
+        osc.type='sine'; osc.frequency.setValueAtTime(f*2,t);
+        osc.frequency.exponentialRampToValueAtTime(f*0.3,t+d);
+        g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.001,t+d);
+        osc.start(t); osc.stop(t+d+0.1);
+      }
+      // ノイズ爆発
+      const bufLen=Math.ceil(ac.sampleRate*2.0);
+      const buf=ac.createBuffer(1,bufLen,ac.sampleRate);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<bufLen;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/bufLen*4);
+      const src=ac.createBufferSource(); src.buffer=buf;
+      const lpf=ac.createBiquadFilter(); lpf.type='lowpass'; lpf.frequency.value=600;
+      const g=ac.createGain(); g.gain.setValueAtTime(1.5,t); g.gain.exponentialRampToValueAtTime(0.001,t+2.0);
+      src.connect(lpf); lpf.connect(g); g.connect(master);
+      src.start(t); src.stop(t+2.1);
+      // 高音シャー（金属感）
+      const buf2=ac.createBuffer(1,Math.ceil(ac.sampleRate*0.5),ac.sampleRate);
+      const d2=buf2.getChannelData(0);
+      for(let i=0;i<d2.length;i++) d2[i]=Math.random()*2-1;
+      const src2=ac.createBufferSource(); src2.buffer=buf2;
+      const hpf=ac.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=4000;
+      const g2=ac.createGain(); g2.gain.setValueAtTime(0.8,t); g2.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+      src2.connect(hpf); hpf.connect(g2); g2.connect(master);
+      src2.start(t); src2.stop(t+0.55);
+    }catch(e){}
+  },
 };
+
+function toggleBGM(on){
+  BGM.enabled=on;
+  if(!on) BGM.stop();
+}
 
 // ==========================================
 //  描画・基本ロジック
