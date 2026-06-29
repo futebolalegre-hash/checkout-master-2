@@ -269,11 +269,11 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
       
       <div style="font-size:14px; font-weight:bold; color:var(--wh); margin-bottom:5px;">総合スコア: <span id="ta-final-calc-score" style="color:var(--yw); font-size:32px; font-family:var(--mo);">0</span> pts</div>
 
-      <div class="ta-grid" id="ta-eval-grid">
-        <div class="ta-cell"><span class="ta-cv" id="ta-bd-exc" style="color:var(--gr);">0</span><span class="ta-cl">◎ Perfect</span></div>
-        <div class="ta-cell"><span class="ta-cv" id="ta-bd-good" style="color:var(--yw);">0</span><span class="ta-cl">◯ Good</span></div>
-        <div class="ta-cell"><span class="ta-cv" id="ta-bd-par" style="color:var(--or);">0</span><span class="ta-cl">△ Partial</span></div>
-        <div class="ta-cell"><span class="ta-cv" id="ta-bd-miss" style="color:var(--rd);">0</span><span class="ta-cl">✕ Miss</span></div>
+      <div class="ta-grid" id="ta-eval-grid" style="grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; width:100%; max-width:320px;">
+        <div class="ta-cell"><span class="ta-cv" id="ta-bd-exc" style="color:var(--gr);">0</span><span class="ta-cl" style="font-size:10px;">◎ Perfect</span></div>
+        <div class="ta-cell"><span class="ta-cv" id="ta-bd-good" style="color:var(--yw);">0</span><span class="ta-cl" style="font-size:10px;">◯ Good</span></div>
+        <div class="ta-cell"><span class="ta-cv" id="ta-bd-par" style="color:var(--or);">0</span><span class="ta-cl" style="font-size:10px;">△ Partial</span></div>
+        <div class="ta-cell"><span class="ta-cv" id="ta-bd-miss" style="color:var(--rd);">0</span><span class="ta-cl" style="font-size:10px;">✕ Miss</span></div>
       </div>
       
       <div id="ta-rank-comment" style="font-size:12px;color:var(--mu);text-align:center;max-width:280px;line-height:1.6;margin-top:8px;padding:0 8px;"></div>
@@ -468,6 +468,7 @@ const SND={
 };
 function toggleSound(on){ SND.enabled=on; if(on)try{SND._getAC();}catch(e){} }
 
+// 音声ファイル版 BGMエンジン (タイムアタック＆エンディング用)
 const BGM = {
   enabled: true,
   currentTrack: 'bgm-upbeat',
@@ -858,28 +859,26 @@ try{ST.history=JSON.parse(localStorage.getItem('darts_h6')||'[]');}catch(e){}
 
 function toggleRemain(on){ ST.showRemain = on; renderLog(); }
 
-// 🎯 DBL/MAS/OPNモードに合わせて、AIが最短ルートを自動算出する
 function getThrows(a){
-  let baseRoute = ST.bullMode==='sep'?a.sep:a.fat;
-  if(!baseRoute) baseRoute = [];
+  if(ST.outMode === 'master' || ST.outMode === 'open') {
+    if(a.score === 168) return ["T20","T20","T16"];
+    if(a.score === 165) return ["T20","T20","T15"];
+    if(a.score === 162) return ["T20","T20","T14"];
+    if(a.score === 159) return ["T19","T19","T15"];
+  }
+  
+  let route = ST.bullMode==='sep'?a.sep:a.fat;
+  if(!route) route = [];
   
   if(ST.outMode === 'master' || ST.outMode === 'open') {
-     // MASTER OUT 特有のボギーナンバー救済
-     if(a.score === 168) return ["T20","T20","T16"];
-     if(a.score === 165) return ["T20","T20","T15"];
-     if(a.score === 162) return ["T20","T20","T14"];
-     if(a.score === 159) return ["T19","T19","T15"];
-     // T1本上がり
      if(a.score <= 60 && a.score % 3 === 0) return [`T${a.score/3}`];
-     // DB上がり
      if(a.score === 50) return ['Bull'];
   }
   if(ST.outMode === 'open') {
-     // S1本上がり
      if(a.score <= 20) return [`S${a.score}`];
      if(a.score === 25) return ['S25'];
   }
-  return baseRoute;
+  return route;
 }
 
 function segVal(label){
@@ -890,31 +889,28 @@ function segVal(label){
   return 0;
 }
 
-// 🎯 ユーザーの自由なアレンジを許容する数学判定エンジン
 function isMathOut(input, targetScore, outMode) {
   let sum = 0;
   for(let i=0; i<input.length; i++) {
     let val = segVal(input[i]);
     sum += val;
-    // 途中でバーストしたらアウト
     if (i < input.length - 1 && sum >= targetScore) return false; 
   }
-  if (sum !== targetScore) return false; // ぴったり0になっていない
+  if (sum !== targetScore) return false;
 
   let lastDart = input[input.length - 1];
   let isDouble = lastDart.startsWith('D') || lastDart === 'Bull';
   let isTriple = lastDart.startsWith('T');
 
-  // アウトルールの条件を満たしているか
   if (outMode === 'double') return isDouble;
   else if (outMode === 'master') return isDouble || isTriple;
-  else return true; // Open out はピッタリなら何でもOK
+  else return true;
 }
 
 function getPool(){
   const bogeys = [169, 168, 166, 165, 163, 162, 159];
   let v = ARRANGES.filter(a => {
-    if (ST.outMode === 'double' && bogeys.includes(a.score)) return false; // DBL時はボギー除外
+    if (ST.outMode === 'double' && bogeys.includes(a.score)) return false;
     const t = getThrows(a); return t && t.length > 0;
   });
   if(ST.level==='easy') return v.filter(a=>a.score<=100);
@@ -1052,22 +1048,21 @@ function checkAnswer(){
   const exactOk = JSON.stringify(input) === JSON.stringify(correct);
   const mathOk = isMathOut(input, q.score, ST.outMode);
   
-  let evaluation = 'miss'; // 'exc', 'good', 'par', 'miss'
+  let evaluation = 'miss';
   let msgExt = "";
 
-  // 🎯 AI評価ロジック
   if (exactOk) {
     evaluation = 'exc';
     msgExt = "最優秀アレンジ";
   } else if (mathOk) {
     if (input.length < correct.length) {
-       evaluation = 'exc'; // 登録ルートより少ない手数＝ショートカット
+       evaluation = 'exc';
        msgExt = "ショートカット成立！";
     } else if (input.length === correct.length) {
-       evaluation = 'good'; // 同じ手数＝別候補アレンジ
+       evaluation = 'good';
        msgExt = "ナイスアレンジ(別解)！";
     } else {
-       evaluation = 'par'; // 手数が多い＝妥協ルート
+       evaluation = 'par';
        msgExt = "イレギュラー上がり(手数が多め)";
     }
   } else if (correct.length > 0 && checkOrder(input, correct)) {
@@ -1173,21 +1168,26 @@ function startTimeAttack(){
 
 function tick(){
   ST.ta.timeLeft-=0.1;
-  if(ST.ta.timeLeft<=0){
-    ST.ta.timeLeft=0;
-    clearInterval(ST.ta.timer);ST.ta.timer=null;ST.ta.active=false;
+  if(ST.ta.timeLeft < 0) ST.ta.timeLeft = 0; 
+  
+  const el=document.getElementById('timer-display'),bar=document.getElementById('timer-bar');
+  el.textContent=Math.ceil(ST.ta.timeLeft); el.className='timer-num'+(ST.ta.timeLeft<=5?' danger':'');
+  bar.style.width=(ST.ta.timeLeft/ST.ta.totalTime*100)+'%'; bar.className='timer-fill'+(ST.ta.timeLeft<=5?' danger':'');
+
+  if(ST.ta.timeLeft<=0 && ST.ta.active){
+    ST.ta.active = false;
+    clearInterval(ST.ta.timer);ST.ta.timer=null;
     
-    BGM.stop(); SND.boom(); setTimeout(() => { BGM.playEnding(); }, 1500); 
+    BGM.stop(); SND.boom(); 
+    setTimeout(() => { BGM.playEnding(); }, 1500); 
     
     if(ST.current && !ST.answered) {
       ST.ta.total++;
       ST.ta.history.push({ score: ST.current.score, input: [...ST.input], correct: getThrows(ST.current), eval: 'miss', theory: ST.current.theory, timeout: true });
     }
-    showTAResult();
+    
+    setTimeout(showTAResult, 800);
   }
-  const el=document.getElementById('timer-display'),bar=document.getElementById('timer-bar');
-  el.textContent=Math.ceil(ST.ta.timeLeft); el.className='timer-num'+(ST.ta.timeLeft<=5?' danger':'');
-  bar.style.width=(ST.ta.timeLeft/ST.ta.totalTime*100)+'%'; bar.className='timer-fill'+(ST.ta.timeLeft<=5?' danger':'');
 }
 
 function calcTARank(history, timeLimit, level){
@@ -1201,7 +1201,7 @@ function calcTARank(history, timeLimit, level){
   });
 
   const diffMult = level==='hard'?1.5 : level==='normal'?1.2 : 1.0;
-  const expectedTotal = (timeLimit / 15) * 5; // 15秒で5問を基準とする
+  const expectedTotal = (timeLimit / 15) * 5; 
   const speedBonus = history.length / expectedTotal; 
   
   const rawScore = scoreBase * diffMult * (0.5 + speedBonus * 0.5);
@@ -1233,7 +1233,6 @@ function showTAResult(){
   document.getElementById('ta-bd-total').textContent=ST.ta.total;
   document.getElementById('ta-bd-rate').textContent=ST.ta.total>0?Math.round(ST.ta.correct/ST.ta.total*100)+'%':'—';
   
-  // Gridの数値を更新
   document.getElementById('ta-bd-exc').textContent = rankData.counts.exc;
   document.getElementById('ta-bd-good').textContent = rankData.counts.good;
   document.getElementById('ta-bd-par').textContent = rankData.counts.par;
@@ -1249,11 +1248,16 @@ function showTAResult(){
   label.textContent='ARRANGE RANK';
   comment.textContent=rankData.comment;
 
-  saveHist({ type:'ta',score:ST.ta.correct, label:`TA(${ST.ta.totalTime}s)[${ST.level.toUpperCase()}]: 総合${rankData.rawScore}pts ${rankData.rank}`, ts:Date.now() });
+  saveHist({
+    type:'ta',score:ST.ta.correct,
+    label:`TA(${ST.ta.totalTime}s)[${ST.level.toUpperCase()}]: 総合${rankData.rawScore}pts ${rankData.rank}`,
+    ts:Date.now()
+  });
 
   const revContainer = document.getElementById('ta-review-list');
-  if(ST.ta.history.length === 0) { revContainer.innerHTML = ''; } 
-  else {
+  if(ST.ta.history.length === 0) {
+    revContainer.innerHTML = '';
+  } else {
     const reviewHtml = ST.ta.history.map((h, i) => {
       let icon = '✕'; let color = 'var(--rd)'; let txt = 'Miss';
       if(h.eval === 'exc') { icon='◎'; color='var(--gr)'; txt='Perfect'; }
