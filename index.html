@@ -1155,8 +1155,11 @@ function toggleTheory(on){
 }
 
 function startTimeAttack(){
-  document.getElementById('ta-result').classList.remove('show'); document.getElementById('board-area').style.display='flex';
-  document.getElementById('main-btns').style.display='none'; document.getElementById('btn-hint').style.display='none';
+  document.getElementById('ta-result').classList.remove('show'); 
+  document.getElementById('board-area').style.display='flex';
+  document.querySelector('.bottom-panel').style.display='block';
+  document.getElementById('main-btns').style.display='none'; 
+  document.getElementById('btn-hint').style.display='none';
   document.getElementById('ta-start-btn').style.display='none';
   ST.ta={active:true,timeLeft:ST.taTime,totalTime:ST.taTime,correct:0,total:0,timer:null,history:[]};
   
@@ -1220,18 +1223,11 @@ function calcTARank(history, timeLimit, level){
 
 function showTAResult(){
   document.getElementById('board-area').style.display='none';
+  document.querySelector('.bottom-panel').style.display='none';
   document.getElementById('ta-result').classList.add('show');
-  document.getElementById('current-score').textContent='—';
-  document.getElementById('throw-log').innerHTML='';
-  document.getElementById('throw-counter').textContent='';
-  document.getElementById('main-btns').style.display='none';
   clearHL();
 
   const rankData = calcTARank(ST.ta.history, ST.ta.totalTime, ST.level);
-
-  document.getElementById('ta-final-score').textContent=ST.ta.correct;
-  document.getElementById('ta-bd-total').textContent=ST.ta.total;
-  document.getElementById('ta-bd-rate').textContent=ST.ta.total>0?Math.round(ST.ta.correct/ST.ta.total*100)+'%':'—';
   
   document.getElementById('ta-bd-exc').textContent = rankData.counts.exc;
   document.getElementById('ta-bd-good').textContent = rankData.counts.good;
@@ -1247,6 +1243,8 @@ function showTAResult(){
   badge.style.textShadow=`0 0 16px ${rankData.color}80`;
   label.textContent='ARRANGE RANK';
   comment.textContent=rankData.comment;
+
+  const rate = ST.ta.total > 0 ? Math.round(ST.ta.correct / ST.ta.total * 100) + '%' : '—';
 
   saveHist({
     type:'ta',score:ST.ta.correct,
@@ -1302,6 +1300,7 @@ function setMode(btn,mode){
   if(tg)tg.style.display=ta?'flex':'none';if(vs)vs.style.display=ta?'block':'none';
   document.getElementById('ta-result').classList.remove('show');
   document.getElementById('board-area').style.display= isWeak?'none':'flex';
+  document.querySelector('.bottom-panel').style.display='block';
   document.getElementById('main-btns').style.display=(ta||isWeak)?'none':'flex';
   document.getElementById('confirm-btn-row').style.display='none';
   document.getElementById('ta-start-btn').style.display=ta?'flex':'none';
