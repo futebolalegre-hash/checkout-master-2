@@ -612,36 +612,68 @@ function getSvgCoords(svg, e) {
   return pt.matrixTransform(svg.getScreenCTM().inverse());
 }
 
-function drawDart(x, y) {
+function drawDart(x, y, targetId) {
   const svg = document.getElementById('dartboard');
   const dart = document.createElementNS(ns, 'g');
   dart.setAttribute('class', 'thrown-dart');
-  const angle = 20 + Math.random() * 20; 
-  dart.setAttribute('transform', `translate(${x}, ${y}) scale(1.2) rotate(${angle})`);
+  dart.setAttribute('data-target', targetId);
   
+  // 自然に見えるように少し右に傾ける
+  const angle = 15 + Math.random() * 15; 
+  dart.setAttribute('transform', `translate(${x}, ${y}) scale(1.3) rotate(${angle})`);
+  
+  // 立体感を出すための影（ドロップシャドウの代わり）
+  const shadow = document.createElementNS(ns, 'path');
+  shadow.setAttribute('d', 'M0,0 L-5,-10 L-5,-28 L0,-22 L4,-28 L4,-10 Z');
+  shadow.setAttribute('fill', 'rgba(0,0,0,0.5)');
+  shadow.setAttribute('transform', 'translate(4, 4) skewX(20)');
+  dart.appendChild(shadow);
+
+  // ダーツの矢先（シルバー）0,0座標に確実に刺さるように
+  const tip = document.createElementNS(ns, 'polygon');
+  tip.setAttribute('points', '-1,-5 1,-5 0,0');
+  tip.setAttribute('fill', '#E0E0E0');
+  dart.appendChild(tip);
+
+  // バレル本体
+  const barrel = document.createElementNS(ns, 'rect');
+  barrel.setAttribute('x', '-2'); barrel.setAttribute('y', '-16');
+  barrel.setAttribute('width', '4'); barrel.setAttribute('height', '11');
+  barrel.setAttribute('rx', '1');
+  barrel.setAttribute('fill', '#999');
+  barrel.setAttribute('stroke', '#333'); barrel.setAttribute('stroke-width', '0.5');
+  dart.appendChild(barrel);
+  
+  // バレルのカット（刻み）
+  for(let by = -14; by <= -7; by += 2) {
+     const cut = document.createElementNS(ns, 'line');
+     cut.setAttribute('x1', '-2'); cut.setAttribute('y1', by);
+     cut.setAttribute('x2', '2'); cut.setAttribute('y2', by);
+     cut.setAttribute('stroke', '#222'); cut.setAttribute('stroke-width', '0.5');
+     dart.appendChild(cut);
+  }
+
+  // ナイロンシャフト
+  const shaft = document.createElementNS(ns, 'rect');
+  shaft.setAttribute('x', '-1'); shaft.setAttribute('y', '-25');
+  shaft.setAttribute('width', '2'); shaft.setAttribute('height', '9');
+  shaft.setAttribute('fill', '#E8EEE8');
+  dart.appendChild(shaft);
+
+  // ピンクのフライト
   const flight = document.createElementNS(ns, 'path');
-  flight.setAttribute('d', 'M0,-12 L-10,-22 L-8,-30 L0,-24 L8,-30 L10,-22 Z');
+  flight.setAttribute('d', 'M0,-22 L-9,-31 L-7,-38 L0,-34 L7,-38 L9,-31 Z');
   flight.setAttribute('fill', 'var(--pk)');
   flight.setAttribute('stroke', '#1C100A');
-  flight.setAttribute('stroke-width', '1');
-
-  const shaft = document.createElementNS(ns, 'line');
-  shaft.setAttribute('x1', '0'); shaft.setAttribute('y1', '-18');
-  shaft.setAttribute('x2', '0'); shaft.setAttribute('y2', '-4');
-  shaft.setAttribute('stroke', '#E8EEE8');
-  shaft.setAttribute('stroke-width', '2');
+  flight.setAttribute('stroke-width', '0.5');
+  dart.appendChild(flight);
   
-  const barrel = document.createElementNS(ns, 'line');
-  barrel.setAttribute('x1', '0'); barrel.setAttribute('y1', '-10');
-  barrel.setAttribute('x2', '0'); barrel.setAttribute('y2', '-4');
-  barrel.setAttribute('stroke', '#aaa');
-  barrel.setAttribute('stroke-width', '3');
-
-  const tip = document.createElementNS(ns, 'polygon');
-  tip.setAttribute('points', '-1,-4 1,-4 0,0');
-  tip.setAttribute('fill', '#ccc');
-
-  dart.appendChild(shaft); dart.appendChild(barrel); dart.appendChild(flight); dart.appendChild(tip);
+  // フライトの立体感のハイライト
+  const flightDetail = document.createElementNS(ns, 'path');
+  flightDetail.setAttribute('d', 'M0,-22 L0,-34 L7,-38 L9,-31 Z');
+  flightDetail.setAttribute('fill', 'rgba(0,0,0,0.15)');
+  dart.appendChild(flightDetail);
+  
   dart.setAttribute('pointer-events', 'none');
   svg.appendChild(dart);
 }
@@ -998,7 +1030,49 @@ function onTap(label,val,e){
   if(e) {
     const svg = document.getElementById('dartboard');
     const pt = getSvgCoords(svg, e);
-    drawDart(pt.x, pt.y);
+    const dx = pt.x - CX, dy = pt.y - CY;
+    const r_click = Math.sqrt(dx*dx + dy*dy);
+
+    let r = 0;
+    let angle = 0;
+
+    if (label === 'Bull') {
+      r = 0; angle = 0;
+    } else if (label === 'S25') {
+      r = 37.5; angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+    } else {
+      const num = parseInt(label.slice(1), 10);
+      const idx = SECTORS.indexOf(num);
+      angle = idx * 18;
+
+      if (label.startsWith('D')) r = 177;
+      else if (label.startsWith('T')) r = 116;
+      else {
+        if (r_click > 100) r = 146; // Outer Single
+        else r = 75; // Inner Single
+      }
+    }
+
+    const rad = (angle - 90) * Math.PI / 180;
+    const baseX = CX + r * Math.cos(rad);
+    const baseY = CY + r * Math.sin(rad);
+
+    const targetId = label + (label.startsWith('S') && label !== 'S25' ? (r_click > 100 ? '_o' : '_i') : '');
+    const count = document.querySelectorAll(`.thrown-dart[data-target="${targetId}"]`).length;
+
+    let ox = 0, oy = 0;
+    if (r === 0) {
+      if(count === 1) { ox = -8; oy = 8; }
+      if(count === 2) { ox = 8; oy = -8; }
+    } else {
+      const tx = -Math.sin(rad);
+      const ty = Math.cos(rad);
+      const shift = count === 1 ? 12 : count === 2 ? -12 : 0;
+      ox = shift * tx;
+      oy = shift * ty;
+    }
+
+    drawDart(baseX + ox, baseY + oy, targetId);
   }
 
   ST.input.push(n); 
@@ -1552,6 +1626,7 @@ function checkIOSInstall(){
   }
 }
 
+// 外部ファイル化したService Workerの登録
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
