@@ -155,6 +155,7 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
     <audio id="bgm-upbeat" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
     <audio id="bgm-cyber" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio>
     <audio id="bgm-calm" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"></audio>
+    <audio id="bgm-ending" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"></audio>
 </div>
 
 <header>
@@ -337,6 +338,7 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
 </div>
 
 <script>
+// 効果音エンジンはそのままキープ（エラーの原因になっていたBGM系は除去済み）
 const SND={
   enabled:true,
   _ac:null,
@@ -455,34 +457,47 @@ const SND={
     }catch(e){}
   }
 };
-
 function toggleSound(on){ SND.enabled=on; if(on)try{SND._getAC();}catch(e){} }
 
+// 音声ファイル版 BGMエンジン (タイムアタック＆エンディング用)
 const BGM = {
   enabled: true,
+  currentTrack: 'bgm-upbeat',
   start(){
     if(!this.enabled) return;
     this.stop();
     const sel = document.getElementById('bgm-select');
-    const trackId = sel ? sel.value : 'bgm-upbeat';
-    const audio = document.getElementById(trackId);
+    this.currentTrack = sel ? sel.value : 'bgm-upbeat';
+    const audio = document.getElementById(this.currentTrack);
     if(audio) {
       audio.currentTime = 0;
       audio.play().catch(e=>{});
     }
   },
   stop(){
-    ['bgm-upbeat','bgm-cyber','bgm-calm'].forEach(id => {
+    ['bgm-upbeat','bgm-cyber','bgm-calm','bgm-ending'].forEach(id => {
       const audio = document.getElementById(id);
       if(audio) { audio.pause(); audio.currentTime = 0; }
     });
+  },
+  playEnding(){
+    if(!this.enabled) return;
+    this.stop();
+    const audio = document.getElementById('bgm-ending');
+    if(audio) {
+      audio.currentTime = 0;
+      audio.play().catch(e=>{});
+    }
   }
 };
 
 function toggleBGM(on){ 
   BGM.enabled=on; 
   if(!on) BGM.stop(); 
-  else if(ST.ta && ST.ta.active) BGM.start();
+  else {
+    if(ST.ta && ST.ta.active) BGM.start();
+    else if(document.getElementById('ta-result').classList.contains('show')) BGM.playEnding();
+  }
 }
 
 function changeBGM() {
@@ -824,9 +839,6 @@ const ARRANGES = [
   {score:2, fat:["D1"], sep:["D1"], tags:['double','key'], theory:'【MyArrange 1位】D1 (1本フィニッシュ)\n満場一致のルートです。', miss:'D1外れS1(1)→バースト(上がり目消滅)となり、次のラウンドへ持ち越しです。'}
 ];
 
-// ═══════════════════════════════════════════
-//  GAME ENGINE & RESULT LOGIC
-// ═══════════════════════════════════════════
 let ST={
   mode:'quiz',level:'easy',bullMode:'fat',outMode:'master',taTime:15,
   current:null,answered:false,showTheory:false,showRemain:false,
@@ -836,16 +848,11 @@ let ST={
 };
 try{ST.history=JSON.parse(localStorage.getItem('darts_h6')||'[]');}catch(e){}
 
-function toggleRemain(on){
-  ST.showRemain = on;
-  renderLog();
-}
-
+function toggleRemain(on){ ST.showRemain = on; renderLog(); }
 function getThrows(a){ return ST.bullMode==='sep'?a.sep:a.fat; }
 
 function segVal(label){
-  if(label==='Bull')return 50;
-  if(label==='S25')return 25;
+  if(label==='Bull')return 50; if(label==='S25')return 25;
   if(label.startsWith('T'))return parseInt(label.slice(1),10)*3;
   if(label.startsWith('D'))return parseInt(label.slice(1),10)*2;
   if(label.startsWith('S'))return parseInt(label.slice(1),10);
@@ -854,17 +861,10 @@ function segVal(label){
 
 function isOpenOutCorrect(input, correct, currentScore){
   if(JSON.stringify(input)===JSON.stringify(correct)) return true;
-
   if(input.length===correct.length){
-    for(let i=0;i<correct.length-1;i++){
-      if(input[i]!==correct[i]) return false;
-    }
-    const last=correct[correct.length-1];
-    const inLast=input[input.length-1];
-    if(last.startsWith('D')){
-      const num=parseInt(last.slice(1),10);
-      if(inLast===`S${num}`) return true;
-    }
+    for(let i=0;i<correct.length-1;i++){ if(input[i]!==correct[i]) return false; }
+    const last=correct[correct.length-1]; const inLast=input[input.length-1];
+    if(last.startsWith('D')){ const num=parseInt(last.slice(1),10); if(inLast===`S${num}`) return true; }
     if(correct.length===1&&currentScore<=20&&inLast===`S${currentScore}`) return true;
     if(inLast.startsWith('S')){
       const sVal=parseInt(inLast.slice(1),10);
@@ -872,17 +872,12 @@ function isOpenOutCorrect(input, correct, currentScore){
       if(currentScore-prevSum===sVal&&sVal<=20) return true;
     }
   }
-
   if(input.length===correct.length+1){
     const lastCorrect=correct[correct.length-1];
     if(lastCorrect.startsWith('D')){
-      const dNum=parseInt(lastCorrect.slice(1),10);
-      const sLabel=`S${dNum}`;
-      for(let i=0;i<correct.length-1;i++){
-        if(input[i]!==correct[i]) return false;
-      }
-      const last1=input[correct.length-1];
-      const last2=input[correct.length];
+      const dNum=parseInt(lastCorrect.slice(1),10); const sLabel=`S${dNum}`;
+      for(let i=0;i<correct.length-1;i++){ if(input[i]!==correct[i]) return false; }
+      const last1=input[correct.length-1]; const last2=input[correct.length];
       if(last1===sLabel&&last2===sLabel) return true;
     }
   }
@@ -897,15 +892,9 @@ function getPool(){
 }
 function _buildQueue(){
   let pool = getPool();
-  if(ST.mode === 'weak' && ST._weakPool) {
-    pool = ST._weakPool.filter(a => !ST._weakAnswered.has(a.score));
-    if(pool.length === 0) pool = ST._weakPool; 
-  }
+  if(ST.mode === 'weak' && ST._weakPool) { pool = ST._weakPool.filter(a => !ST._weakAnswered.has(a.score)); if(pool.length === 0) pool = ST._weakPool; }
   const arr=[...pool];
-  for(let i=arr.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
-  }
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
   ST._queue=arr;
 }
 function _pickNext(){
@@ -921,95 +910,57 @@ function checkOrder(input,correct){
 }
 
 function onTap(label,val,e){
-  if(ST.answered)return;
-  if(ST.mode==='timeattack'&&!ST.ta.active)return;
-  
+  if(ST.answered)return; if(ST.mode==='timeattack'&&!ST.ta.active)return;
   if(ST.input.length>=3)return;
-  
-  const n=normBull(label);
-  SND.play(label); 
-  flashSeg(label); 
+  const n=normBull(label); SND.play(label); flashSeg(label); 
   
   if(e) {
-    const svg = document.getElementById('dartboard');
-    const pt = getSvgCoords(svg, e);
-    const dx = pt.x - CX, dy = pt.y - CY;
-    const r_click = Math.sqrt(dx*dx + dy*dy);
-
-    let r = 0;
-    let angle = 0;
-
-    if (label === 'Bull') {
-      r = 0; angle = 0;
-    } else if (label === 'S25') {
-      r = 37.5; angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
-    } else {
-      const num = parseInt(label.slice(1), 10);
-      const idx = SECTORS.indexOf(num);
-      angle = idx * 18;
-
+    const svg = document.getElementById('dartboard'); const pt = getSvgCoords(svg, e);
+    const dx = pt.x - CX, dy = pt.y - CY; const r_click = Math.sqrt(dx*dx + dy*dy);
+    let r = 0; let angle = 0;
+    if (label === 'Bull') { r = 0; angle = 0; } 
+    else if (label === 'S25') { r = 37.5; angle = Math.atan2(dy, dx) * 180 / Math.PI + 90; } 
+    else {
+      const num = parseInt(label.slice(1), 10); const idx = SECTORS.indexOf(num); angle = idx * 18;
       if (label.startsWith('D')) r = 177;
       else if (label.startsWith('T')) r = 116;
-      else {
-        if (r_click > 100) r = 146; 
-        else r = 75; 
-      }
+      else { if (r_click > 100) r = 146; else r = 75; }
     }
-
     const rad = (angle - 90) * Math.PI / 180;
-    const baseX = CX + r * Math.cos(rad);
-    const baseY = CY + r * Math.sin(rad);
-
+    const baseX = CX + r * Math.cos(rad); const baseY = CY + r * Math.sin(rad);
     const targetId = label + (label.startsWith('S') && label !== 'S25' ? (r_click > 100 ? '_o' : '_i') : '');
     const count = document.querySelectorAll(`.thrown-dart[data-target="${targetId}"]`).length;
-
     let ox = 0, oy = 0;
     if (r === 0) {
-      if(count === 1) { ox = -8; oy = 8; }
-      if(count === 2) { ox = 8; oy = -8; }
+      if(count === 1) { ox = -8; oy = 8; } if(count === 2) { ox = 8; oy = -8; }
     } else {
-      const tx = -Math.sin(rad);
-      const ty = Math.cos(rad);
+      const tx = -Math.sin(rad); const ty = Math.cos(rad);
       const shift = count === 1 ? 12 : count === 2 ? -12 : 0;
-      ox = shift * tx;
-      oy = shift * ty;
+      ox = shift * tx; oy = shift * ty;
     }
-
     drawDart(baseX + ox, baseY + oy, targetId);
   }
-
-  ST.input.push(n); 
-  renderLog();
+  ST.input.push(n); renderLog();
 }
 
 function renderLog(overallOk, openOk){
   const q=ST.current,throws=q?getThrows(q):[]; 
   const log=document.getElementById('throw-log'),ctr=document.getElementById('throw-counter');
   const scoreEl = document.getElementById('current-score');
-  
-  const maxT=3;
-  const rem=maxT-ST.input.length;
+  const maxT=3; const rem=maxT-ST.input.length;
 
   if(q){
-    let sum = 0;
-    ST.input.forEach(seg => sum += segVal(seg));
+    let sum = 0; ST.input.forEach(seg => sum += segVal(seg));
     if(ST.showRemain && ST.input.length > 0) {
-      let remScore = q.score - sum;
-      let color = 'var(--gr)';
-      if(remScore < 0 || (ST.outMode !== 'open' && remScore === 1)) {
-         color = 'var(--rd)';
-      } else if (remScore === 0) {
+      let remScore = q.score - sum; let color = 'var(--gr)';
+      if(remScore < 0 || (ST.outMode !== 'open' && remScore === 1)) { color = 'var(--rd)'; } 
+      else if (remScore === 0) {
          const last = ST.input[ST.input.length-1];
-         if(ST.outMode !== 'open' && last && last.startsWith('S') && last !== 'S25') {
-            color = 'var(--rd)';
-         } else {
-            color = 'var(--yw)';
-         }
+         if(ST.outMode !== 'open' && last && last.startsWith('S') && last !== 'S25') { color = 'var(--rd)'; } 
+         else { color = 'var(--yw)'; }
       }
       scoreEl.innerHTML = `${q.score} <span style="font-size:28px;color:${color};">→ ${remScore}</span>`;
-    } else {
-      scoreEl.textContent = q.score;
-    }
+    } else { scoreEl.textContent = q.score; }
   }
   
   const indicator = document.getElementById('darts-indicator');
@@ -1032,43 +983,31 @@ function renderLog(overallOk, openOk){
   }
 
   const cls_func=(t,i)=>{
-    if(!ST.answered)return'tchip';
-    if(overallOk)return'tchip hit';
+    if(!ST.answered)return'tchip'; if(overallOk)return'tchip hit';
     const ok=t===throws[i]; if(ok)return'tchip hit';
-    if(checkOrder(ST.input,throws))return'tchip partial';
-    return'tchip miss';
+    if(checkOrder(ST.input,throws))return'tchip partial'; return'tchip miss';
   };
   log.innerHTML=ST.input.map((t,i)=>{
     const cls=cls_func(t,i); return`<div class="${cls}"><span>${t}</span>${!ST.answered?`<span class="del" onclick="rmThrow(${i})">✕</span>`:''}</div>`;
   }).join('');
   
-  if(!ST.answered){ 
-    ctr.textContent=rem>0?`あと${rem}本スロー（確定ボタンで完了）`:'（確定ボタンで完了）'; 
-  } else {
-    ctr.textContent='';
-  }
+  if(!ST.answered){ ctr.textContent=rem>0?`あと${rem}本スロー（確定ボタンで完了）`:'（確定ボタンで完了）'; } 
+  else { ctr.textContent=''; }
   
-  const confirmBtn = document.getElementById('confirm-btn-row');
-  const mainBtns = document.getElementById('main-btns');
-  
+  const confirmBtn = document.getElementById('confirm-btn-row'); const mainBtns = document.getElementById('main-btns');
   if(!ST.answered && ST.input.length > 0) {
-    confirmBtn.style.display = 'flex';
-    if(mainBtns) mainBtns.style.display = 'none';
+    confirmBtn.style.display = 'flex'; if(mainBtns) mainBtns.style.display = 'none';
   } else {
     confirmBtn.style.display = 'none';
     if(mainBtns) {
-      if(ST.mode === 'quiz' || ST.mode === 'study') {
-        mainBtns.style.display = 'flex';
-      } else if(ST.mode === 'weak' && ST.answered) {
-        mainBtns.style.display = 'flex';
-      }
+      if(ST.mode === 'quiz' || ST.mode === 'study') { mainBtns.style.display = 'flex'; } 
+      else if(ST.mode === 'weak' && ST.answered) { mainBtns.style.display = 'flex'; }
     }
   }
 }
 
 function rmThrow(i){
-  if(ST.answered)return;
-  ST.input.splice(i,1);
+  if(ST.answered)return; ST.input.splice(i,1);
   const darts = document.querySelectorAll('.thrown-dart');
   if(darts.length > i) darts[i].remove();
   renderLog();
@@ -1085,22 +1024,12 @@ function checkAnswer(){
   else if(partial){ correct.forEach(s=>hlSeg(s,PHX.sel_or)); SND.ng(); }
   else {
     correct.forEach(s=>hlSeg(s,PHX.sel_ok));
-    input.forEach((s,i)=>{if(s!==correct[i])hlSeg(s,PHX.sel_ng);});
-    SND.ng();
+    input.forEach((s,i)=>{if(s!==correct[i])hlSeg(s,PHX.sel_ng);}); SND.ng();
   }
   if(ST.mode==='timeattack'){
     ST.ta.total++; if(ok||partial)ST.ta.correct++;
-    ST.ta.history.push({
-      score: q.score,
-      input: [...input],
-      correct: [...correct],
-      ok: ok,
-      partial: partial,
-      theory: q.theory,
-      timeout: false
-    });
-    renderLog(ok,openOk);
-    setTimeout(()=>{clearHL();if(ST.ta.active){ST.input=[];nextQuestion();}},800); return;
+    ST.ta.history.push({ score: q.score, input: [...input], correct: [...correct], ok: ok, partial: partial, theory: q.theory, timeout: false });
+    renderLog(ok,openOk); setTimeout(()=>{clearHL();if(ST.ta.active){ST.input=[];nextQuestion();}},800); return;
   }
   ST.stats.total++;if(ok)ST.stats.correct++;
   if(ST.mode==='weak' && ok) markWeakAnswered(q.score, true);
@@ -1126,10 +1055,7 @@ function checkAnswer(){
 function nextQuestion(){
   ST.answered=false;ST.input=[];clearHL(); if(ST.mode==='timeattack'&&!ST.ta.active)return;
   ST.current=_pickNext();
-  if(ST.current) {
-    const scoreEl = document.getElementById('current-score');
-    scoreEl.textContent=ST.current.score;
-  }
+  if(ST.current) { const scoreEl = document.getElementById('current-score'); scoreEl.textContent=ST.current.score; }
   document.getElementById('result-banner').className='result-banner'; document.getElementById('btn-hint').style.display='';
   document.getElementById('theory-panel').classList.remove('show'); renderLog();
   if(ST.mode==='study'||ST.showTheory){renderTheory(ST.current,false,false);document.getElementById('theory-panel').classList.add('show');}
@@ -1169,22 +1095,29 @@ function toggleTheory(on){
   if(on&&ST.current){renderTheory(ST.current,false);document.getElementById('theory-panel').classList.add('show');}
   else document.getElementById('theory-panel').classList.remove('show');
 }
+
 function startTimeAttack(){
   document.getElementById('ta-result').classList.remove('show'); document.getElementById('board-area').style.display='flex';
   document.getElementById('main-btns').style.display='none'; document.getElementById('btn-hint').style.display='none';
   document.getElementById('ta-start-btn').style.display='none';
   ST.ta={active:true,timeLeft:ST.taTime,totalTime:ST.taTime,correct:0,total:0,timer:null,history:[]};
+  
+  if(BGM.enabled) BGM.start();
+  
   ST.ta.timer=setInterval(tick,100);
-  BGM.start(ST.taTime);
   nextQuestion();
 }
+
 function tick(){
   ST.ta.timeLeft-=0.1;
   if(ST.ta.timeLeft<=0){
     ST.ta.timeLeft=0;
     clearInterval(ST.ta.timer);ST.ta.timer=null;ST.ta.active=false;
+    
+    // タイムアップ処理：BGMを停止し、爆発音とエンディングを鳴らす
     BGM.stop();
-    BGM.timeupBoom();
+    SND.boom();
+    setTimeout(() => { BGM.playEnding(); }, 1500); // 爆発音の余韻の後にエンディング再生
     
     if(ST.current && !ST.answered) {
       ST.ta.total++;
@@ -1204,6 +1137,7 @@ function tick(){
   el.textContent=Math.ceil(ST.ta.timeLeft); el.className='timer-num'+(ST.ta.timeLeft<=5?' danger':'');
   bar.style.width=(ST.ta.timeLeft/ST.ta.totalTime*100)+'%'; bar.className='timer-fill'+(ST.ta.timeLeft<=5?' danger':'');
 }
+
 function calcTARank(correct, total, timeUsed, level){
   const diffMult = level==='hard'?1.5 : level==='normal'?1.2 : 1.0;
   const rate = total>0 ? correct/total : 0;
@@ -1529,6 +1463,7 @@ function checkIOSInstall(){
   }
 }
 
+// 外部ファイル化したService Workerの登録
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
