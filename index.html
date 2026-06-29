@@ -74,10 +74,10 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
 .ta-result.show{display:flex;}
 .ta-score-big{font-family:var(--mo);font-size:72px;font-weight:bold;color:var(--yw);line-height:1;}
 .ta-lbl{font-size:13px;font-weight:600;letter-spacing:3px;color:var(--mu);}
-.ta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:100%;max-width:300px;}
-.ta-cell{background:var(--sf);border:1px solid #1E2A1E;border-radius:7px;padding:10px;}
-.ta-cv{font-family:var(--mo);font-size:22px;font-weight:bold;color:var(--wh);display:block;}
-.ta-cl{font-size:11px;font-weight:600;color:var(--mu);letter-spacing:1px;}
+.ta-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;width:100%;max-width:320px;}
+.ta-cell{background:var(--sf);border:1px solid #1E2A1E;border-radius:7px;padding:8px;}
+.ta-cv{font-family:var(--mo);font-size:22px;font-weight:bold;display:block;}
+.ta-cl{font-size:12px;font-weight:700;color:var(--mu);letter-spacing:1px;}
 .bottom-panel{flex-shrink:0;}
 
 .darts-indicator{display:flex;justify-content:center;gap:12px;margin-bottom:5px;height:35px;}
@@ -108,6 +108,7 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
 .btn{flex:1;padding:11px;border-radius:7px;border:none;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;font-family:var(--sa);transition:all .12s;}
 .btn-primary{background:var(--gr);color:#0D1117;}
 .btn-secondary{background:var(--s2);color:var(--mu);border:1px solid #2A3A2A;}
+.btn-orange{background:var(--or);color:#0D1117;}
 .btn-pink{background:var(--pk);color:#0D1117;}
 .filter-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
 .filter-chip{background:none;border:1px solid #2A3A2A;color:var(--mu);font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;cursor:pointer;letter-spacing:1px;}
@@ -135,11 +136,12 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
 .hi-s{font-family:var(--mo);font-size:19px;font-weight:bold;color:var(--yw);width:40px;flex-shrink:0;}
 .hi-a{flex:1;font-size:13px;font-weight:600;color:var(--wh);}
 .hi-a small{color:var(--mu);font-size:11px;display:block;}
-.hi-r{font-size:11px;font-weight:700;letter-spacing:1px;padding:3px 9px;border-radius:4px;flex-shrink:0;}
-.hi-r.ok{background:rgba(0,255,127,.1);color:var(--gr);}
-.hi-r.ng{background:rgba(255,68,68,.1);color:var(--rd);}
-.hi-r.half{background:rgba(255,140,0,.15);color:var(--or);}
-.hi-r.ta{background:rgba(255,140,0,.15);color:var(--or);}
+.hi-r{font-size:11px;font-weight:900;padding:3px 8px;border-radius:4px;flex-shrink:0;text-align:center;width:24px;}
+.hi-r.exc{background:rgba(0,255,127,.15);color:var(--gr);}
+.hi-r.good{background:rgba(245,230,66,.15);color:var(--yw);}
+.hi-r.par{background:rgba(255,140,0,.15);color:var(--or);}
+.hi-r.miss{background:rgba(255,68,68,.15);color:var(--rd);}
+.hi-r.ta{background:rgba(255,77,140,.15);color:var(--pk);width:auto;padding:3px 9px;letter-spacing:1px;}
 .empty-state{text-align:center;padding:40px 20px;color:var(--mu);font-size:13px;line-height:2.2;}
 .install-banner{background:var(--sf);border-top:1px solid #1E2A1E;padding:8px 14px;padding-bottom:calc(8px + var(--sb));display:none;align-items:center;gap:9px;flex-shrink:0;}
 .install-banner.show{display:flex;}
@@ -187,7 +189,8 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
       <div class="settings-line">
         <div style="display:flex; gap:5px;">
           <div class="sg"><span class="slbl">OUT</span>
-            <button class="pill active" id="out-master" onclick="setOutMode(this,'master')">MAS</button>
+            <button class="pill active" id="out-double" onclick="setOutMode(this,'double')">DBL</button>
+            <button class="pill"        id="out-master" onclick="setOutMode(this,'master')">MAS</button>
             <button class="pill"        id="out-open"   onclick="setOutMode(this,'open')">OPN</button>
           </div>
           <div class="vsep"></div>
@@ -263,16 +266,18 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
     <div style="flex-shrink:0; width:100%; display:flex; flex-direction:column; align-items:center;">
       <div id="ta-rank-badge" style="font-size:28px;font-weight:900;letter-spacing:2px;margin-bottom:2px;"></div>
       <div id="ta-rank-label" style="font-size:12px;color:var(--mu);letter-spacing:2px;margin-bottom:8px;"></div>
-      <div class="ta-score-big" id="ta-final-score">0</div>
-      <div class="ta-lbl">CORRECT ANSWERS</div>
-      <div class="ta-grid" style="grid-template-columns:1fr 1fr 1fr;max-width:300px;margin:10px 0;">
-        <div class="ta-cell"><span class="ta-cv" id="ta-bd-total">0</span><span class="ta-cl">TOTAL</span></div>
-        <div class="ta-cv-cell ta-cell"><span class="ta-cv" id="ta-bd-rate">—</span><span class="ta-cl">RATE</span></div>
-        <div class="ta-cell"><span class="ta-cv" id="ta-bd-speed">—</span><span class="ta-cl">SEC/問</span></div>
-      </div>
-      <div id="ta-rank-comment" style="font-size:12px;color:var(--mu);text-align:center;max-width:280px;line-height:1.6;margin-top:4px;padding:0 8px;"></div>
       
-      <!-- ホームボタンを追加し、スタートボタンをピンクに -->
+      <div style="font-size:14px; font-weight:bold; color:var(--wh); margin-bottom:5px;">総合スコア: <span id="ta-final-calc-score" style="color:var(--yw); font-size:32px; font-family:var(--mo);">0</span> pts</div>
+
+      <div class="ta-grid" id="ta-eval-grid">
+        <div class="ta-cell"><span class="ta-cv" id="ta-bd-exc" style="color:var(--gr);">0</span><span class="ta-cl">◎ Perfect</span></div>
+        <div class="ta-cell"><span class="ta-cv" id="ta-bd-good" style="color:var(--yw);">0</span><span class="ta-cl">◯ Good</span></div>
+        <div class="ta-cell"><span class="ta-cv" id="ta-bd-par" style="color:var(--or);">0</span><span class="ta-cl">△ Partial</span></div>
+        <div class="ta-cell"><span class="ta-cv" id="ta-bd-miss" style="color:var(--rd);">0</span><span class="ta-cl">✕ Miss</span></div>
+      </div>
+      
+      <div id="ta-rank-comment" style="font-size:12px;color:var(--mu);text-align:center;max-width:280px;line-height:1.6;margin-top:8px;padding:0 8px;"></div>
+      
       <div style="display:flex; gap:10px; margin-top:12px; margin-bottom:10px; width:100%; max-width:280px;">
         <button class="btn btn-secondary" onclick="setMode(document.querySelectorAll('.ctrl-btn')[0],'quiz')" style="flex:1; padding:10px 5px;">🏠 ホーム</button>
         <button class="btn btn-pink" onclick="startTimeAttack()" style="flex:1; padding:10px 5px;">▶ もう一度</button>
@@ -463,7 +468,6 @@ const SND={
 };
 function toggleSound(on){ SND.enabled=on; if(on)try{SND._getAC();}catch(e){} }
 
-// 音声ファイル版 BGMエンジン (タイムアタック＆エンディング用)
 const BGM = {
   enabled: true,
   currentTrack: 'bgm-upbeat',
@@ -722,7 +726,7 @@ const ARRANGES = [
   {score:123, fat:["T19","T16","D9"], sep:["T19","T16","D9"], tags:['high','double'], theory:'【MyArrange 1位】T19→T16→D9\n1投目S19(104)でもT18→Bull等で繋がります。', miss:'T19外れS19(104)→次T18に入れればBullで上がれます。'},
   {score:122, fat:["T18","T20","D4"], sep:["T18","T20","D4"], tags:['high','double'], theory:'【MyArrange 1位】T18→T20→D4\n次点:Bull→T16→D12', miss:'T18外れS18(104)→次T18に入れればBullで上がれます。'},
   {score:121, fat:["T20","T11","D14"], sep:["T20","T15","D8"], tags:['high','double'], theory:'【MyArrange 1位】T20→T11→D14\n次点:T20→T15→D8', miss:'T20外れS20(101)→次T17に入れればBullで上がれます。'},
-  {score:120, fat:["T20","S20","D20"], sep:["T20","S20","D20"], tags:['high','double','key'], theory:'【MyArrange 1位】T20→S20→D20\n※マスターアウトならT20で2本フィニッシュも可能です。', miss:'T20外れS20(100)→次T20に入れればD20で上がれます。'},
+  {score:120, fat:["T20","S20","D20"], sep:["T20","S20","D20"], tags:['high','double','key'], theory:'【MyArrange 1位】T20→S20→D20\nダブルアウトの王道。', miss:'T20外れS20(100)→次T20に入れればD20で上がれます。'},
   {score:119, fat:["T19","T12","D13"], sep:["T19","T12","D13"], tags:['double'], theory:'【MyArrange 1位】T19→T12→D13\n1本目S19(100)の場合、T20→D20で上がれます。', miss:'T19外れS19(100)→次T20に入れればD20で上がれます。'},
   {score:118, fat:["T20","S18","D20"], sep:["T20","S18","D20"], tags:['double'], theory:'【MyArrange 1位】T20→S18→D20\n1本目S20(98)ならT20→D19等で上がれます。', miss:'T20外れS20(98)→次T20に入れればD19で上がれます。'},
   {score:117, fat:["T20","S17","D20"], sep:["T20","S17","D20"], tags:['double'], theory:'【MyArrange 1位】T20→S17→D20\n1投目S20(97)ならT19→D20で上がれる完璧なルートです。', miss:'T20外れS20(97)→次T19に入れればD20で上がれます。'},
@@ -844,7 +848,7 @@ const ARRANGES = [
 ];
 
 let ST={
-  mode:'quiz',level:'easy',bullMode:'fat',outMode:'master',taTime:15,
+  mode:'quiz',level:'easy',bullMode:'fat',outMode:'double',taTime:15,
   current:null,answered:false,showTheory:false,showRemain:false,
   input:[],stats:{total:0,correct:0},history:[],
   ta:{active:false,timeLeft:15,totalTime:15,correct:0,total:0,timer:null,history:[]},
@@ -853,7 +857,30 @@ let ST={
 try{ST.history=JSON.parse(localStorage.getItem('darts_h6')||'[]');}catch(e){}
 
 function toggleRemain(on){ ST.showRemain = on; renderLog(); }
-function getThrows(a){ return ST.bullMode==='sep'?a.sep:a.fat; }
+
+// 🎯 DBL/MAS/OPNモードに合わせて、AIが最短ルートを自動算出する
+function getThrows(a){
+  let baseRoute = ST.bullMode==='sep'?a.sep:a.fat;
+  if(!baseRoute) baseRoute = [];
+  
+  if(ST.outMode === 'master' || ST.outMode === 'open') {
+     // MASTER OUT 特有のボギーナンバー救済
+     if(a.score === 168) return ["T20","T20","T16"];
+     if(a.score === 165) return ["T20","T20","T15"];
+     if(a.score === 162) return ["T20","T20","T14"];
+     if(a.score === 159) return ["T19","T19","T15"];
+     // T1本上がり
+     if(a.score <= 60 && a.score % 3 === 0) return [`T${a.score/3}`];
+     // DB上がり
+     if(a.score === 50) return ['Bull'];
+  }
+  if(ST.outMode === 'open') {
+     // S1本上がり
+     if(a.score <= 20) return [`S${a.score}`];
+     if(a.score === 25) return ['S25'];
+  }
+  return baseRoute;
+}
 
 function segVal(label){
   if(label==='Bull')return 50; if(label==='S25')return 25;
@@ -863,33 +890,33 @@ function segVal(label){
   return 0;
 }
 
-function isOpenOutCorrect(input, correct, currentScore){
-  if(JSON.stringify(input)===JSON.stringify(correct)) return true;
-  if(input.length===correct.length){
-    for(let i=0;i<correct.length-1;i++){ if(input[i]!==correct[i]) return false; }
-    const last=correct[correct.length-1]; const inLast=input[input.length-1];
-    if(last.startsWith('D')){ const num=parseInt(last.slice(1),10); if(inLast===`S${num}`) return true; }
-    if(correct.length===1&&currentScore<=20&&inLast===`S${currentScore}`) return true;
-    if(inLast.startsWith('S')){
-      const sVal=parseInt(inLast.slice(1),10);
-      const prevSum=input.slice(0,-1).reduce((s,t)=>s+segVal(t),0);
-      if(currentScore-prevSum===sVal&&sVal<=20) return true;
-    }
+// 🎯 ユーザーの自由なアレンジを許容する数学判定エンジン
+function isMathOut(input, targetScore, outMode) {
+  let sum = 0;
+  for(let i=0; i<input.length; i++) {
+    let val = segVal(input[i]);
+    sum += val;
+    // 途中でバーストしたらアウト
+    if (i < input.length - 1 && sum >= targetScore) return false; 
   }
-  if(input.length===correct.length+1){
-    const lastCorrect=correct[correct.length-1];
-    if(lastCorrect.startsWith('D')){
-      const dNum=parseInt(lastCorrect.slice(1),10); const sLabel=`S${dNum}`;
-      for(let i=0;i<correct.length-1;i++){ if(input[i]!==correct[i]) return false; }
-      const last1=input[correct.length-1]; const last2=input[correct.length];
-      if(last1===sLabel&&last2===sLabel) return true;
-    }
-  }
-  return false;
+  if (sum !== targetScore) return false; // ぴったり0になっていない
+
+  let lastDart = input[input.length - 1];
+  let isDouble = lastDart.startsWith('D') || lastDart === 'Bull';
+  let isTriple = lastDart.startsWith('T');
+
+  // アウトルールの条件を満たしているか
+  if (outMode === 'double') return isDouble;
+  else if (outMode === 'master') return isDouble || isTriple;
+  else return true; // Open out はピッタリなら何でもOK
 }
 
 function getPool(){
-  const v=ARRANGES.filter(a=>{const t=getThrows(a);return t&&t.length>0;});
+  const bogeys = [169, 168, 166, 165, 163, 162, 159];
+  let v = ARRANGES.filter(a => {
+    if (ST.outMode === 'double' && bogeys.includes(a.score)) return false; // DBL時はボギー除外
+    const t = getThrows(a); return t && t.length > 0;
+  });
   if(ST.level==='easy') return v.filter(a=>a.score<=100);
   if(ST.level==='normal') return v.filter(a=>a.score>=36&&a.score<=140);
   return v;
@@ -947,7 +974,7 @@ function onTap(label,val,e){
   ST.input.push(n); renderLog();
 }
 
-function renderLog(overallOk, openOk){
+function renderLog(evalClass, msgExt){
   const q=ST.current,throws=q?getThrows(q):[]; 
   const log=document.getElementById('throw-log'),ctr=document.getElementById('throw-counter');
   const scoreEl = document.getElementById('current-score');
@@ -960,8 +987,9 @@ function renderLog(overallOk, openOk){
       if(remScore < 0 || (ST.outMode !== 'open' && remScore === 1)) { color = 'var(--rd)'; } 
       else if (remScore === 0) {
          const last = ST.input[ST.input.length-1];
-         if(ST.outMode !== 'open' && last && last.startsWith('S') && last !== 'S25') { color = 'var(--rd)'; } 
-         else { color = 'var(--yw)'; }
+         if(ST.outMode === 'double' && !(last.startsWith('D') || last==='Bull')) color = 'var(--rd)';
+         else if(ST.outMode === 'master' && !(last.startsWith('D') || last.startsWith('T') || last==='Bull')) color = 'var(--rd)';
+         else color = 'var(--yw)'; 
       }
       scoreEl.innerHTML = `${q.score} <span style="font-size:28px;color:${color};">→ ${remScore}</span>`;
     } else { scoreEl.textContent = q.score; }
@@ -987,8 +1015,8 @@ function renderLog(overallOk, openOk){
   }
 
   const cls_func=(t,i)=>{
-    if(!ST.answered)return'tchip'; if(overallOk)return'tchip hit';
-    const ok=t===throws[i]; if(ok)return'tchip hit';
+    if(!ST.answered)return'tchip'; 
+    if(evalClass === 'exc' || evalClass === 'good') return'tchip hit';
     if(checkOrder(ST.input,throws))return'tchip partial'; return'tchip miss';
   };
   log.innerHTML=ST.input.map((t,i)=>{
@@ -1019,41 +1047,73 @@ function rmThrow(i){
 
 function checkAnswer(){
   if(!ST.current||ST.answered)return; ST.answered=true;
-  const q=ST.current,correct=getThrows(q),input=ST.input;
-  const exactOk=JSON.stringify(input)===JSON.stringify(correct);
-  const openOk=!exactOk&&ST.outMode==='open'&&isOpenOutCorrect(input,correct,q.score);
-  const ok=exactOk||openOk; const partial=!ok&&checkOrder(input,correct);
+  const q=ST.current, correct=getThrows(q), input=ST.input;
+  
+  const exactOk = JSON.stringify(input) === JSON.stringify(correct);
+  const mathOk = isMathOut(input, q.score, ST.outMode);
+  
+  let evaluation = 'miss'; // 'exc', 'good', 'par', 'miss'
+  let msgExt = "";
+
+  // 🎯 AI評価ロジック
+  if (exactOk) {
+    evaluation = 'exc';
+    msgExt = "最優秀アレンジ";
+  } else if (mathOk) {
+    if (input.length < correct.length) {
+       evaluation = 'exc'; // 登録ルートより少ない手数＝ショートカット
+       msgExt = "ショートカット成立！";
+    } else if (input.length === correct.length) {
+       evaluation = 'good'; // 同じ手数＝別候補アレンジ
+       msgExt = "ナイスアレンジ(別解)！";
+    } else {
+       evaluation = 'par'; // 手数が多い＝妥協ルート
+       msgExt = "イレギュラー上がり(手数が多め)";
+    }
+  } else if (correct.length > 0 && checkOrder(input, correct)) {
+    evaluation = 'par';
+    msgExt = "上がり目残し(順序違い)";
+  } else {
+    evaluation = 'miss';
+  }
+  
   clearHL();
-  if(ok){ correct.forEach(s=>hlSeg(s,PHX.sel_ok)); SND.ok(); }
-  else if(partial){ correct.forEach(s=>hlSeg(s,PHX.sel_or)); SND.ng(); }
-  else {
-    correct.forEach(s=>hlSeg(s,PHX.sel_ok));
-    input.forEach((s,i)=>{if(s!==correct[i])hlSeg(s,PHX.sel_ng);}); SND.ng();
+  if(evaluation === 'exc' || evaluation === 'good'){ 
+      input.forEach(s=>hlSeg(s,PHX.sel_ok)); SND.ok(); 
+  } else if(evaluation === 'par'){ 
+      if(mathOk) input.forEach(s=>hlSeg(s,PHX.sel_or)); else correct.forEach(s=>hlSeg(s,PHX.sel_or)); 
+      SND.ng(); 
+  } else {
+    if(correct.length > 0) correct.forEach(s=>hlSeg(s,PHX.sel_ok));
+    input.forEach((s,i)=>{if(correct.length===0 || s!==correct[i])hlSeg(s,PHX.sel_ng);}); SND.ng();
   }
+  
   if(ST.mode==='timeattack'){
-    ST.ta.total++; if(ok||partial)ST.ta.correct++;
-    ST.ta.history.push({ score: q.score, input: [...input], correct: [...correct], ok: ok, partial: partial, theory: q.theory, timeout: false });
-    renderLog(ok,openOk); setTimeout(()=>{clearHL();if(ST.ta.active){ST.input=[];nextQuestion();}},800); return;
+    ST.ta.total++; if(evaluation !== 'miss') ST.ta.correct++;
+    ST.ta.history.push({ score: q.score, input: [...input], correct: [...correct], eval: evaluation, theory: q.theory, timeout: false });
+    renderLog(evaluation, msgExt); setTimeout(()=>{clearHL();if(ST.ta.active){ST.input=[];nextQuestion();}},800); return;
   }
-  ST.stats.total++;if(ok)ST.stats.correct++;
-  if(ST.mode==='weak' && ok) markWeakAnswered(q.score, true);
+  
+  ST.stats.total++; if(evaluation !== 'miss') ST.stats.correct++;
+  if(ST.mode==='weak' && (evaluation==='exc'||evaluation==='good')) markWeakAnswered(q.score, true);
 
   const ban=document.getElementById('result-banner');
-  if(ok){
-    ban.className='result-banner show correct'; document.getElementById('result-icon').textContent='✓';
-    const openMsg=(openOk&&!exactOk)?' (オープンアウト: シングル上がり◯)':'';
-    document.getElementById('result-text').textContent='正解！'+openMsg+' '+(q.theory||'').substring(0,45);
-  } else if(partial){
+  if(evaluation === 'exc' || evaluation === 'good'){
+    ban.className='result-banner show correct'; 
+    document.getElementById('result-icon').textContent= evaluation==='exc'?'◎':'◯';
+    document.getElementById('result-text').textContent=`Perfect! [${msgExt}] `+(q.theory||'').substring(0,45);
+  } else if(evaluation === 'par'){
     ban.className='result-banner show partial'; document.getElementById('result-icon').textContent='△';
-    document.getElementById('result-text').textContent='順序違い。正解：'+correct.join(' → ');
+    document.getElementById('result-text').textContent=`Partial: [${msgExt}] 正解例：${correct.join(' → ')}`;
   } else {
     ban.className='result-banner show wrong'; document.getElementById('result-icon').textContent='✗';
-    document.getElementById('result-text').textContent='不正解。正解：'+correct.join(' → ');
+    const cMsg = correct.length > 0 ? correct.join(' → ') : "上がり目なし";
+    document.getElementById('result-text').textContent='Miss: 正解例：' + cMsg;
   }
-  renderLog(ok,openOk); renderTheory(q,partial,openOk);
+  renderLog(evaluation, msgExt); renderTheory(q, evaluation==='par', msgExt);
   document.getElementById('theory-panel').classList.add('show'); updateStats();
   document.getElementById('btn-hint').style.display='none';
-  saveHist({type:ok?'quiz_ok':partial?'quiz_partial':'quiz_ng',score:q.score,throws:correct.join(' → '),correct:ok,ts:Date.now()});
+  saveHist({type:`quiz_${evaluation}`, score:q.score, throws:correct.length>0?correct.join(' → '):"なし", ts:Date.now()});
 }
 
 function nextQuestion(){
@@ -1062,7 +1122,7 @@ function nextQuestion(){
   if(ST.current) { const scoreEl = document.getElementById('current-score'); scoreEl.textContent=ST.current.score; }
   document.getElementById('result-banner').className='result-banner'; document.getElementById('btn-hint').style.display='';
   document.getElementById('theory-panel').classList.remove('show'); renderLog();
-  if(ST.mode==='study'||ST.showTheory){renderTheory(ST.current,false,false);document.getElementById('theory-panel').classList.add('show');}
+  if(ST.mode==='study'||ST.showTheory){renderTheory(ST.current,false,"");document.getElementById('theory-panel').classList.add('show');}
 }
 
 function showAnswer(){
@@ -1070,22 +1130,21 @@ function showAnswer(){
   const q=ST.current,correct=getThrows(q); clearHL();correct.forEach(s=>hlSeg(s,PHX.sel_yw));
   ST.input=[...correct];renderLog();
   const ban=document.getElementById('result-banner'); ban.className='result-banner show wrong';
-  document.getElementById('result-icon').textContent='📖'; document.getElementById('result-text').textContent='答え確認：'+correct.join(' → ');
-  renderTheory(q,false,false);document.getElementById('theory-panel').classList.add('show');
+  document.getElementById('result-icon').textContent='📖'; 
+  const cMsg = correct.length > 0 ? correct.join(' → ') : "上がり目なし";
+  document.getElementById('result-text').textContent='答え確認：' + cMsg;
+  renderTheory(q,false,"");document.getElementById('theory-panel').classList.add('show');
   document.getElementById('btn-hint').style.display='none'; updateStats();
 }
 
-function renderTheory(q,isPartial,isOpenOk){
-  const isOpen=ST.outMode==='open'; let h='';
-  if(q.theory){ h+=`<div class="tsec"><strong>■ セオリー${isOpen?' [OPEN OUT対応]':''}</strong><br>${q.theory.replace(/\n/g,'<br>')}</div>`; }
-  if(isOpen){
-    const last=getThrows(q).slice(-1)[0]||'';
-    if(last.startsWith('D')){ const num=last.slice(1); h+=`<div class="order-note"><b>🔓 OPEN OUT：</b>最後の${last}はS${num}でも上がり可能。</div>`; }
-    if(q.score<=20){ h+=`<div class="order-note"><b>🔓 OPEN OUT：</b>残り${q.score}点→S${q.score}1本でも上がり可能。</div>`; }
-    if(isOpenOk&&!isPartial){ h+=`<div class="order-note" style="color:var(--gr);border-color:var(--gd);"><b>✓ シングルアウト成功！</b>オープンアウトルール適用。</div>`; }
+function renderTheory(q,isPartial,msgExt){
+  const isMaster=ST.outMode==='master'; const isOpen=ST.outMode==='open'; let h='';
+  if(q.theory){ h+=`<div class="tsec"><strong>■ セオリー</strong><br>${q.theory.replace(/\n/g,'<br>')}</div>`; }
+  
+  if(msgExt) {
+     h+=`<div class="order-note" style="color:var(--gr);border-color:var(--gd);background:rgba(0,255,127,0.08);"><b>✓ 成立！</b> ${msgExt}</div>`;
   }
-  if(isPartial&&q.order){ h+=`<div class="order-note"><b>▲ 順序について：</b>${q.order}</div>`; }
-  if(!isPartial&&q.order&&ST.mode==='study'){ h+=`<div class="order-note"><b>▲ 順序の理由：</b>${q.order}</div>`; }
+  
   if(q.miss&&q.miss.length>2){ h+=`<div class="tsec" style="margin-top:6px;"><strong>■ ミス時の対策</strong><div class="miss-case">${q.miss.replace(/\n/g,'<br>')}</div></div>`; }
   document.getElementById('theory-content').innerHTML=h||'詳細情報なし';
 }
@@ -1096,7 +1155,7 @@ function updateStats(){
 }
 function toggleTheory(on){
   ST.showTheory=on;
-  if(on&&ST.current){renderTheory(ST.current,false);document.getElementById('theory-panel').classList.add('show');}
+  if(on&&ST.current){renderTheory(ST.current,false,"");document.getElementById('theory-panel').classList.add('show');}
   else document.getElementById('theory-panel').classList.remove('show');
 }
 
@@ -1118,21 +1177,11 @@ function tick(){
     ST.ta.timeLeft=0;
     clearInterval(ST.ta.timer);ST.ta.timer=null;ST.ta.active=false;
     
-    BGM.stop();
-    SND.boom();
-    setTimeout(() => { BGM.playEnding(); }, 1500); 
+    BGM.stop(); SND.boom(); setTimeout(() => { BGM.playEnding(); }, 1500); 
     
     if(ST.current && !ST.answered) {
       ST.ta.total++;
-      ST.ta.history.push({
-        score: ST.current.score,
-        input: [...ST.input],
-        correct: getThrows(ST.current),
-        ok: false,
-        partial: false,
-        theory: ST.current.theory,
-        timeout: true
-      });
+      ST.ta.history.push({ score: ST.current.score, input: [...ST.input], correct: getThrows(ST.current), eval: 'miss', theory: ST.current.theory, timeout: true });
     }
     showTAResult();
   }
@@ -1141,21 +1190,32 @@ function tick(){
   bar.style.width=(ST.ta.timeLeft/ST.ta.totalTime*100)+'%'; bar.className='timer-fill'+(ST.ta.timeLeft<=5?' danger':'');
 }
 
-function calcTARank(correct, total, timeUsed, level){
-  const diffMult = level==='hard'?1.5 : level==='normal'?1.2 : 1.0;
-  const rate = total>0 ? correct/total : 0;
-  const speed = correct>0 ? timeUsed/correct : 999;
-  const speedBonus = Math.max(0, 1 - speed/15);
-  const raw = correct * diffMult * (0.5 + rate*0.5) * (1 + speedBonus);
+function calcTARank(history, timeLimit, level){
+  let scoreBase = 0; let counts = { exc:0, good:0, par:0, miss:0 };
+  
+  history.forEach(h => {
+    if(h.eval === 'exc') { scoreBase += 3; counts.exc++; }
+    else if(h.eval === 'good') { scoreBase += 2; counts.good++; }
+    else if(h.eval === 'par') { scoreBase += 1; counts.par++; }
+    else { counts.miss++; }
+  });
 
-  if(total===0) return{rank:'評価するに値しないランク',color:'#4A5A4A',comment:'問題に1問も回答できませんでした。まずルールを確認してみましょう。',emoji:'💀'};
-  if(raw>=18) return{rank:'SA RANK',color:'#FF4D8C',comment:'圧倒的なスピードと正確さ。プロ並みのチェックアウト能力。世界トップクラスのアレンジ力です。',emoji:'👑'};
-  if(raw>=12) return{rank:'AA RANK',color:'#F5E642',comment:'非常に優秀。プロレベルに迫る精度とスピード。本番でも即座に対応できる実力です。',emoji:'⭐'};
-  if(raw>=8)  return{rank:'A RANK', color:'#00FF7F',comment:'高い実力の持ち主。アレンジの引き出しが豊富で、重要なフィニッシュを確実に理解しています。',emoji:'🎯'};
-  if(raw>=5)  return{rank:'BB RANK',color:'#FF8C00',comment:'平均以上の理解度。主要アレンジは把握できています。さらにスピードと精度を磨きましょう。',emoji:'🔥'};
-  if(raw>=3)  return{rank:'B RANK', color:'#88AAFF',comment:'基礎的なアレンジは理解できています。高得点帯のアレンジの練習を増やしていきましょう。',emoji:'📊'};
-  if(raw>=1)  return{rank:'C RANK', color:'#8AB890',comment:'まだ学習段階です。D16の32残し、Bullアレンジなどの基本から反復練習しましょう。',emoji:'📝'};
-  return{rank:'評価するに値しないランク',color:'#4A5A4A',comment:'継続は力なり。毎日少しずつ練習すれば必ず上達します。諦めないでください。',emoji:'💀'};
+  const diffMult = level==='hard'?1.5 : level==='normal'?1.2 : 1.0;
+  const expectedTotal = (timeLimit / 15) * 5; // 15秒で5問を基準とする
+  const speedBonus = history.length / expectedTotal; 
+  
+  const rawScore = scoreBase * diffMult * (0.5 + speedBonus * 0.5);
+
+  let rankInfo = {};
+  if(history.length===0) rankInfo = {rank:'UNRANKED',color:'#4A5A4A',comment:'問題に1問も回答できませんでした。',emoji:'💀'};
+  else if(rawScore>=30) rankInfo = {rank:'SA RANK',color:'#FF4D8C',comment:'圧倒的なスピードと正確さ。プロ並みのチェックアウト能力です！',emoji:'👑'};
+  else if(rawScore>=20) rankInfo = {rank:'AA RANK',color:'#F5E642',comment:'非常に優秀。本番でも即座に対応できる実力です。',emoji:'⭐'};
+  else if(rawScore>=12) rankInfo = {rank:'A RANK', color:'#00FF7F',comment:'高い実力の持ち主。重要なフィニッシュを確実に理解しています。',emoji:'🎯'};
+  else if(rawScore>=7)  rankInfo = {rank:'BB RANK',color:'#FF8C00',comment:'平均以上の理解度。主要アレンジは把握できています。',emoji:'🔥'};
+  else if(rawScore>=4)  rankInfo = {rank:'B RANK', color:'#88AAFF',comment:'基礎的なアレンジは理解できています。スピードを磨きましょう。',emoji:'📊'};
+  else rankInfo = {rank:'C RANK', color:'#8AB890',comment:'まだ学習段階です。基本のアレンジから反復練習しましょう。',emoji:'📝'};
+  
+  return { ...rankInfo, counts, rawScore: Math.round(rawScore) };
 }
 
 function showTAResult(){
@@ -1167,56 +1227,53 @@ function showTAResult(){
   document.getElementById('main-btns').style.display='none';
   clearHL();
 
-  const correct=ST.ta.correct, total=ST.ta.total;
-  const timeUsed=ST.ta.totalTime - Math.max(0,ST.ta.timeLeft);
-  const rate=total>0?Math.round(correct/total*100)+'%':'—';
-  const speed=correct>0?(timeUsed/correct).toFixed(1):'—';
+  const rankData = calcTARank(ST.ta.history, ST.ta.totalTime, ST.level);
 
-  document.getElementById('ta-final-score').textContent=correct;
-  document.getElementById('ta-bd-total').textContent=total;
-  document.getElementById('ta-bd-rate').textContent=rate;
-  document.getElementById('ta-bd-speed').textContent=speed;
+  document.getElementById('ta-final-score').textContent=ST.ta.correct;
+  document.getElementById('ta-bd-total').textContent=ST.ta.total;
+  document.getElementById('ta-bd-rate').textContent=ST.ta.total>0?Math.round(ST.ta.correct/ST.ta.total*100)+'%':'—';
+  
+  // Gridの数値を更新
+  document.getElementById('ta-bd-exc').textContent = rankData.counts.exc;
+  document.getElementById('ta-bd-good').textContent = rankData.counts.good;
+  document.getElementById('ta-bd-par').textContent = rankData.counts.par;
+  document.getElementById('ta-bd-miss').textContent = rankData.counts.miss;
+  document.getElementById('ta-final-calc-score').textContent = rankData.rawScore;
 
-  const rankInfo=calcTARank(correct, total, timeUsed, ST.level);
   const badge=document.getElementById('ta-rank-badge');
   const label=document.getElementById('ta-rank-label');
   const comment=document.getElementById('ta-rank-comment');
-  badge.textContent=rankInfo.emoji+' '+rankInfo.rank;
-  badge.style.color=rankInfo.color;
-  badge.style.textShadow=`0 0 16px ${rankInfo.color}80`;
+  badge.textContent=rankData.emoji+' '+rankData.rank;
+  badge.style.color=rankData.color;
+  badge.style.textShadow=`0 0 16px ${rankData.color}80`;
   label.textContent='ARRANGE RANK';
-  comment.textContent=rankInfo.comment;
+  comment.textContent=rankData.comment;
 
-  saveHist({
-    type:'ta',score:correct,
-    label:`TA(${ST.ta.totalTime}s)[${ST.level.toUpperCase()}]: ${correct}正解/${total}問 (${rate}) ${rankInfo.rank}`,
-    ts:Date.now()
-  });
+  saveHist({ type:'ta',score:ST.ta.correct, label:`TA(${ST.ta.totalTime}s)[${ST.level.toUpperCase()}]: 総合${rankData.rawScore}pts ${rankData.rank}`, ts:Date.now() });
 
   const revContainer = document.getElementById('ta-review-list');
-  if(ST.ta.history.length === 0) {
-    revContainer.innerHTML = '';
-  } else {
+  if(ST.ta.history.length === 0) { revContainer.innerHTML = ''; } 
+  else {
     const reviewHtml = ST.ta.history.map((h, i) => {
-      const icon = h.ok ? '✓' : h.partial ? '△' : '✗';
-      const color = h.ok ? 'var(--gr)' : h.partial ? 'var(--or)' : 'var(--rd)';
+      let icon = '✕'; let color = 'var(--rd)'; let txt = 'Miss';
+      if(h.eval === 'exc') { icon='◎'; color='var(--gr)'; txt='Perfect'; }
+      else if(h.eval === 'good') { icon='◯'; color='var(--yw)'; txt='Good'; }
+      else if(h.eval === 'par') { icon='△'; color='var(--or)'; txt='Partial'; }
+      
       const inStr = h.timeout ? (h.input.length ? h.input.join(' → ') + ' (時間切れ)' : '時間切れ') : h.input.join(' → ');
-      const correctStr = h.correct.join(' → ');
+      const correctStr = h.correct.length > 0 ? h.correct.join(' → ') : "上がり目なし";
       return `
         <div style="background:var(--sf); border:1px solid #1E2A1E; border-radius:6px; padding:10px; font-size:12px; margin-bottom:6px; text-align:left;">
           <div style="display:flex; justify-content:space-between; margin-bottom:6px; align-items:center;">
             <span style="color:var(--yw); font-family:var(--mo); font-size:15px; font-weight:bold;">Q${i+1}. ${h.score}</span>
-            <span style="color:${color}; font-weight:bold; font-size:12px;">${icon} ${h.ok ? '正解' : h.partial ? '部分点' : '不正解'}</span>
+            <span style="color:${color}; font-weight:bold; font-size:12px;">${icon} ${txt}</span>
           </div>
           <div style="color:var(--wh); margin-bottom:4px;">
             <span style="color:var(--mu); font-size:10px;">あなたの回答:</span> <span style="font-family:var(--mo); font-weight:bold; font-size:13px;">${inStr || 'なし'}</span>
           </div>
-          ${!h.ok ? `<div style="color:var(--gr); margin-bottom:6px;">
-            <span style="color:var(--mu); font-size:10px;">正解:</span> <span style="font-family:var(--mo); font-weight:bold; font-size:13px;">${correctStr}</span>
+          ${h.eval !== 'exc' ? `<div style="color:var(--gr); margin-bottom:6px;">
+            <span style="color:var(--mu); font-size:10px;">最優秀ルート:</span> <span style="font-family:var(--mo); font-weight:bold; font-size:13px;">${correctStr}</span>
           </div>` : ''}
-          <div style="color:#8AB890; font-size:11px; line-height:1.5; background:#0F1A0F; padding:6px; border-radius:4px; border:1px solid #1E3A1E; margin-top:6px;">
-            ${h.theory ? h.theory.replace(/\n/g,'<br>') : '解説なし'}
-          </div>
         </div>
       `;
     }).join('');
@@ -1247,14 +1304,10 @@ function setMode(btn,mode){
   document.getElementById('theory-toggle-label').style.display=(ta||isWeak)?'none':'flex';
   if(ta){document.getElementById('timer-display').textContent=ST.taTime;document.getElementById('timer-bar').style.width='100%';}
 
-  if(isWeak){
-    startWeakMode();
-  } else {
-    nextQuestion();
-  }
+  if(isWeak){ startWeakMode(); } else { nextQuestion(); }
 }
 function setOutMode(btn,mode){
-  document.querySelectorAll('#out-master,#out-open').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#out-master,#out-open, #out-double').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');ST.outMode=mode; ST._queue=[];ST._lastScore=null; nextQuestion();
 }
 function setBull(btn,mode){
@@ -1303,8 +1356,13 @@ function renderHistory(){
   list.innerHTML=ST.history.slice(0,40).map(h=>{
     const d=new Date(h.ts); const t=`${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
     if(h.type==='ta')return`<div class="hist-item"><div class="hi-s">TA</div><div class="hi-a">${h.label}<small>${t}</small></div><div class="hi-r ta">SCORE</div></div>`;
-    const rc=h.type==='quiz_ok'?'ok':h.type==='quiz_partial'?'half':'ng'; const rl=h.type==='quiz_ok'?'OK':h.type==='quiz_partial'?'△':'NG';
-    return`<div class="hist-item"><div class="hi-s">${h.score}</div><div class="hi-a">${h.throws}<small>${t}</small></div><div class="hi-r ${rc}">${rl}</div></div>`;
+    
+    let icon = '✕'; let cls = 'miss';
+    if(h.type==='quiz_exc') { icon='◎'; cls='exc'; }
+    else if(h.type==='quiz_good') { icon='◯'; cls='good'; }
+    else if(h.type==='quiz_par') { icon='△'; cls='par'; }
+    
+    return`<div class="hist-item"><div class="hi-s">${h.score}</div><div class="hi-a">${h.throws}<small>${t}</small></div><div class="hi-r ${cls}">${icon}</div></div>`;
   }).join('');
 }
 function clearHistory(){ST.history=[];try{localStorage.removeItem('darts_h6');}catch(e){}renderHistory();}
@@ -1313,11 +1371,10 @@ function saveHist(e){ST.history.unshift(e);if(ST.history.length>80)ST.history.po
 function getWeakTop10(){
   const map = {};
   for(const h of ST.history){
-    if(h.type!=='quiz_ok'&&h.type!=='quiz_ng'&&h.type!=='quiz_partial') continue;
+    if(!h.type.startsWith('quiz_')) continue;
     if(!h.score) continue;
     if(!map[h.score]) map[h.score]={ng:0,ok:0};
-    if(h.type==='quiz_ng') map[h.score].ng++;
-    else if(h.type==='quiz_partial') map[h.score].ng++;
+    if(h.type==='quiz_miss' || h.type==='quiz_par') map[h.score].ng++;
     else map[h.score].ok++;
   }
   const scored = Object.entries(map)
@@ -1373,7 +1430,7 @@ function startWeakMode(){
     document.getElementById('confirm-btn-row').style.display='none';
     document.getElementById('ta-start-btn').style.display='none';
     document.getElementById('theory-toggle-label').style.display='none';
-    const ngTotal = ST.history.filter(h=>h.type==='quiz_ng').length;
+    const ngTotal = ST.history.filter(h=>h.type==='quiz_miss' || h.type==='quiz_par').length;
     document.getElementById('weak-current-count').textContent =
       ngTotal>0 ? `現在の誤回答数: ${ngTotal}問` : '誤回答の記録がまだありません';
     return;
