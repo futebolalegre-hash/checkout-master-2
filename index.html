@@ -261,9 +261,12 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
       <span id="result-icon">✓</span>
       <div><span id="result-text">—</span></div>
     </div>
-    <div style="display:flex;gap:12px;align-items:center;margin-bottom:2px;">
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:2px;flex-wrap:wrap;justify-content:center;">
       <label class="theory-toggle" id="theory-toggle-label">
         <input type="checkbox" id="theory-toggle" onchange="toggleTheory(this.checked)">解説モードON
+      </label>
+      <label class="theory-toggle" id="remain-toggle-label">
+        <input type="checkbox" id="remain-toggle" onchange="toggleRemain(this.checked)">🧮 残り点数表示
       </label>
       <label class="theory-toggle" id="sound-toggle-label">
         <input type="checkbox" id="sound-toggle" checked onchange="toggleSound(this.checked)">🔊 効果音
@@ -886,12 +889,17 @@ const ARRANGES = [
 // ═══════════════════════════════════════════
 let ST={
   mode:'quiz',level:'easy',bullMode:'fat',outMode:'master',taTime:15,
-  current:null,answered:false,showTheory:false,
+  current:null,answered:false,showTheory:false,showRemain:false,
   input:[],stats:{total:0,correct:0},history:[],
   ta:{active:false,timeLeft:15,totalTime:15,correct:0,total:0,timer:null,history:[]},
   _queue:[],_lastScore:null,
 };
 try{ST.history=JSON.parse(localStorage.getItem('darts_h6')||'[]');}catch(e){}
+
+function toggleRemain(on){
+  ST.showRemain = on;
+  renderLog();
+}
 
 function getThrows(a){ return ST.bullMode==='sep'?a.sep:a.fat; }
 
@@ -995,9 +1003,32 @@ function onTap(label,val,e){
 function renderLog(overallOk, openOk){
   const q=ST.current,throws=q?getThrows(q):[]; 
   const log=document.getElementById('throw-log'),ctr=document.getElementById('throw-counter');
+  const scoreEl = document.getElementById('current-score');
   
   const maxT=3;
   const rem=maxT-ST.input.length;
+
+  if(q){
+    let sum = 0;
+    ST.input.forEach(seg => sum += segVal(seg));
+    if(ST.showRemain && ST.input.length > 0) {
+      let remScore = q.score - sum;
+      let color = 'var(--gr)';
+      if(remScore < 0 || (ST.outMode !== 'open' && remScore === 1)) {
+         color = 'var(--rd)';
+      } else if (remScore === 0) {
+         const last = ST.input[ST.input.length-1];
+         if(ST.outMode !== 'open' && last && last.startsWith('S') && last !== 'S25') {
+            color = 'var(--rd)';
+         } else {
+            color = 'var(--yw)';
+         }
+      }
+      scoreEl.innerHTML = `${q.score} <span style="font-size:28px;color:${color};">→ ${remScore}</span>`;
+    } else {
+      scoreEl.textContent = q.score;
+    }
+  }
   
   const indicator = document.getElementById('darts-indicator');
   if(indicator) {
@@ -1103,7 +1134,11 @@ function checkAnswer(){
 
 function nextQuestion(){
   ST.answered=false;ST.input=[];clearHL(); if(ST.mode==='timeattack'&&!ST.ta.active)return;
-  ST.current=_pickNext(); document.getElementById('current-score').textContent=ST.current.score;
+  ST.current=_pickNext();
+  if(ST.current) {
+    const scoreEl = document.getElementById('current-score');
+    scoreEl.textContent=ST.current.score;
+  }
   document.getElementById('result-banner').className='result-banner'; document.getElementById('btn-hint').style.display='';
   document.getElementById('theory-panel').classList.remove('show'); renderLog();
   if(ST.mode==='study'||ST.showTheory){renderTheory(ST.current,false,false);document.getElementById('theory-panel').classList.add('show');}
