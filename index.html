@@ -59,7 +59,7 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
 .timer-fill{height:100%;background:var(--or);transition:width .1s linear;border-radius:2px;}
 .timer-fill.danger{background:var(--rd);}
 .board-area{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.score-badge{font-family:var(--mo);font-size:42px;font-weight:bold;color:var(--yw);line-height:1;text-align:center;flex-shrink:0;}
+.score-badge{font-family:var(--mo);font-size:42px;font-weight:bold;color:var(--yw);line-height:1;text-align:center;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:8px;}
 .score-sub{font-size:11px;font-weight:600;letter-spacing:2px;color:var(--mu);text-align:center;margin-bottom:3px;flex-shrink:0;}
 .board-wrap{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;padding:0 6px;}
 .board-wrap svg{width:100%;height:100%;max-width:400px;max-height:400px;display:block;overflow:visible;filter:drop-shadow(0 3px 14px rgba(0,0,0,.85));touch-action:manipulation;}
@@ -74,9 +74,12 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
 .ta-cv{font-family:var(--mo);font-size:22px;font-weight:bold;color:var(--wh);display:block;}
 .ta-cl{font-size:11px;font-weight:600;color:var(--mu);letter-spacing:1px;}
 .bottom-panel{flex-shrink:0;}
-.darts-indicator{display:flex;justify-content:center;gap:8px;margin-bottom:5px;height:22px;}
-.pink-dart{width:11px;height:22px;fill:var(--pk);transition:all .2s ease;}
-.pink-dart.used{fill:#2A3A2A;transform:scale(0.85);opacity:0.5;}
+
+/* ダーツインジケーター（リアル化） */
+.darts-indicator{display:flex;justify-content:center;gap:12px;margin-bottom:5px;height:35px;}
+.pink-dart{width:14px;height:38px;transition:all .2s ease;}
+.pink-dart.used{transform:scale(0.8) translateY(-5px);opacity:0.25;filter:grayscale(100%);}
+
 .throw-counter{text-align:center;font-size:12px;font-weight:600;color:var(--mu);letter-spacing:1px;margin-bottom:3px;}
 .throw-log{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;min-height:28px;margin-bottom:4px;}
 .tchip{background:var(--s2);border:1px solid #2A3A2A;border-radius:5px;padding:4px 10px;font-family:var(--mo);font-size:13px;font-weight:bold;color:var(--wh);display:flex;align-items:center;gap:4px;}
@@ -1035,7 +1038,16 @@ function renderLog(overallOk, openOk){
     let dh = '';
     for(let i=0; i<maxT; i++) {
       const usedClass = (i < ST.input.length) ? 'used' : '';
-      dh += `<svg class="pink-dart ${usedClass}" viewBox="0 0 12 30"><path d="M6 0 L12 8 L8 8 L8 24 L6 30 L4 24 L4 8 L0 8 Z"/></svg>`;
+      dh += `<svg class="pink-dart ${usedClass}" viewBox="0 0 20 60">
+        <path d="M10,16 L2,4 L6,0 L10,5 L14,0 L18,4 Z" fill="var(--pk)" stroke="#111" stroke-width="0.5"/>
+        <path d="M10,16 L10,5 L14,0 L18,4 Z" fill="rgba(0,0,0,0.15)"/>
+        <rect x="8.5" y="15" width="3" height="18" fill="#ddd" stroke="#999" stroke-width="0.5"/>
+        <path d="M7,32 C7,30 13,30 13,32 L12,48 C12,50 8,50 8,48 Z" fill="#aaa" stroke="#555" stroke-width="0.5"/>
+        <line x1="7.5" y1="36" x2="12.5" y2="36" stroke="#555" stroke-width="1"/>
+        <line x1="7.5" y1="40" x2="12.5" y2="40" stroke="#555" stroke-width="1"/>
+        <line x1="7.8" y1="44" x2="12.2" y2="44" stroke="#555" stroke-width="1"/>
+        <path d="M9,49 L11,49 L10,60 Z" fill="#444"/>
+      </svg>`;
     }
     indicator.innerHTML = dh;
   }
@@ -1538,7 +1550,6 @@ function checkIOSInstall(){
   }
 }
 
-// 外部ファイル化したService Workerの登録
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
