@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CheckoutMaster">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0D1117">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon.jpg">
+<link rel="icon" type="image/jpeg" href="./icon.jpg">
+<title>Checkout Master for Puku Freaks</title>
+<link href="https://fonts.googleapis.com/css2?family=Oleo+Script&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:#000;}
+
+:root{
+  --bg:#0D1117;--sf:#161C24;--s2:#1A2410;
+  --gr:#00FF7F;--gd:#00994C;--rd:#FF4444;
+  --yw:#F5E642;--or:#FF8C00;--wh:#E8EEE8;--mu:#5A6A5A;
+  --pk:#FF4D8C;--mo:'Courier New',monospace;
+  --sa:-apple-system,'Helvetica Neue',Arial,sans-serif;
+  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
+}
+
+/* 🎯 亮平さんのスマホ縮尺（9:19.5）に完全ロックするレスポンシブコンテナ */
+.app-viewport-lock {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(0,0,0,0.8);
+}
+
+@media (min-aspect-ratio: 9/19.5) {
+  .app-viewport-lock {
+    height: 100dvh;
+    height: 100vh;
+    width: calc(100dvh * (9 / 19.5));
+    width: calc(100vh * (9 / 19.5));
+  }
+}
+
+@media (max-aspect-ratio: 9/19.5) {
+  .app-viewport-lock {
+    width: 100vw;
+    height: calc(100vw * (19.5 / 9));
+  }
+}
+
+header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + var(--st));display:flex;align-items:center;justify-content:space-between;flex-shrink:0;min-height:52px;}
+.logo{display:flex;flex-direction:column;justify-content:center;}
+.logo-top{display:flex;align-items:baseline;gap:5px;}
+.logo-main{font-family:'Oleo Script',cursive;font-size:22px;letter-spacing:0.5px;color:var(--pk);text-shadow:0 0 12px rgba(255,77,140,0.5), 0 2px 4px rgba(0,0,0,0.8);line-height:1;}
+.logo-sub{font-family:'Oleo Script',cursive;font-size:14px;letter-spacing:0.5px;color:var(--pk);text-shadow:0 0 12px rgba(255,77,140,0.5), 0 2px 4px rgba(0,0,0,0.8);line-height:1;margin-top:4px;}
+.logo-ver{font-family:'Impact','Arial Black','Helvetica Neue',sans-serif;font-size:10px;font-weight:900;letter-spacing:1px;color:var(--pk);text-shadow:0 0 12px rgba(255,77,140,0.5), 0 2px 4px rgba(0,0,0,0.8);line-height:1;}
+.nav-tabs{display:flex;gap:4px;}
+.nav-tab{background:none;border:1px solid transparent;color:var(--mu);font-size:13px;font-weight:600;letter-spacing:1px;padding:6px 12px;cursor:pointer;border-radius:5px;transition:all .15s;font-family:var(--sa);}
+.nav-tab.active{border-color:var(--gd);color:var(--gr);background:rgba(0,255,127,.08);}
+
+#view-training{display:none;flex-direction:column;flex:1;padding:6px 12px;overflow:hidden;}
+#view-training.active{display:flex;}
+.view{display:none;padding:12px 14px;flex:1;overflow-y:auto;overflow-x:hidden;}
+.view.active{display:block;}
+
+.top-controls{flex-shrink:0;}
+.stats-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:5px;}
+.stat-box{background:var(--sf);border:1px solid #1E2A1E;border-radius:7px;padding:5px 4px;text-align:center;}
+.stat-val{font-family:var(--mo);font-size:20px;font-weight:bold;color:var(--yw);display:block;}
+.stat-lbl{font-size:11px;font-weight:600;color:var(--mu);letter-spacing:1px;display:block;margin-top:1px;}
+.ctrl-row{display:flex;gap:5px;margin-bottom:5px;}
+.ctrl-btn{flex:1;padding:6px 2px;border-radius:6px;border:1px solid #2A3A2A;background:none;color:var(--mu);font-size:12px;font-weight:600;cursor:pointer;transition:all .12s;font-family:var(--sa);text-align:center;line-height:1.3;}
+.ctrl-btn.active{border-color:var(--gd);color:var(--gr);background:rgba(0,255,127,.08);}
+.ctrl-btn .ci{display:block;font-size:15px;margin-bottom:1px;}
+.settings-row{display:flex;flex-direction:column;gap:4px;margin-bottom:5px;}
+.settings-line{display:flex;gap:5px;align-items:center;flex-wrap:nowrap;justify-content:space-between;}
+.sg{display:flex;gap:3px;align-items:center;}
+.slbl{font-size:11px;font-weight:700;color:var(--mu);letter-spacing:1px;white-space:nowrap;margin-right:2px;}
+.pill{padding:4px 6px;border-radius:4px;border:1px solid #2A3A2A;background:none;color:var(--mu);font-size:11px;font-weight:600;cursor:pointer;transition:all .12s;font-family:var(--sa);white-space:nowrap;}
+.pill.active{border-color:var(--gd);color:var(--gr);background:rgba(0,255,127,.08);}
+.vsep{width:1px;background:#2A3A2A;align-self:stretch;margin:0 3px;}
+.timer-area{flex-shrink:0;margin-bottom:4px;display:none;}
+.timer-top{display:flex;align-items:baseline;justify-content:center;gap:5px;}
+.timer-num{font-family:var(--mo);font-size:30px;font-weight:bold;color:var(--pk);}
+.timer-num.danger{color:var(--rd);animation:pulse .5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.timer-lbl{font-size:13px;color:var(--mu);}
+.timer-bar{height:4px;background:var(--s2);border-radius:2px;overflow:hidden;margin-top:2px;}
+.timer-fill{height:100%;background:var(--pk);transition:width .1s linear;border-radius:2px;}
+.timer-fill.danger{background:var(--rd);}
+.board-area{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.score-badge{font-family:var(--mo);font-size:42px;font-weight:bold;color:var(--yw);line-height:1;text-align:center;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:8px;}
+.score-sub{font-size:11px;font-weight:600;letter-spacing:2px;color:var(--mu);text-align:center;margin-bottom:3px;flex-shrink:0;}
+.board-wrap{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;padding:0 6px;}
+.board-wrap svg{width:100%;height:100%;max-width:400px;max-height:400px;display:block;overflow:visible;filter:drop-shadow(0 3px 14px rgba(0,0,0,.85));touch-action:manipulation;}
+@keyframes segFlash{0%{opacity:1}40%{opacity:.15}100%{opacity:1}}
+.seg-flash{animation:segFlash .2s ease-out;}
+.ta-result{display:none;flex-direction:column;align-items:center;justify-content:flex-start;flex:1;text-align:center;gap:10px; padding:10px 0 20px 0; overflow-y:auto; width:100%;}
+.ta-result.show{display:flex;}
+.ta-score-big{font-family:var(--mo);font-size:72px;font-weight:bold;color:var(--yw);line-height:1;}
+.ta-lbl{font-size:13px;font-weight:600;letter-spacing:3px;color:var(--mu);}
+.ta-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;width:100%;max-width:320px;}
+.ta-cell{background:var(--sf);border:1px solid #1E2A1E;border-radius:7px;padding:8px;}
+.ta-cv{font-family:var(--mo);font-size:22px;font-weight:bold;display:block;}
+.ta-cl{font-size:10px;font-weight:700;color:var(--mu);letter-spacing:1px;}
+.bottom-panel{flex-shrink:0;}
+
+.darts-indicator{display:flex;justify-content:center;gap:12px;margin-bottom:5px;height:35px;}
+.pink-dart{width:14px;height:38px;transition:all .2s ease;}
+.pink-dart.used{transform:scale(0.8) translateY(-5px);opacity:0.25;filter:grayscale(100%);}
+
+.throw-counter{text-align:center;font-size:12px;font-weight:600;color:var(--mu);letter-spacing:1px;margin-bottom:3px;}
+.throw-log{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;min-height:28px;margin-bottom:4px;}
+.tchip{background:var(--s2);border:1px solid #2A3A2A;border-radius:5px;padding:4px 10px;font-family:var(--mo);font-size:13px;font-weight:bold;color:var(--wh);display:flex;align-items:center;gap:4px;}
+.tchip.hit{border-color:var(--gd);color:var(--gr);}
+.tchip.miss{border-color:var(--rd);color:var(--rd);}
+.tchip.partial{border-color:var(--or);color:var(--or);}
+.result-banner{border-radius:6px;padding:7px 11px;font-size:12px;font-weight:600;margin-bottom:4px;display:none;align-items:flex-start;gap:7px;}
+.result-banner.show{display:flex;}
+.result-banner.correct{background:rgba(0,255,127,.1);border:1px solid var(--gd);color:var(--gr);}
+.result-banner.wrong{background:rgba(255,68,68,.08);border:1px solid #662222;color:var(--rd);}
+.result-banner.partial{background:rgba(255,140,0,.08);border:1px solid #885500;color:var(--or);}
+.theory-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--mu);margin-bottom:3px;user-select:none;}
+.theory-toggle input{accent-color:var(--gr);width:14px;height:14px;cursor:pointer;}
+.theory-panel{background:#0F1A0F;border:1px solid #1E3A1E;border-radius:6px;padding:7px 10px;margin-bottom:4px;font-size:12px;line-height:1.7;color:#8AB890;display:none;max-height:120px;overflow-y:auto;}
+.theory-panel.show{display:block;}
+.tpt{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--gd);margin-bottom:4px;display:flex;align-items:center;gap:4px;}
+.tpt::before{content:'';display:inline-block;width:5px;height:5px;background:var(--gd);border-radius:50%;}
+.tsec strong{color:var(--wh);font-family:var(--mo);font-size:12px;}
+.miss-case{background:rgba(255,68,68,.07);border-left:2px solid #662222;padding:4px 8px;border-radius:0 3px 3px 0;margin-top:4px;font-size:11px;color:#CC8888;}
+.order-note{background:rgba(255,140,0,.07);border-left:2px solid #885500;padding:4px 8px;border-radius:0 3px 3px 0;margin-top:4px;font-size:11px;color:#DDAA66;}
+.btn-row{display:flex;gap:7px;}
+.btn{flex:1;padding:11px;border-radius:7px;border:none;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;font-family:var(--sa);transition:all .12s;}
+.btn-primary{background:var(--gr);color:#0D1117;}
+.btn-secondary{background:var(--s2);color:var(--mu);border:1px solid #2A3A2A;}
+.btn-orange{background:var(--or);color:#0D1117;}
+.btn-pink{background:var(--pk);color:#0D1117;}
+.filter-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.filter-chip{background:none;border:1px solid #2A3A2A;color:var(--mu);font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;cursor:pointer;letter-spacing:1px;}
+.filter-chip.active{border-color:var(--gd);color:var(--gr);background:rgba(0,255,127,.08);}
+.arr-table{display:flex;flex-direction:column;gap:4px;}
+.arr-row{background:var(--sf);border:1px solid #1E2A1E;border-radius:7px;padding:10px 13px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .12s;}
+.arr-row:hover{border-color:var(--gd);}
+.ar-s{font-family:var(--mo);font-size:19px;font-weight:bold;color:var(--yw);width:36px;text-align:right;flex-shrink:0;}
+.ar-t{flex:1;font-size:13px;font-weight:600;color:var(--wh);}
+.ar-t small{color:var(--mu);font-size:11px;display:block;margin-top:2px;line-height:1.4;}
+.ar-tag{font-size:10px;font-weight:700;letter-spacing:1px;padding:2px 5px;border-radius:3px;background:var(--s2);color:var(--mu);flex-shrink:0;}
+.ar-tag.bull{background:rgba(245,230,66,.1);color:var(--yw);}
+.ar-tag.double{background:rgba(0,255,127,.07);color:var(--gd);}
+.ar-tag.key{background:rgba(255,140,0,.12);color:var(--or);}
+.arr-det{display:none;background:#0F1A0F;border:1px solid #1E3A1E;border-top:none;padding:10px 13px;font-size:12px;color:#8AB890;line-height:1.8;border-radius:0 0 7px 7px;}
+.arr-det.open{display:block;}
+.arr-det strong{color:var(--wh);font-family:var(--mo);}
+.arr-det .miss{color:#CC8888;font-size:11px;border-left:2px solid #442222;padding-left:7px;margin-top:5px;display:block;}
+.hist-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.hist-ttl{font-size:13px;font-weight:700;letter-spacing:3px;color:var(--mu);}
+.clr-btn{background:none;border:1px solid #2A3A2A;color:var(--mu);font-size:12px;font-weight:600;padding:5px 11px;border-radius:5px;cursor:pointer;}
+.clr-btn:hover{color:var(--rd);border-color:#662222;}
+.hist-list{display:flex;flex-direction:column;gap:5px;}
+.hist-item{background:var(--sf);border:1px solid #1E2A1E;border-radius:7px;padding:9px 13px;display:flex;align-items:center;gap:10px;}
+.hi-s{font-family:var(--mo);font-size:19px;font-weight:bold;color:var(--yw);width:40px;flex-shrink:0;}
+.hi-a{flex:1;font-size:13px;font-weight:600;color:var(--wh);}
+.hi-a small{color:var(--mu);font-size:11px;display:block;}
+.hi-r{font-size:11px;font-weight:900;padding:3px 8px;border-radius:4px;flex-shrink:0;text-align:center;width:24px;}
+.hi-r.exc{background:rgba(0,255,127,.15);color:var(--gr);}
+.hi-r.good{background:rgba(245,230,66,.15);color:var(--yw);}
+.hi-r.par{background:rgba(255,140,0,.15);color:var(--or);}
+.hi-r.miss{background:rgba(255,68,68,.15);color:var(--rd);}
+.hi-r.ta{background:rgba(255,77,140,.15);color:var(--pk);width:auto;padding:3px 9px;letter-spacing:1px;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--mu);font-size:13px;line-height:2.2;}
+.install-banner{background:var(--sf);border-top:1px solid #1E2A1E;padding:8px 14px;padding-bottom:calc(8px + var(--sb));display:none;align-items:center;gap:9px;flex-shrink:0;}
+.install-banner.show{display:flex;}
+.install-txt{flex:1;font-size:12px;font-weight:600;color:var(--mu);line-height:1.5;}
+.install-txt b{color:var(--wh);}
+.install-btn{background:var(--gr);color:#0D1117;border:none;border-radius:6px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;}
+.install-close{background:none;border:none;color:var(--mu);cursor:pointer;font-size:18px;padding:2px 5px;}
+</style>
+</head>
+<body>
+
+<div class="app-viewport-lock">
+
+  <div style="display:none;">
+      <audio id="bgm-upbeat" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+      <audio id="bgm-cyber" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio>
+      <audio id="bgm-calm" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"></audio>
+      <audio id="bgm-ending" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"></audio>
+  </div>
+
+  <header>
+    <div class="logo">
+      <div class="logo-top"><span class="logo-main">Checkout Master</span><span class="logo-ver">ver.1.00</span></div>
+      <span class="logo-sub">for Puku Freaks</span>
+    </div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="switchView('training',this)">練習</button>
+      <button class="nav-tab" onclick="switchView('table',this)">表</button>
+      <button class="nav-tab" onclick="switchView('history',this)">履歴</button>
+    </nav>
+  </header>
+
+  <div id="view-training" class="active">
+    <div class="top-controls">
+      <div class="stats-bar">
+        <div class="stat-box"><span class="stat-val" id="stat-total">0</span><span class="stat-lbl">TOTAL</span></div>
+        <div class="stat-box"><span class="stat-val" id="stat-correct">0</span><span class="stat-lbl">CORRECT</span></div>
+        <div class="stats-bar-box stat-box"><span class="stat-val" id="stat-rate">—</span><span class="stat-lbl">RATE</span></div>
+      </div>
+      <div class="ctrl-row">
+        <button class="ctrl-btn active" onclick="setMode(this,'quiz')"><span class="ci">🎯</span>QUIZ</button>
+        <button class="ctrl-btn" onclick="setMode(this,'timeattack')"><span class="ci">⏱</span>TIME ATTACK</button>
+        <button class="ctrl-btn" onclick="setMode(this,'study')"><span class="ci">📖</span>STUDY</button>
+        <button class="ctrl-btn" onclick="setMode(this,'weak')"><span class="ci">🔥</span>苦手TOP10</button>
+      </div>
+      <div class="settings-row">
+        <div class="settings-line">
+          <div style="display:flex; gap:5px;">
+            <div class="sg"><span class="slbl">OUT</span>
+              <button class="pill active" id="out-double" onclick="setOutMode(this,'double')">DBL</button>
+              <button class="pill"        id="out-master" onclick="setOutMode(this,'master')">MAS</button>
+              <button class="pill"        id="out-open"   onclick="setOutMode(this,'open')">OPN</button>
+            </div>
+            <div class="vsep"></div>
+            <div class="sg"><span class="slbl">BULL</span>
+              <button class="pill active" id="bull-fat" onclick="setBull(this,'fat')">FAT</button>
+              <button class="pill"        id="bull-sep" onclick="setBull(this,'sep')">SEP</button>
+            </div>
+          </div>
+          <div class="sg" style="gap:2px;">
+            <label style="display:flex;align-items:center;cursor:pointer;"><input type="checkbox" id="sound-toggle" checked onchange="toggleSound(this.checked)" style="accent-color:var(--gr);width:12px;height:12px;"><span style="font-size:12px;margin-left:1px;">🔊</span></label>
+            <label style="display:flex;align-items:center;cursor:pointer;"><input type="checkbox" id="bgm-toggle" checked onchange="toggleBGM(this.checked)" style="accent-color:var(--gr);width:12px;height:12px;"><span style="font-size:12px;margin-left:1px;">🎵</span></label>
+            <select id="bgm-select" onchange="changeBGM()" style="background:var(--s2); border:1px solid #2A3A2A; color:var(--wh); font-family:var(--sa); font-size:10px; font-weight:600; border-radius:4px; padding:0; cursor:pointer; outline:none; height:18px;">
+              <option value="bgm-upbeat">TRK1</option>
+              <option value="bgm-cyber">TRK2</option>
+              <option value="bgm-calm">TRK3</option>
+            </select>
+          </div>
+        </div>
+        <div class="settings-line">
+          <div class="sg" id="ta-time-group" style="display:none"><span class="slbl">SEC</span>
+            <button class="pill active" id="ta15" onclick="setTATime(this,15)">15</button>
+            <button class="pill"        id="ta30" onclick="setTATime(this,30)">30</button>
+            <button class="pill"        id="ta60" onclick="setTATime(this,60)">60</button>
+          </div>
+          <div class="vsep" id="ta-vsep" style="display:none"></div>
+          <div class="sg" id="level-group"><span class="slbl">LV</span>
+            <button class="pill active" onclick="setLevel(this,'easy')">E</button>
+            <button class="pill"        onclick="setLevel(this,'normal')">N</button>
+            <button class="pill"        onclick="setLevel(this,'hard')">H</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timer-area" id="ta-timer-area">
+      <div class="timer-top"><span class="timer-num" id="timer-display">15</span><span class="timer-lbl">sec</span></div>
+      <div class="timer-bar"><div class="timer-fill" id="timer-bar" style="width:100%"></div></div>
+    </div>
+
+    <div id="weak-panel" style="display:none;flex-shrink:0;">
+      <div id="weak-header" style="
+        background:rgba(255,77,140,0.08);border:1px solid rgba(255,77,140,0.3);
+        border-radius:8px;padding:8px 12px;margin-bottom:5px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <span style="font-size:12px;font-weight:700;color:var(--pk);letter-spacing:2px;">🔥 苦手 TOP10 モード</span>
+          <span id="weak-progress" style="font-size:11px;color:var(--mu);font-family:var(--mo);">0/10</span>
+        </div>
+        <div id="weak-list" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+      </div>
+    </div>
+
+    <div id="weak-empty" style="display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:20px;">
+      <div style="font-size:36px;">📊</div>
+      <div style="font-size:15px;font-weight:700;color:var(--wh);">データが足りません</div>
+      <div style="font-size:12px;color:var(--mu);line-height:1.8;max-width:260px;">
+        苦手TOP10を表示するには、<br>
+        QUIZモードで<strong style="color:var(--wh);">10問以上</strong>誤回答する必要があります。<br><br>
+        まずQUIZモードで練習してみましょう！
+      </div>
+      <div id="weak-current-count" style="font-size:12px;color:var(--or);"></div>
+      <button class="btn btn-primary" onclick="setMode(document.querySelectorAll('.ctrl-btn')[0],'quiz')" style="width:140px;margin-top:4px;">QUIZ を始める</button>
+    </div>
+
+    <div class="board-area" id="board-area">
+      <div class="score-badge" id="current-score">—</div>
+      <div class="score-sub">REMAINING</div>
+      <div class="board-wrap">
+        <svg id="dartboard" viewBox="-30 -30 460 460" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+
+    <div class="ta-result" id="ta-result">
+      <div style="flex-shrink:0; width:100%; display:flex; flex-direction:column; align-items:center;">
+        <div id="ta-rank-badge" style="font-size:28px;font-weight:900;letter-spacing:2px;margin-bottom:2px;"></div>
+        <div id="ta-rank-label" style="font-size:12px;color:var(--mu);letter-spacing:2px;margin-bottom:8px;"></div>
+        
+        <div style="font-size:14px; font-weight:bold; color:var(--wh); margin-bottom:5px;">総合スコア: <span id="ta-final-calc-score" style="color:var(--yw); font-size:32px; font-family:var(--mo);">0</span> pts</div>
+
+        <div class="ta-grid" id="ta-eval-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; width:100%; max-width:320px;">
+          <div class="ta-cell"><span class="ta-cv" id="ta-bd-exc" style="color:var(--gr);">0</span><span class="ta-cl" style="font-size:10px;">◎ Perfect</span></div>
+          <div class="ta-cell"><span class="ta-cv" id="ta-bd-good" style="color:var(--yw);">0</span><span class="ta-cl" style="font-size:10px;">◯ Good</span></div>
+          <div class="ta-cell"><span class="ta-cv" id="ta-bd-par" style="color:var(--or);">0</span><span class="ta-cl" style="font-size:10px;">△ Partial</span></div>
+          <div class="ta-cell"><span class="ta-cv" id="ta-bd-miss" style="color:var(--rd);">0</span><span class="ta-cl" style="font-size:10px;">✕ Miss</span></div>
+        </div>
+        
+        <div id="ta-rank-comment" style="font-size:12px;color:var(--mu);text-align:center;max-width:280px;line-height:1.6;margin-top:8px;padding:0 8px;"></div>
+        
+        <div style="display:flex; gap:10px; margin-top:12px; margin-bottom:10px; width:100%; max-width:280px;">
+          <button class="btn btn-secondary" onclick="setMode(document.querySelectorAll('.ctrl-btn')[0],'quiz')" style="flex:1; padding:10px 5px;">🏠 ホーム</button>
+          <button class="btn btn-pink" onclick="startTimeAttack()" style="flex:1; padding:10px 5px;">▶ もう一度</button>
+        </div>
+        
+      </div>
+      <div id="ta-review-list" style="width:100%; max-width:320px; padding-bottom:10px;"></div>
+    </div>
+
+    <div class="bottom-panel">
+      <div class="darts-indicator" id="darts-indicator"></div>
+      <div class="throw-counter" id="throw-counter">ボードをタップして投げ方を入力</div>
+      <div class="throw-log" id="throw-log"></div>
+      
+      <div class="btn-row" id="confirm-btn-row" style="display:none; margin-bottom:4px;">
+        <button class="btn btn-primary" style="background:var(--pk);color:#0D1117;font-size:15px;padding:12px;" onclick="checkAnswer()">🎯 確定</button>
+      </div>
+      
+      <div class="result-banner" id="result-banner">
+        <span id="result-icon">✓</span>
+        <div><span id="result-text">—</span></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:2px;flex-wrap:wrap;justify-content:center;">
+        <label class="theory-toggle" id="theory-toggle-label">
+          <input type="checkbox" id="theory-toggle" onchange="toggleTheory(this.checked)">解説モードON
+        </label>
+        <label class="theory-toggle" id="remain-toggle-label">
+          <input type="checkbox" id="remain-toggle" onchange="toggleRemain(this.checked)">🧮 残り点数表示
+        </label>
+      </div>
+      <div class="theory-panel" id="theory-panel">
+        <div class="tpt">ARRANGE THEORY</div>
+        <div id="theory-content"></div>
+      </div>
+      <div class="btn-row" id="main-btns">
+        <button class="btn btn-secondary" onclick="showAnswer()" id="btn-hint">答えを見る</button>
+        <button class="btn btn-primary"   onclick="nextQuestion()">次へ →</button>
+      </div>
+      <div class="btn-row" id="ta-start-btn" style="display:none">
+        <button class="btn btn-pink" onclick="startTimeAttack()">▶ スタート</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="view-table">
+    <div class="filter-row">
+      <button class="filter-chip active" onclick="filterTable(this,'all')">すべて</button>
+      <button class="filter-chip" onclick="filterTable(this,'key')">必須</button>
+      <button class="filter-chip" onclick="filterTable(this,'bull')">BULL</button>
+      <button class="filter-chip" onclick="filterTable(this,'double')">DOUBLE</button>
+      <button class="filter-chip" onclick="filterTable(this,'high')">HIGH(120+)</button>
+    </div>
+    <div class="arr-table" id="arrange-table"></div>
+  </div>
+
+  <div class="view" id="view-history">
+    <div class="hist-hdr">
+      <div class="hist-ttl">練習履歴</div>
+      <button class="clr-btn" onclick="clearHistory()">クリア</button>
+    </div>
+    <div class="hist-list" id="history-list"></div>
+  </div>
+
+  <div class="install-banner" id="install-banner">
+    <div class="install-txt"><b>Checkout Master</b>をホーム画面に追加して、素早い起動とフルスクリーン表示でサクサク練習しましょう！</div>
+    <button class="install-btn" id="install-btn" onclick="pwaInstall()">追加</button>
+    <button class="install-close" onclick="dismissInstall()">✕</button>
+  </div>
+
+</div>
+
+<script>
+const SND={
+  enabled:true,
+  _ac:null,
+  _getAC(){
+    if(!this._ac) this._ac=new(window.AudioContext||window.webkitAudioContext)();
+    if(this._ac.state==='suspended') this._ac.resume();
+    return this._ac;
+  },
+  _tu(freq, vol, dur, attack, startTime){
+    const ac=this._getAC(); const t=startTime||ac.currentTime;
+    const osc=ac.createOscillator(); const gain=ac.createGain();
+    const filter=ac.createBiquadFilter(); filter.type='bandpass'; filter.frequency.value=freq*1.2; filter.Q.value=2;
+    osc.connect(filter); filter.connect(gain); gain.connect(ac.destination);
+    osc.type='triangle'; osc.frequency.setValueAtTime(freq*1.1,t);
+    osc.frequency.exponentialRampToValueAtTime(freq*0.95,t+dur*0.3);
+    gain.gain.setValueAtTime(0.001,t); gain.gain.linearRampToValueAtTime(vol,t+attack);
+    gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.start(t); osc.stop(t+dur+0.05);
+  },
+  _hit(vol, dur, freq, startTime){
+    const ac=this._getAC(); const t=startTime||ac.currentTime;
+    const bufLen=Math.ceil(ac.sampleRate*dur); const buf=ac.createBuffer(1,bufLen,ac.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<bufLen;i++) data[i]=(Math.random()*2-1);
+    const src=ac.createBufferSource(); src.buffer=buf;
+    const gain=ac.createGain(); const f=ac.createBiquadFilter(); f.type='bandpass'; f.frequency.value=freq||1200; f.Q.value=1.5;
+    src.connect(f); f.connect(gain); gain.connect(ac.destination);
+    gain.gain.setValueAtTime(vol,t); gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    src.start(t); src.stop(t+dur+0.02);
+  },
+  _boom(freq, vol, dur, startTime){
+    const ac=this._getAC(); const t=startTime||ac.currentTime;
+    const osc=ac.createOscillator(); const gain=ac.createGain();
+    osc.type='sine'; osc.frequency.setValueAtTime(freq,t); osc.frequency.exponentialRampToValueAtTime(freq*0.5,t+dur);
+    osc.connect(gain); gain.connect(ac.destination);
+    gain.gain.setValueAtTime(vol,t); gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.start(t); osc.stop(t+dur+0.05);
+  },
+  single(){
+    if(!this.enabled)return;
+    try{ const ac=this._getAC(); const t=ac.currentTime; this._hit(0.15, 0.06, 1800, t); this._tu(520, 0.10, 0.12, 0.005, t); }catch(e){}
+  },
+  double(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime; const gap=0.10;
+      this._hit(0.18, 0.05, 1600, t); this._tu(620, 0.12, 0.10, 0.005, t);
+      this._hit(0.20, 0.07, 1800, t+gap); this._tu(780, 0.15, 0.20, 0.005, t+gap);
+      this._tu(780*0.5, 0.04, 0.18, 0.01, t+gap+0.10);
+    }catch(e){}
+  },
+  triple(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime; const gap=0.09;
+      this._hit(0.18, 0.05, 1400, t); this._tu(580, 0.11, 0.09, 0.005, t);
+      this._hit(0.20, 0.05, 1600, t+gap); this._tu(700, 0.12, 0.09, 0.005, t+gap);
+      this._hit(0.24, 0.07, 1900, t+gap*2); this._tu(880, 0.16, 0.22, 0.005, t+gap*2);
+      this._tu(880*0.5, 0.05, 0.20, 0.01, t+gap*2+0.12); this._tu(880*1.5, 0.03, 0.15, 0.01, t+gap*2+0.08);
+    }catch(e){}
+  },
+  outerBull(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime; this._hit(0.40, 0.12, 300, t); this._hit(0.25, 0.18, 1200, t);
+      this._boom(80, 0.35, 0.35, t); this._boom(120, 0.20, 0.30, t);
+      this._tu(220, 0.18, 0.40, 0.02, t+0.05); this._tu(180, 0.10, 0.50, 0.04, t+0.08);
+    }catch(e){}
+  },
+  innerBull(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime;
+      this._hit(0.50, 0.10, 200, t); this._hit(0.30, 0.14, 800, t); this._boom(60, 0.45, 0.25, t); this._boom(100, 0.30, 0.20, t); this._tu(200, 0.20, 0.18, 0.01, t);
+      const t2=t+0.12;
+      this._hit(0.55, 0.14, 250, t2); this._hit(0.35, 0.18, 1000, t2); this._boom(55, 0.50, 0.45, t2); this._boom(90, 0.35, 0.38, t2); this._tu(160, 0.25, 0.55, 0.015, t2);
+      this._tu(660, 0.12, 0.25, 0.02, t2+0.05); this._tu(990, 0.08, 0.20, 0.02, t2+0.12); this._tu(1320,0.05, 0.18, 0.02, t2+0.20);
+    }catch(e){}
+  },
+  play(label){
+    if(!this.enabled)return;
+    if(label==='Bull') this.innerBull();
+    else if(label==='S25') this.outerBull();
+    else if(label.startsWith('T')) this.triple();
+    else if(label.startsWith('D')) this.double();
+    else this.single();
+  },
+  ok(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime;
+      this._tu(523.25, 0.1, 0.1, 0.01, t);
+      this._tu(659.25, 0.1, 0.1, 0.01, t+0.1);
+      this._tu(783.99, 0.15, 0.2, 0.01, t+0.2);
+    }catch(e){}
+  },
+  ng(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime;
+      this._tu(300, 0.15, 0.2, 0.02, t);
+      this._tu(250, 0.15, 0.3, 0.02, t+0.15);
+    }catch(e){}
+  },
+  boom(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime;
+      for(const [f,v,d] of [[40,1.2,1.5],[55,0.9,1.2],[30,1.0,1.8],[80,0.7,0.9]]){
+        const osc=ac.createOscillator(), g=ac.createGain();
+        osc.connect(g); g.connect(ac.destination); osc.type='sine'; osc.frequency.setValueAtTime(f*2,t);
+        osc.frequency.exponentialRampToValueAtTime(f*0.3,t+d);
+        g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.001,t+d);
+        osc.start(t); osc.stop(t+d+0.1);
+      }
+    }catch(e){}
+  }
+};
+function toggleSound(on){ SND.enabled=on; if(on)try{SND._getAC();}catch(e){} }
+
+const BGM = {
+  enabled: true,
+  currentTrack: 'bgm-upbeat',
+  start(){
+    if(!this.enabled) return;
+    this.stop();
+    const sel = document.getElementById('bgm-select');
+    this.currentTrack = sel ? sel.value : 'bgm-upbeat';
+    const audio = document.getElementById(this.currentTrack);
+    if(audio) {
+      audio.currentTime = 0;
+      audio.play().catch(e=>{});
+    }
+  },
+  stop(){
+    ['bgm-upbeat','bgm-cyber','bgm-calm','bgm-ending'].forEach(id => {
+      const audio = document.getElementById(id);
+      if(audio) { audio.pause(); audio.currentTime = 0; }
+    });
+  },
+  playEnding(){
+    if(!this.enabled) return;
+    this.stop();
+    const audio = document.getElementById('bgm-ending');
+    if(audio) {
+      audio.currentTime = 0;
+      audio.play().catch(e=>{});
+    }
+  }
+};
+
+function toggleBGM(on){ 
+  BGM.enabled=on; 
+  if(!on) BGM.stop(); 
+  else {
+    if(ST.ta && ST.ta.active) BGM.start();
+    else if(document.getElementById('ta-result').classList.contains('show')) BGM.playEnding();
+  }
+}
+
+function changeBGM() {
+  if(BGM.enabled && ST.ta && ST.ta.active) {
+    BGM.start();
+  }
+}
+
+const CX=200,CY=200;
+const R={bi:25,bo:50,ti:100,to:132,di:160,do_:194};
+const SECTORS=[20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
+const N=20,DEG=18;
+const PHX={
+  blk:'#1C100A',crm:'#EDE0A8',red:'#B8172A',grn:'#1A6535',
+  bull_out_fill:'#B8172A',bull_in_fill:'#0A0A0A',wire:'#9A9070',
+  sel_ok:'rgba(0,230,90,0.65)',sel_ng:'rgba(255,40,40,0.65)',
+  sel_yw:'rgba(240,215,30,0.65)',sel_or:'rgba(255,140,0,0.55)',
+};
+const ns='http://www.w3.org/2000/svg';
+
+function polar(r,deg){const rad=(deg-90)*Math.PI/180;return[CX+r*Math.cos(rad),CY+r*Math.sin(rad)];}
+function arc(r1,r2,a1,a2){
+  const[x1,y1]=polar(r1,a1),[x2,y2]=polar(r2,a1);
+  const[x3,y3]=polar(r2,a2),[x4,y4]=polar(r1,a2);
+  const lg=(a2-a1)>180?1:0;
+  return`M${x1},${y1}L${x2},${y2}A${r2},${r2} 0 ${lg},1 ${x3},${y3}L${x4},${y4}A${r1},${r1} 0 ${lg},0 ${x1},${y1}Z`;
+}
+
+function getSvgCoords(svg, e) {
+  let pt = svg.createSVGPoint();
+  if (e.touches && e.touches.length > 0) {
+    pt.x = e.touches[0].clientX; pt.y = e.touches[0].clientY;
+  } else if (e.changedTouches && e.changedTouches.length > 0) {
+    pt.x = e.changedTouches[0].clientX; pt.y = e.changedTouches[0].clientY;
+  } else {
+    pt.x = e.clientX; pt.y = e.clientY;
+  }
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+function drawDart(x, y, targetId) {
+  const svg = document.getElementById('dartboard');
+  const dart = document.createElementNS(ns, 'g');
+  dart.setAttribute('class', 'thrown-dart');
+  dart.setAttribute('data-target', targetId);
+  
+  const angle = 15 + Math.random() * 15; 
+  dart.setAttribute('transform', `translate(${x}, ${y}) scale(1.3) rotate(${angle})`);
+  
+  const shadow = document.createElementNS(ns, 'path');
+  shadow.setAttribute('d', 'M0,0 L-5,-10 L-5,-28 L0,-22 L4,-28 L4,-10 Z');
+  shadow.setAttribute('fill', 'rgba(0,0,0,0.5)');
+  shadow.setAttribute('transform', 'translate(4, 4) skewX(20)');
+  dart.appendChild(shadow);
+
+  const tip = document.createElementNS(ns, 'polygon');
+  tip.setAttribute('points', '-1,-5 1,-5 0,0');
+  tip.setAttribute('fill', '#E0E0E0');
+  dart.appendChild(tip);
+
+  const barrel = document.createElementNS(ns, 'rect');
+  barrel.setAttribute('x', '-2'); barrel.setAttribute('y', '-16');
+  barrel.setAttribute('width', '4'); barrel.setAttribute('height', '11');
+  barrel.setAttribute('rx', '1');
+  barrel.setAttribute('fill', '#999');
+  barrel.setAttribute('stroke', '#333'); barrel.setAttribute('stroke-width', '0.5');
+  dart.appendChild(barrel);
+  
+  for(let by = -14; by <= -7; by += 2) {
+     const cut = document.createElementNS(ns, 'line');
+     cut.setAttribute('x1', '-2'); cut.setAttribute('y1', by);
+     cut.setAttribute('x2', '2'); cut.setAttribute('y2', by);
+     cut.setAttribute('stroke', '#222'); cut.setAttribute('stroke-width', '0.5');
+     dart.appendChild(cut);
+  }
+
+  const shaft = document.createElementNS(ns, 'rect');
+  shaft.setAttribute('x', '-1'); shaft.setAttribute('y', '-25');
+  shaft.setAttribute('width', '2'); shaft.setAttribute('height', '9');
+  shaft.setAttribute('fill', '#E8EEE8');
+  dart.appendChild(shaft);
+
+  const flight = document.createElementNS(ns, 'path');
+  flight.setAttribute('d', 'M0,-22 L-9,-31 L-7,-38 L0,-34 L7,-38 L9,-31 Z');
+  flight.setAttribute('fill', 'var(--pk)');
+  flight.setAttribute('stroke', '#1C100A');
+  flight.setAttribute('stroke-width', '0.5');
+  dart.appendChild(flight);
+  
+  const flightDetail = document.createElementNS(ns, 'path');
+  flightDetail.setAttribute('d', 'M0,-22 L0,-34 L7,-38 L9,-31 Z');
+  flightDetail.setAttribute('fill', 'rgba(0,0,0,0.15)');
+  dart.appendChild(flightDetail);
+  
+  dart.setAttribute('pointer-events', 'none');
+  svg.appendChild(dart);
+}
+
+function mkPath(svg,label,val,d,fill,ev){
+  const p=document.createElementNS(ns,'path');
+  p.setAttribute('d',d);p.setAttribute('fill',fill);
+  p.setAttribute('data-orig-fill',fill);p.setAttribute('stroke',PHX.wire);p.setAttribute('stroke-width','0.4');
+  p.setAttribute('data-seg',label);p.setAttribute('data-val',val);
+  if(ev){p.style.cursor='pointer';p.addEventListener('click',(e)=>onTap(label,val,e));}
+  svg.appendChild(p);return p;
+}
+
+function buildBoard(){
+  const svg=document.getElementById('dartboard');svg.innerHTML='';
+  const bg=document.createElementNS(ns,'circle');
+  bg.setAttribute('cx',CX);bg.setAttribute('cy',CY);bg.setAttribute('r',R.do_+12);
+  bg.setAttribute('fill','#0C0C0A');svg.appendChild(bg);
+  const nr=document.createElementNS(ns,'circle');
+  nr.setAttribute('cx',CX);nr.setAttribute('cy',CY);nr.setAttribute('r',R.do_+7);
+  nr.setAttribute('fill','#181208');svg.appendChild(nr);
+  for(let i=0;i<N;i++){
+    const num=SECTORS[i],a1=i*DEG-DEG/2,a2=a1+DEG,even=i%2===0;
+    const sc=even?PHX.blk:PHX.crm,bc=even?PHX.red:PHX.grn;
+    mkPath(svg,`S${num}`,num,arc(R.to,R.di,a1,a2),sc,true);
+    mkPath(svg,`D${num}`,num*2,arc(R.di,R.do_,a1,a2),bc,true);
+    mkPath(svg,`S${num}`,num,arc(R.bo,R.ti,a1,a2),sc,true);
+    mkPath(svg,`T${num}`,num*3,arc(R.ti,R.to,a1,a2),bc,true);
+  }
+  mkPath(svg,'S25',25,arc(R.bi,R.bo,0,359.99),PHX.bull_out_fill,true);
+  const bi=document.createElementNS(ns,'circle');
+  bi.setAttribute('cx',CX);bi.setAttribute('cy',CY);bi.setAttribute('r',R.bi);
+  bi.setAttribute('fill','#0A0A0A');bi.setAttribute('data-orig-fill','#0A0A0A');
+  bi.setAttribute('stroke','#6A6050');bi.setAttribute('stroke-width','1.2');
+  bi.setAttribute('data-seg','Bull');bi.setAttribute('data-val','50');
+  bi.style.cursor='pointer';bi.addEventListener('click',(e)=>onTap('Bull',50,e));
+  svg.appendChild(bi);
+  for(let i=0;i<N;i++){
+    const num=SECTORS[i],[lx,ly]=polar(R.do_+20,i*DEG);
+    const t=document.createElementNS(ns,'text');
+    t.setAttribute('x',lx);t.setAttribute('y',ly);
+    t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','middle');
+    t.setAttribute('font-size','22');t.setAttribute('font-family','Courier New,monospace');
+    t.setAttribute('fill','#D8CCA0');t.setAttribute('font-weight','bold');
+    t.setAttribute('pointer-events','none');t.textContent=num;svg.appendChild(t);
+  }
+  [R.bi,R.bo,R.ti,R.to,R.di,R.do_].forEach(r=>{
+    const c=document.createElementNS(ns,'circle');
+    c.setAttribute('cx',CX);c.setAttribute('cy',CY);c.setAttribute('r',r);
+    c.setAttribute('fill','none');c.setAttribute('stroke',PHX.wire);c.setAttribute('stroke-width','1.5');c.setAttribute('pointer-events','none');svg.appendChild(c);
+  });
+  for(let i=0;i<N;i++){
+    const deg=i*DEG-DEG/2,[x1,y1]=polar(R.bo,deg),[x2,y2]=polar(R.do_,deg);
+    const l=document.createElementNS(ns,'line');
+    l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);
+    l.setAttribute('stroke',PHX.wire);l.setAttribute('stroke-width','1.5');l.setAttribute('pointer-events','none');svg.appendChild(l);
+  }
+}
+let _hl=[];
+function clearHL(){
+  _hl.forEach(({el,f})=>{const orig=el.getAttribute('data-orig-fill');el.setAttribute('fill',orig||f);});
+  _hl=[];
+  document.querySelectorAll('.thrown-dart').forEach(el => el.remove());
+}
+function hlSeg(label,color){
+  document.querySelectorAll(`[data-seg="${label}"]`).forEach(el=>{
+    const orig=el.getAttribute('data-orig-fill');
+    _hl.push({el,f:orig||el.getAttribute('fill')});el.setAttribute('fill',color);
+  });
+}
+function flashSeg(label){
+  document.querySelectorAll(`[data-seg="${label}"]`).forEach(el=>{el.classList.remove('seg-flash');void el.offsetWidth;el.classList.add('seg-flash');});
+}
+
+const ARRANGES = [
+  {score:180, fat:["T20","T20","T20"], sep:["T20","T20","T20"], tags:['high','key'], theory:'【MyArrange 1位】T20→T20→T20\nTON80。全モード共通の最高フィニッシュです。', miss:'T20外れS20(160)→次T20でD20の上がり目が残ります。'},
+  {score:177, fat:["T20","T20","T19"], sep:["T20","T20","T19"], tags:['high','key'], theory:'【MyArrange 1位】T20→T20→T19\n177はこのルート一択です。', miss:'T20外れS20(157)→あと2本では上がれません(削り)。'},
+  {score:174, fat:["T20","T20","T18"], sep:["T20","T20","T18"], tags:['high','key'], theory:'【MyArrange 1位】T20→T20→T18\nT20を狙うのが最も投げ慣れた流れです。', miss:'T20外れS20(154)→あと2本では上がれません。'},
+  {score:171, fat:["T20","T20","T17"], sep:["T20","T20","T17"], tags:['high','key'], theory:'【MyArrange 1位】T20→T20→T17\n次点:T19→T19→T19 (オシャレですが外した際のリスク高)。', miss:'T20外れS20(151)→あと2本では上がれません。'},
+  {score:170, fat:["T20","T20","Bull"], sep:["T20","T20","Bull"], tags:['high','bull','key'], theory:'【MyArrange 1位】T20→T20→Bull\nDOUBLE OUTにおける最高点のフィニッシュです。', miss:'T20外れS20(150)→あと2本では上がれません。'},
+  {score:168, fat:["T20","T20","T16"], sep:[], tags:['high'], theory:'【MASTER OUT専用】T20→T20→T16\n※DOUBLE OUTでは上がり目なし(ボギー)です。', miss:'T20外れS20(148)→あと2本では上がれません。'},
+  {score:167, fat:["T20","T19","Bull"], sep:["T20","T19","Bull"], tags:['high','bull'], theory:'【MyArrange 1位】T20→T19→Bull\n次点:T19→T20→Bull (下から上へ繋ぐルート)。', miss:'T20外れS20(147)→あと2本では上がれません。'},
+  {score:165, fat:["T20","T20","T15"], sep:[], tags:['high'], theory:'【MASTER OUT専用】T20→T20→T15\n※DOUBLE OUTでは上がり目なし(ボギー)です。', miss:'T20外れS20(145)→あと2本では上がれません。'},
+  {score:164, fat:["T19","T19","Bull"], sep:["T19","T19","Bull"], tags:['high','bull'], theory:'【MyArrange 1位】T19→T19→Bull\nT20→T18→Bullも非常に有効なルートです。', miss:'T19外れS19(145)→あと2本では上がれません。'},
+  {score:162, fat:["T20","T20","T14"], sep:[], tags:['high'], theory:'【MASTER OUT専用】T20→T20→T14\n※DOUBLE OUTでは上がり目なし(ボギー)です。', miss:'T20外れS20(142)→あと2本では上がれません。'},
+  {score:161, fat:["T20","T17","Bull"], sep:["T20","T17","Bull"], tags:['high','bull'], theory:'【MyArrange 1位】T20→T17→Bull\n※Bullから入ると外した時に2本で上がれなくなります。', miss:'T20外れS20(141)→あと2本では上がれません。'},
+  {score:160, fat:["T20","T20","D20"], sep:["T20","T20","D20"], tags:['high','double','key'], theory:'【MyArrange 1位】T20→T20→D20\n王道の160アウト。', miss:'T20外れS20(140)→あと2本では上がれません。'},
+  {score:159, fat:["T19","T19","T15"], sep:[], tags:['high'], theory:'【MyArrange 1位】T19→T19→T15\n※DOUBLE OUTでは上がり目なし(ボギー)ですが、MASTER OUTなら可能です。', miss:'T19外れS19(140)→あと2本では上がれません。'},
+  {score:158, fat:["T20","T20","D19"], sep:["T20","T20","D19"], tags:['high','double'], theory:'【MyArrange 1位】T20→T20→D19\n次点:T18→T18→Bull (シングル外れでもT20へ移行しやすい)。', miss:'T20外れS20(138)→あと2本では上がれません。'},
+  {score:157, fat:["T20","T19","D20"], sep:["T20","T19","D20"], tags:['high','double'], theory:'【MyArrange 1位】T20→T19→D20\n次点:Bull→Bull→T19', miss:'T20外れS20(137)→あと2本では上がれません。'},
+  {score:156, fat:["T20","T20","D18"], sep:["T20","T20","D18"], tags:['high','double','key'], theory:'【MyArrange 1位】T20→T20→D18\n鉄板の3本フィニッシュ。満場一致のルートです。', miss:'T20外れS20(136)→あと2本では上がれません。'},
+  {score:155, fat:["T20","T19","D19"], sep:["T20","T19","D19"], tags:['high','double'], theory:'【MyArrange 1位】T20→T19→D19\n次点:T20→T15→Bull (MASTER OUTなら有効)。', miss:'T20外れS20(135)→あと2本では上がれません。'},
+  {score:154, fat:["T20","T18","D20"], sep:["T20","T18","D20"], tags:['high','double'], theory:'【MyArrange 1位】T20→T18→D20\n次点:Bull→Bull→T18', miss:'T20外れS20(134)→あと2本では上がれません。'},
+  {score:153, fat:["T20","T19","D18"], sep:["T20","T19","D18"], tags:['high','double'], theory:'【MyArrange 1位】T20→T19→D18\n王道のルート。', miss:'T20外れS20(133)→あと2本では上がれません。'},
+  {score:152, fat:["T20","T20","D16"], sep:["T20","T20","D16"], tags:['high','double','key'], theory:'【MyArrange 1位】T20→T20→D16\n32残しの最強ルート。満場一致です。', miss:'T20外れS20(132)→あと2本では上がれません。'},
+  {score:151, fat:["T20","T17","D20"], sep:["T20","T17","D20"], tags:['high','double'], theory:'【MyArrange 1位】T20→T17→D20\n次点:Bull→Bull→T17', miss:'T20外れS20(131)→あと2本では上がれません。'},
+  {score:150, fat:["Bull","Bull","Bull"], sep:["T20","T18","D18"], tags:['high','bull'], theory:'【FAT / MASTER OUT】Bull→Bull→Bull が大定番。\n【SEPA / DOUBLE OUT】T20→T18→D18 がセオリーです。', miss:'FATでBullを外しS20等に入った場合、残り2本では上がれません。'},
+  {score:149, fat:["T20","T19","D16"], sep:["T20","T19","D16"], tags:['high','double'], theory:'【MyArrange 1位】T20→T19→D16\n王道のルート。', miss:'T20外れS20(129)→あと2本では上がれません。'},
+  {score:148, fat:["T20","T16","D20"], sep:["T20","T16","D20"], tags:['high','double'], theory:'【MyArrange 1位】T20→T16→D20\n次点:T20→T20→D14', miss:'T20外れS20(128)→あと2本では上がれません。'},
+  {score:147, fat:["T20","T17","D18"], sep:["T20","T17","D18"], tags:['high','double'], theory:'【MyArrange 1位】T20→T17→D18\n王道のルート。', miss:'T20外れS20(127)→あと2本では上がれません。'},
+  {score:146, fat:["T20","T18","D16"], sep:["T20","T18","D16"], tags:['high','double'], theory:'【MyArrange 1位】T20→T18→D16\n次点:T19→T19→D16 (32好き向け)。', miss:'T20外れS20(126)→あと2本では上がれません。'},
+  {score:145, fat:["T20","T15","D20"], sep:["T20","T15","D20"], tags:['high','double'], theory:'【MyArrange 1位】T20→T15→D20\n満場一致のルートです。', miss:'T20外れS20(125)→あと2本では上がれません。'},
+  {score:144, fat:["T20","T20","D12"], sep:["T20","T20","D12"], tags:['high','double'], theory:'【MyArrange 1位】T20→T20→D12\n次点:T18→T18→D18', miss:'T20外れS20(124)→あと2本では上がれません。'},
+  {score:143, fat:["T20","T17","D16"], sep:["T20","T17","D16"], tags:['high','double'], theory:'【MyArrange 1位】T20→T17→D16\n次点:T18→T19→D16 (S18ならSB→T20で40残し)。', miss:'T20外れS20(123)→あと2本では上がれません。'},
+  {score:142, fat:["T20","T14","D20"], sep:["T20","T14","D20"], tags:['high','double'], theory:'【MyArrange 1位】T20→T14→D20\nT20からスムーズに下がるルート。', miss:'T20外れS20(122)→あと2本では上がれません。'},
+  {score:141, fat:["T20","T19","D12"], sep:["T20","T19","D12"], tags:['high','double','key'], theory:'【MyArrange 1位】T20→T19→D12\n9ダーツの王道ルート。T20からT19へ流れる美しいルートです。', miss:'T20外れS20(121)→あと2本では上がれません。'},
+  {score:140, fat:["T20","T20","D10"], sep:["T20","T20","D10"], tags:['high','double'], theory:'【MyArrange 1位】T20→T20→D10\n王道のルート。', miss:'T20外れS20(120)→あと2本では上がれません(削り)。'},
+  {score:139, fat:["T20","T13","D20"], sep:["T20","T13","D20"], tags:['high','double'], theory:'【MyArrange 1位】T20→T13→D20\n次点:T19→Bull→D16 (シングルに外れても次でカバー可能)。', miss:'T20外れS20(119)→あと2本では上がれません。'},
+  {score:138, fat:["T20","T18","D12"], sep:["T20","T18","D12"], tags:['high','double'], theory:'【MyArrange 1位】T20→T18→D12\n※T19から入るとS19で119残りとなり難しくなります。', miss:'T20外れS20(118)→あと2本では上がれません。'},
+  {score:137, fat:["T19","T20","D10"], sep:["T19","T20","D10"], tags:['high','double'], theory:'【MyArrange 1位】T19→T20→D10\n下から上へ繋ぐ王道ルート。', miss:'T19外れS19(118)→あと2本では上がれません。'},
+  {score:136, fat:["T20","T20","D8"], sep:["T20","T20","D8"], tags:['high','double'], theory:'【MyArrange 1位】T20→T20→D8\n次点:T16→T16→D20 (トップを残したい人向け)。', miss:'T20外れS20(116)→あと2本では上がれません。'},
+  {score:135, fat:["Bull","T15","Bull"], sep:["T20","T17","D12"], tags:['high','double'], theory:'【FAT / MASTER OUT】Bull→T15→Bull\n【SEPA / DOUBLE OUT】T20→T17→D12', miss:'【FAT】Bull外れS20(115)→あと2本では上がれません。'},
+  {score:134, fat:["T20","T14","D16"], sep:["T20","T14","D16"], tags:['high','double'], theory:'【MyArrange 1位】T20→T14→D16\n次点:T19→T19→D10', miss:'T20外れS20(114)→あと2本では上がれません。'},
+  {score:133, fat:["T20","T19","D8"], sep:["T20","T19","D8"], tags:['high','double'], theory:'【MyArrange 1位】T20→T19→D8\n王道のルート。', miss:'T20外れS20(113)→あと2本では上がれません。'},
+  {score:132, fat:["Bull","Bull","D16"], sep:["T20","T16","D12"], tags:['high','double'], theory:'【FAT / MASTER OUT】Bull→Bull→D16\n【SEPA / DOUBLE OUT】T20→T16→D12', miss:'【FAT】Bull外れS20(112)→次T20でD16で上がれます。'},
+  {score:131, fat:["T20","T13","D16"], sep:["T20","T13","D16"], tags:['high','double'], theory:'【MyArrange 1位】T20→T13→D16\n次点:T19→T14→D16 (S19でもT20→S12等で繋がります)。', miss:'T20外れS20(111)→あと2本では上がれません。'},
+  {score:130, fat:["Bull","Bull","D15"], sep:["T20","T18","D8"], tags:['high','double'], theory:'【FAT / MASTER OUT】Bull→Bull→D15\n【SEPA / DOUBLE OUT】T20→T18→D8', miss:'【SEPA】T20外れS20(110)→次T20でBullで上がれます。'},
+  {score:129, fat:["T19","T16","D12"], sep:["T19","T16","D12"], tags:['high','double'], theory:'【MyArrange 1位】T19→T16→D12\nS19(110)でもT20→Bullでリカバリー可能です。', miss:'T19外れS19(110)→次T20に入れればBullで上がれます。'},
+  {score:128, fat:["T18","T18","D10"], sep:["T18","T18","D10"], tags:['high','double'], theory:'【MyArrange 1位】T18→T18→D10\nS18(110)に外れてもT20→Bullへ繋がります。', miss:'T18外れS18(110)→次T20に入れればBullで上がれます。'},
+  {score:127, fat:["T20","T17","D8"], sep:["T20","T17","D8"], tags:['high','double'], theory:'【MyArrange 1位】T20→T17→D8\n満場一致のルートです。', miss:'T20外れS20(107)→次T19に入れればBullで上がれます。'},
+  {score:126, fat:["T19","T19","D6"], sep:["T19","T19","D6"], tags:['high','double'], theory:'【MyArrange 1位】T19→T19→D6\nシングルに外しても残り107となり削りやすいです。', miss:'T19外れS19(107)→次T19に入れればBullで上がれます。'},
+  {score:125, fat:["Bull","S15","T20"], sep:["Bull","T17","D12"], tags:['high','bull','double'], theory:'【FAT / MASTER OUT】Bull(50)→S15→T20\n【SEPA / DOUBLE OUT】Bull→T17→D12', miss:'【FAT】Bull外れS20(105)→次T15でD20で上がれます。'},
+  {score:124, fat:["T20","T14","D11"], sep:["T20","T14","D11"], tags:['high','double'], theory:'【MyArrange 1位】T20→T14→D11\nマスターアウトの場合はBull→Bull→D12等も有効。', miss:'T20外れS20(104)→次T18に入れればBullで上がれます。'},
+  {score:123, fat:["T19","T16","D9"], sep:["T19","T16","D9"], tags:['high','double'], theory:'【MyArrange 1位】T19→T16→D9\n1投目S19(104)でもT18→Bull等で繋がります。', miss:'T19外れS19(104)→次T18に入れればBullで上がれます。'},
+  {score:122, fat:["T18","T20","D4"], sep:["T18","T20","D4"], tags:['high','double'], theory:'【MyArrange 1位】T18→T20→D4\n次点:Bull→T16→D12', miss:'T18外れS18(104)→次T18に入れればBullで上がれます。'},
+  {score:121, fat:["T20","T11","D14"], sep:["T20","T15","D8"], tags:['high','double'], theory:'【MyArrange 1位】T20→T11→D14\n次点:T20→T15→D8', miss:'T20外れS20(101)→次T17に入れればBullで上がれます。'},
+  {score:120, fat:["T20","S20","D20"], sep:["T20","S20","D20"], tags:['high','double','key'], theory:'【MyArrange 1位】T20→S20→D20\nダブルアウトの王道。', miss:'T20外れS20(100)→次T20に入れればD20で上がれます。'},
+  {score:119, fat:["T19","T12","D13"], sep:["T19","T12","D13"], tags:['double'], theory:'【MyArrange 1位】T19→T12→D13\n1本目S19(100)の場合、T20→D20で上がれます。', miss:'T19外れS19(100)→次T20に入れればD20で上がれます。'},
+  {score:118, fat:["T20","S18","D20"], sep:["T20","S18","D20"], tags:['double'], theory:'【MyArrange 1位】T20→S18→D20\n1本目S20(98)ならT20→D19等で上がれます。', miss:'T20外れS20(98)→次T20に入れればD19で上がれます。'},
+  {score:117, fat:["T20","S17","D20"], sep:["T20","S17","D20"], tags:['double'], theory:'【MyArrange 1位】T20→S17→D20\n1投目S20(97)ならT19→D20で上がれる完璧なルートです。', miss:'T20外れS20(97)→次T19に入れればD20で上がれます。'},
+  {score:116, fat:["T20","S16","D20"], sep:["T20","S16","D20"], tags:['double'], theory:'【MyArrange 1位】T20→S16→D20\n19から入るとS19(97)でT19→D20と繋がります。', miss:'T20外れS20(96)→次T20に入れればD18で上がれます。'},
+  {score:115, fat:["T20","S15","D20"], sep:["T20","S15","D20"], tags:['double'], theory:'【MyArrange 1位】T20→S15→D20\nS20(95)からでもT19→D19で上がれます。', miss:'T20外れS20(95)→次T19に入れればD19で上がれます。'},
+  {score:114, fat:["T20","S14","D20"], sep:["T20","S14","D20"], tags:['double'], theory:'【MyArrange 1位】T20→S14→D20\nS20(94)ならT18→D20で上がれます。', miss:'T20外れS20(94)→次T18に入れればD20で上がれます。'},
+  {score:113, fat:["T20","S13","D20"], sep:["T20","S13","D20"], tags:['double'], theory:'【MyArrange 1位】T20→S13→D20\nS20(93)ならT19→D18で上がれます。', miss:'T20外れS20(93)→次T19に入れればD18で上がれます。'},
+  {score:112, fat:["T20","S12","D20"], sep:["T20","S12","D20"], tags:['double'], theory:'【MyArrange 1位】T20→S12→D20\n次点:T18→S18→D20 (トップ残し)。', miss:'T20外れS20(92)→次T20に入れればD16で上がれます。'},
+  {score:111, fat:["T20","S11","D20"], sep:["T20","S11","D20"], tags:['double'], theory:'【MyArrange 1位】T20→S11→D20\nS20(91)ならT17→D20で上がれます。', miss:'T20外れS20(91)→次T17に入れればD20で上がれます。'},
+  {score:110, fat:["T20","Bull"], sep:["T20","Bull"], tags:['bull','double','key'], theory:'【MyArrange 1位】T20→Bull\n次点:T19→S17→D18 (ダブルアウトルート)。', miss:'T20外れS20(90)→次T18に入れればD18で上がれます。'},
+  {score:109, fat:["T20","S9","D20"], sep:["T20","S9","D20"], tags:['double'], theory:'【MyArrange 1位】T20→S9→D20\nS20(89)ならT19→D16で上がれます。', miss:'T20外れS20(89)→次T19に入れればD16で上がれます。'},
+  {score:108, fat:["T19","S19","D16"], sep:["T19","S19","D16"], tags:['double'], theory:'【MyArrange 1位】T19→S19→D16\n19を4本入れて32残し。S19(89)ならT19→D16。', miss:'T19外れS19(89)→次T19に入れればD16で上がれます。'},
+  {score:107, fat:["T19","Bull"], sep:["T19","Bull"], tags:['bull','double'], theory:'【MyArrange 1位】T19→Bull\n次点:T20→S7→D20 (ダブルアウトルート)。', miss:'T19外れS19(88)→次T16に入れればD20で上がれます。'},
+  {score:106, fat:["T20","S6","D20"], sep:["T20","S6","D20"], tags:['double'], theory:'【MyArrange 1位】T20→S6→D20\nS20(86)ならT18→D16で上がれます。', miss:'T20外れS20(86)→次T18に入れればD16で上がれます。'},
+  {score:105, fat:["T19","S16","D16"], sep:["T19","S16","D16"], tags:['double'], theory:'【MyArrange 1位】T19→S16→D16\nS19(86)ならT18→D16で上がれます。', miss:'T19外れS19(86)→次T18に入れればD16で上がれます。'},
+  {score:104, fat:["T19","S15","D16"], sep:["T19","S15","D16"], tags:['double'], theory:'【MyArrange 1位】T19→S15→D16\n次点:T18→Bull (マスターアウトルート)。', miss:'T19外れS19(85)→次T15に入れればD20で上がれます。'},
+  {score:103, fat:["T20","S11","D16"], sep:["T20","S11","D16"], tags:['double'], theory:'【MyArrange 1位】T20→S11→D16\nS19(84)ならT20→D12へ繋ぐルートも。', miss:'T20外れS20(83)→次T17に入れればD16で上がれます。'},
+  {score:102, fat:["T20","S10","D16"], sep:["T20","S10","D16"], tags:['double'], theory:'【MyArrange 1位】T20→S10→D16\nS18(84)ならT20→D12へ繋ぐルートも。', miss:'T20外れS20(82)→次Bullに入れればD16で上がれます。'},
+  {score:101, fat:["T17","Bull"], sep:["T17","Bull"], tags:['double'], theory:'【MyArrange 1位】T17→Bull\nT19→S4→D20等のアレンジもあります。', miss:'T17外れS17(84)→次T20に入れればD12で上がれます。'},
+  {score:100, fat:["T20","D20"], sep:["T20","D20"], tags:['double','key'], theory:'【MyArrange 1位】T20→D20\n最も確実なダブルアウト。', miss:'T20外れS20(80)→次T20に入れればD10で上がれます。'},
+  {score:99, fat:["T19","S10","D16"], sep:["T19","S10","D16"], tags:['double','key'], theory:'【MyArrange 1位】T19→S10→D16\nS19(80)ならT20→D10で上がれます。', miss:'T19外れS19(80)→次T20に入れればD10で上がれます。'},
+  {score:98, fat:["T20","D19"], sep:["T20","D19"], tags:['double','key'], theory:'【MyArrange 1位】T20→D19\nS20(78)ならT18→D12で上がれます。', miss:'T20外れS20(78)→次T18に入れればD12で上がれます。'},
+  {score:97, fat:["T19","D20"], sep:["T19","D20"], tags:['double','key'], theory:'【MyArrange 1位】T19→D20\n最大面積のトップを狙うルート。', miss:'T19外れS19(78)→次T18に入れればD12で上がれます。'},
+  {score:96, fat:["T20","D18"], sep:["T20","D18"], tags:['double','key'], theory:'【MyArrange 1位】T20→D18\n右側で完結する効率的ルート。', miss:'T20外れS20(76)→次T20に入れればD8で上がれます。'},
+  {score:95, fat:["T19","D19"], sep:["T19","D19"], tags:['double'], theory:'【MyArrange 1位】T19→D19\n同エリアでの2本フィニッシュ。', miss:'T19外れS19(76)→次T20に入れればD8で上がれます。'},
+  {score:94, fat:["T18","D20"], sep:["T18","D20"], tags:['double'], theory:'【MyArrange 1位】T18→D20\nS18(76)ならT20→D8で上がれます。', miss:'T18外れS18(76)→次T20に入れればD8で上がれます。'},
+  {score:93, fat:["T19","D18"], sep:["T19","D18"], tags:['double'], theory:'【MyArrange 1位】T19→D18\nS19(74)ならT14→D16で上がれます。', miss:'T19外れS19(74)→次T14に入れればD16で上がれます。'},
+  {score:92, fat:["T20","D16"], sep:["T20","D16"], tags:['double','key'], theory:'【MyArrange 1位】T20→D16\nシングル外れでも32残しが作れる最強ルート。', miss:'T20外れS20(72)→次T16に入れればD12で上がれます。'},
+  {score:91, fat:["T17","D20"], sep:["T17","D20"], tags:['double'], theory:'【MyArrange 1位】T17→D20\nS17(74)ならT14→D16で上がれます。', miss:'T17外れS17(74)→次T14に入れればD16で上がれます。'},
+  {score:90, fat:["T20","D15"], sep:["T20","D15"], tags:['double','key'], theory:'【MyArrange 1位】T20→D15\nシングルに外れた時のカバーが効きやすいです。', miss:'T20外れS20(70)→次T18に入れればD8で上がれます。'},
+  {score:89, fat:["T19","D16"], sep:["T19","D16"], tags:['double'], theory:'【MyArrange 1位】T19→D16\n左下エリアで完結する効率的ルート。', miss:'T19外れS19(70)→次T18に入れればD8で上がれます。'},
+  {score:88, fat:["T20","D14"], sep:["T20","D14"], tags:['double'], theory:'【MyArrange 1位】T20→D14\nS20(68)ならT20→D4等で上がれます。', miss:'T20外れS20(68)→次T20に入れればD4で上がれます。'},
+  {score:87, fat:["T17","D18"], sep:["T17","D18"], tags:['double'], theory:'【MyArrange 1位】T17→D18\nS17(70)ならT18→D8で上がれます。', miss:'T17外れS17(70)→次T18に入れればD8で上がれます。'},
+  {score:86, fat:["T18","D16"], sep:["T18","D16"], tags:['double'], theory:'【MyArrange 1位】T18→D16\n定番の32残しへのルート。', miss:'T18外れS18(68)→次T20に入れればD4で上がれます。'},
+  {score:85, fat:["T15","D20"], sep:["T15","D20"], tags:['double'], theory:'【MyArrange 1位】T15→D20\nS15(70)ならT18→D8で上がれます。', miss:'T15外れS15(70)→次T18に入れればD8で上がれます。'},
+  {score:84, fat:["T20","D12"], sep:["T20","D12"], tags:['double'], theory:'【MyArrange 1位】T20→D12\nS20(64)ならT16→D8で上がれます。', miss:'T20外れS20(64)→次T16に入れればD8で上がれます。'},
+  {score:83, fat:["T17","D16"], sep:["T17","D16"], tags:['double','key'], theory:'【MyArrange 1位】T17→D16\nシングル外れでも32残しが作れる最強コンビ。', miss:'T17外れS17(66)→次T10に入れればD18で上がれます。'},
+  {score:82, fat:["Bull","D16"], sep:["Bull","D16"], tags:['bull','double','key'], theory:'【MyArrange 1位】Bull→D16\nブルで大きく削り、定番の32残しで締める。', miss:'Bull外れS18等(64)→次T16に入れればD8で上がれます。'},
+  {score:81, fat:["T19","D12"], sep:["T19","D12"], tags:['double'], theory:'【MyArrange 1位】T19→D12\nS19(62)ならT10→D16等で上がれます。', miss:'T19外れS19(62)→次T10に入れればD16で上がれます。'},
+  {score:80, fat:["T16","D16"], sep:["T16","D16"], tags:['double','key'], theory:'【MyArrange 1位】T16→D16\nシングルに外しても32点残しが作れます。', miss:'T16外れS16(64)→次T16に入れればD8で上がれます。'},
+  {score:79, fat:["T13","D20"], sep:["T13","D20"], tags:['double'], theory:'【MyArrange 1位】T13→D20\nS13(66)ならT10→D18で上がれます。', miss:'T13外れS13(66)→次T10に入れればD18で上がれます。'},
+  {score:78, fat:["T18","D12"], sep:["T18","D12"], tags:['double'], theory:'【MyArrange 1位】T18→D12\nS18(60)ならS20→D20等で上がれます。', miss:'T18外れS18(60)→次S20に入れればD20で上がれます。'},
+  {score:77, fat:["T15","D16"], sep:["T15","D16"], tags:['double'], theory:'【MyArrange 1位】T15→D16\nS15(62)ならT10→D16等で上がれます。', miss:'T15外れS15(62)→次T10に入れればD16で上がれます。'},
+  {score:76, fat:["T20","D8"], sep:["T20","D8"], tags:['double'], theory:'【MyArrange 1位】T20→D8\nS20(56)ならS16→D20等で上がれます。', miss:'T20外れS20(56)→次S16に入れればD20で上がれます。'},
+  {score:75, fat:["T17","D12"], sep:["T17","D12"], tags:['double'], theory:'【MyArrange 1位】T17→D12\nS17(58)ならS18→D20等で上がれます。', miss:'T17外れS17(58)→次S18に入れればD20で上がれます。'},
+  {score:74, fat:["T14","D16"], sep:["T14","D16"], tags:['double','key'], theory:'【MyArrange 1位】T14→D16\nシングル外れでも32残しが作れる定番ルート。', miss:'T14外れS14(60)→次S20に入れればD20で上がれます。'},
+  {score:73, fat:["T19","D8"], sep:["T19","D8"], tags:['double'], theory:'【MyArrange 1位】T19→D8\nS19(54)ならS14→D20等で上がれます。', miss:'T19外れS19(54)→次S14に入れればD20で上がれます。'},
+  {score:72, fat:["T16","D12"], sep:["T16","D12"], tags:['double'], theory:'【MyArrange 1位】T16→D12\nS16(56)ならS16→D20等で上がれます。', miss:'T16外れS16(56)→次S16に入れればD20で上がれます。'},
+  {score:71, fat:["T13","D16"], sep:["T13","D16"], tags:['double','key'], theory:'【MyArrange 1位】T13→D16\nシングル外れでも32残しが作れる定番ルート。', miss:'T13外れS13(58)→次S18に入れればD20で上がれます。'},
+  {score:70, fat:["T10","D20"], sep:["T10","D20"], tags:['double','key'], theory:'【MyArrange 1位】T10→D20\nS10(60)ならS20→D20で上がれます。', miss:'T10外れS10(60)→次S20に入れればD20で上がれます。'},
+  {score:69, fat:["T15","D12"], sep:["T15","D12"], tags:['double'], theory:'【MyArrange 1位】T15→D12\nS15(54)ならS14→D20等で上がれます。', miss:'T15外れS15(54)→次S14に入れればD20で上がれます。'},
+  {score:68, fat:["T12","D16"], sep:["T12","D16"], tags:['double'], theory:'【MyArrange 1位】T12→D16\nS12(56)ならS16→D20等で上がれます。', miss:'T12外れS12(56)→次S16に入れればD20で上がれます。'},
+  {score:67, fat:["T9","D20"], sep:["T9","D20"], tags:['double'], theory:'【MyArrange 1位】T9→D20\nS9(58)ならS18→D20等で上がれます。', miss:'T9外れS9(58)→次S18に入れればD20で上がれます。'},
+  {score:66, fat:["T10","D18"], sep:["T10","D18"], tags:['double'], theory:'【MyArrange 1位】T10→D18\nS10(56)ならS16→D20等で上がれます。', miss:'T10外れS10(56)→次S16に入れればD20で上がれます。'},
+  {score:65, fat:["T19","D4"], sep:["T19","D4"], tags:['double'], theory:'【MyArrange 1位】T19→D4\nS19(46)ならS14→D16等で上がれます。', miss:'T19外れS19(46)→次S14に入れればD16で上がれます。'},
+  {score:64, fat:["T16","D8"], sep:["T16","D8"], tags:['double'], theory:'【MyArrange 1位】T16→D8\nS16(48)ならS16→D16等で上がれます。', miss:'T16外れS16(48)→次S16に入れればD16で上がれます。'},
+  {score:63, fat:["T13","D12"], sep:["T13","D12"], tags:['double'], theory:'【MyArrange 1位】T13→D12\nS13(50)ならS18→D16等で上がれます。', miss:'T13外れS13(50)→次S18に入れればD16で上がれます。'},
+  {score:62, fat:["T10","D16"], sep:["T10","D16"], tags:['double'], theory:'【MyArrange 1位】T10→D16\nS10(52)ならS20→D16等で繋がります。', miss:'T10外れS10(52)→次S20に入れればD16で上がれます。'},
+  {score:61, fat:["T15","D8"], sep:["T15","D8"], tags:['double'], theory:'【MyArrange 1位】T15→D8\nS15(46)ならS14→D16等で上がれます。', miss:'T15外れS15(46)→次S14に入れればD16で上がれます。'},
+  {score:60, fat:["S20","D20"], sep:["S20","D20"], tags:['double','key'], theory:'【MyArrange 1位】S20→D20\n基本中の基本。DOUBLE OUTの王道。', miss:'S20狙いでT20に入った場合、DOUBLE OUTならバースト。MASTER OUTなら1本上がりとなります。'},
+  {score:59, fat:["S19","D20"], sep:["S19","D20"], tags:['double'], theory:'【MyArrange 1位】S19→D20\nT19(57)に入ってもD1で上がれます。', miss:'S19外れT19(2)→次D1に入れれば上がれます。'},
+  {score:58, fat:["S18","D20"], sep:["S18","D20"], tags:['double'], theory:'【MyArrange 1位】S18→D20\nT18(54)に入ってもD2で上がれます。', miss:'S18外れT18(4)→次D2に入れれば上がれます。'},
+  {score:57, fat:["S17","D20"], sep:["S17","D20"], tags:['double'], theory:'【MyArrange 1位】S17→D20\nT17(51)に入ってもD3で上がれます。', miss:'S17外れT17(6)→次D3に入れれば上がれます。'},
+  {score:56, fat:["S16","D20"], sep:["S16","D20"], tags:['double'], theory:'【MyArrange 1位】S16→D20\nT16(48)に入ってもD4で上がれます。', miss:'S16外れT16(8)→次D4に入れれば上がれます。'},
+  {score:55, fat:["S15","D20"], sep:["S15","D20"], tags:['double'], theory:'【MyArrange 1位】S15→D20\nT15(45)に入ってもD5で上がれます。', miss:'S15外れT15(10)→次D5に入れれば上がれます。'},
+  {score:54, fat:["S14","D20"], sep:["S14","D20"], tags:['double'], theory:'【MyArrange 1位】S14→D20\nT14(42)に入ってもD6で上がれます。', miss:'S14外れT14(12)→次D6に入れれば上がれます。'},
+  {score:53, fat:["S13","D20"], sep:["S13","D20"], tags:['double'], theory:'【MyArrange 1位】S13→D20\nT13(39)に入ってもD7で上がれます。', miss:'S13外れT13(14)→次D7に入れれば上がれます。'},
+  {score:52, fat:["S12","D20"], sep:["S12","D20"], tags:['double'], theory:'【MyArrange 1位】S12→D20\nT12(36)に入ってもD8で上がれます。', miss:'S12外れT12(16)→次D8に入れれば上がれます。'},
+  {score:51, fat:["S11","D20"], sep:["S11","D20"], tags:['double'], theory:'【MyArrange 1位】S11→D20\nT11(33)に入ってもD9で上がれます。', miss:'S11外れT11(18)→次D9に入れれば上がれます。'},
+  {score:50, fat:["Bull"], sep:["Bull"], tags:['bull','key'], theory:'【MyArrange 1位】Bull (1本フィニッシュ)\n満場一致のルートです。', miss:'【SEPA】アウターブル(25点)に入った場合、残り25点。次をS9に入れればD8等でフィニッシュ可能です。'},
+  {score:49, fat:["S9","D20"], sep:["S9","D20"], tags:['double','key'], theory:'【MyArrange 1位】S9→D20\nS17→D16 (T17バースト注意)も有効。', miss:'S9外れT9(22)→次D11に入れれば上がれます。'},
+  {score:48, fat:["S16","D16"], sep:["S16","D16"], tags:['double'], theory:'【MyArrange 1位】S16→D16\n同方向の安心ルート。', miss:'S16狙いでT16に入った場合、DOUBLE OUTならバースト。MASTER OUTなら1本上がりとなります。'},
+  {score:47, fat:["S15","D16"], sep:["S15","D16"], tags:['double'], theory:'【MyArrange 1位】S15→D16\nT15(45)に入ってもD1で上がれます。', miss:'S15外れT15(2)→次D1に入れれば上がれます。'},
+  {score:46, fat:["S14","D16"], sep:["S14","D16"], tags:['double'], theory:'【MyArrange 1位】S14→D16\nS6→D20などのアレンジもあります。', miss:'S14外れT14(4)→次D2に入れれば上がれます。'},
+  {score:45, fat:["S13","D16"], sep:["S13","D16"], tags:['double'], theory:'【MyArrange 1位】S13→D16\nMASTER OUTならT15の1本上がりも有効です。', miss:'S13外れT13(6)→次D3に入れれば上がれます。'},
+  {score:44, fat:["S12","D16"], sep:["S12","D16"], tags:['double'], theory:'【MyArrange 1位】S12→D16\nT12(36)に入ってもD4で上がれます。', miss:'S12外れT12(8)→次D4に入れれば上がれます。'},
+  {score:43, fat:["S11","D16"], sep:["S11","D16"], tags:['double'], theory:'【MyArrange 1位】S11→D16\nS3→D20などのアレンジもあります。', miss:'S11外れT11(10)→次D5に入れれば上がれます。'},
+  {score:42, fat:["S10","D16"], sep:["S10","D16"], tags:['double'], theory:'【MyArrange 1位】S10→D16\nMASTER OUTならT14の1本上がりも有効です。', miss:'S10外れT10(12)→次D6に入れれば上がれます。'},
+  {score:41, fat:["S9","D16"], sep:["S9","D16"], tags:['double'], theory:'【MyArrange 1位】S9→D16\nS17→D12などのアレンジもあります。', miss:'S9外れT9(14)→次D7に入れれば上がれます。'},
+  {score:40, fat:["D20"], sep:["D20"], tags:['double','key'], theory:'【MyArrange 1位】D20 (1本フィニッシュ)\n面積が最大で最も狙いやすいダブルです。', miss:'D20外れS20(20)→次D10に入れれば上がれます。'},
+  {score:39, fat:["S7","D16"], sep:["S7","D16"], tags:['double'], theory:'【MyArrange 1位】S7→D16\nMASTER OUTならT13の1本上がりも有効です。', miss:'S7外れT7(18)→次D9に入れれば上がれます。'},
+  {score:38, fat:["D19"], sep:["D19"], tags:['double'], theory:'【MyArrange 1位】D19 (1本フィニッシュ)\n満場一致のルートです。', miss:'D19外れS19(19)→次S3に入れればD8で上がれます。'},
+  {score:37, fat:["S5","D16"], sep:["S5","D16"], tags:['double'], theory:'【MyArrange 1位】S5→D16\nT5(15)に入ってもD11で上がれます。', miss:'S5外れT5(22)→次D11に入れれば上がれます。'},
+  {score:36, fat:["D18"], sep:["D18"], tags:['double','key'], theory:'【MyArrange 1位】D18 (1本フィニッシュ)\n20の右隣で狙いやすいダブルです。', miss:'D18外れS18(18)→次D9に入れれば上がれます。'},
+  {score:35, fat:["S3","D16"], sep:["S3","D16"], tags:['double'], theory:'【MyArrange 1位】S3→D16\nT3(9)に入ってもD13で上がれます。', miss:'S3外れT3(26)→次D13に入れれば上がれます。'},
+  {score:34, fat:["D17"], sep:["D17"], tags:['double'], theory:'【MyArrange 1位】D17 (1本フィニッシュ)\n満場一致のルートです。', miss:'D17外れS17(17)→次S1に入れればD8で上がれます。'},
+  {score:33, fat:["S1","D16"], sep:["S1","D16"], tags:['double'], theory:'【MyArrange 1位】S1→D16\nMASTER OUTならT11の1本上がりも有効です。', miss:'S1外れT1(30)→次D15に入れれば上がれます。'},
+  {score:32, fat:["D16"], sep:["D16"], tags:['double','key'], theory:'【MyArrange 1位】D16 (1本フィニッシュ)\nダーツにおける最重要ダブル。満場一致です。', miss:'D16外れS16(16)→次D8に入れれば上がれます。'},
+  {score:31, fat:["S15","D8"], sep:["S15","D8"], tags:['double'], theory:'【MyArrange 1位】S15→D8\nS7→D12などのアレンジもあります。', miss:'S15狙いでT15に入った場合、バースト(残り0点未満)となり上がり目が消滅します。'},
+  {score:30, fat:["D15"], sep:["D15"], tags:['double'], theory:'【MyArrange 1位】D15 (1本フィニッシュ)\n満場一致のルートです。', miss:'D15外れS15(15)→次S7に入れればD4で上がれます。'},
+  {score:29, fat:["S13","D8"], sep:["S13","D8"], tags:['double'], theory:'【MyArrange 1位】S13→D8\nT13のバーストに注意。', miss:'S13狙いでT13に入った場合、バースト(残り0点未満)となり上がり目が消滅します。'},
+  {score:28, fat:["D14"], sep:["D14"], tags:['double'], theory:'【MyArrange 1位】D14 (1本フィニッシュ)\n満場一致のルートです。', miss:'D14外れS14(14)→次D7に入れれば上がれます。'},
+  {score:27, fat:["S11","D8"], sep:["S11","D8"], tags:['double'], theory:'【MyArrange 1位】S11→D8\nT11のバーストに注意。', miss:'S11狙いでT11に入った場合、バースト(残り0点未満)となり上がり目が消滅します。'},
+  {score:26, fat:["D13"], sep:["D13"], tags:['double'], theory:'【MyArrange 1位】D13 (1本フィニッシュ)\n満場一致のルートです。', miss:'D13外れS13(13)→次S5に入れればD4で上がれます。'},
+  {score:25, fat:["S9","D8"], sep:["S9","D8"], tags:['double'], theory:'【MyArrange 1位】S9→D8\n※FATルールのBullは50点のため、Bullを狙うとバーストします。SEPAのOPEN OUT時のみアウターブル(25)で1本上がり可能です。', miss:'S9狙いでT9に入った場合、バースト(残り0点未満)となり上がり目が消滅します。'},
+  {score:24, fat:["D12"], sep:["D12"], tags:['double'], theory:'【MyArrange 1位】D12 (1本フィニッシュ)\n満場一致のルートです。', miss:'D12外れS12(12)→次D6に入れれば上がれます。'},
+  {score:23, fat:["S7","D8"], sep:["S7","D8"], tags:['double'], theory:'【MyArrange 1位】S7→D8\nT7(21)に入ってもD1で上がれます。', miss:'S7外れT7(2)→次D1に入れれば上がれます。'},
+  {score:22, fat:["D11"], sep:["D11"], tags:['double'], theory:'【MyArrange 1位】D11 (1本フィニッシュ)\n満場一致のルートです。', miss:'D11外れS11(11)→次S3に入れればD4で上がれます。'},
+  {score:21, fat:["S5","D8"], sep:["S5","D8"], tags:['double'], theory:'【MyArrange 1位】S5→D8\nS17→D2 などのアレンジもあります。', miss:'S5外れT5(6)→次D3に入れれば上がれます。'},
+  {score:20, fat:["D10"], sep:["D10"], tags:['double'], theory:'【MyArrange 1位】D10 (1本フィニッシュ)\n満場一致のルートです。', miss:'D10外れS10(10)→次D5に入れれば上がれます。'},
+  {score:19, fat:["S3","D8"], sep:["S3","D8"], tags:['double'], theory:'【MyArrange 1位】S3→D8\nT3(9)に入ってもD5で上がれます。', miss:'S3外れT3(10)→次D5に入れれば上がれます。'},
+  {score:18, fat:["D9"], sep:["D9"], tags:['double'], theory:'【MyArrange 1位】D9 (1本フィニッシュ)\n満場一致のルートです。', miss:'D9外れS9(9)→次S1に入れればD4で上がれます。'},
+  {score:17, fat:["S1","D8"], sep:["S1","D8"], tags:['double'], theory:'【MyArrange 1位】S1→D8\nT1(3)に入ってもD7で上がれます。', miss:'S1外れT1(14)→次D7に入れれば上がれます。'},
+  {score:16, fat:["D8"], sep:["D8"], tags:['double','key'], theory:'【MyArrange 1位】D8 (1本フィニッシュ)\n満場一致のルートです。', miss:'D8外れS8(8)→次D4に入れれば上がれます。'},
+  {score:15, fat:["S7","D4"], sep:["S7","D4"], tags:['double'], theory:'【MyArrange 1位】S7→D4\nT7のバーストに注意。', miss:'S7狙いでT7に入った場合、バースト(残り0点未満)となり上がり目が消滅します。'},
+  {score:14, fat:["D7"], sep:["D7"], tags:['double'], theory:'【MyArrange 1位】D7 (1本フィニッシュ)\n満場一致のルートです。', miss:'D7外れS7(7)→次S3に入れればD2で上がれます。'},
+  {score:13, fat:["S5","D4"], sep:["S5","D4"], tags:['double'], theory:'【MyArrange 1位】S5→D4\nT5のバーストに注意。', miss:'S5狙いでT5に入った場合、バースト(残り0点未満)となり上がり目が消滅します。'},
+  {score:12, fat:["D6"], sep:["D6"], tags:['double'], theory:'【MyArrange 1位】D6 (1本フィニッシュ)\n満場一致のルートです。', miss:'D6外れS6(6)→次D3に入れれば上がれます。'},
+  {score:11, fat:["S3","D4"], sep:["S3","D4"], tags:['double'], theory:'【MyArrange 1位】S3→D4\nT3(9)に入ってもD1で上がれます。', miss:'S3外れT3(2)→次D1に入れれば上がれます。'},
+  {score:10, fat:["D5"], sep:["D5"], tags:['double'], theory:'【MyArrange 1位】D5 (1本フィニッシュ)\n満場一致のルートです。', miss:'D5外れS5(5)→次S1に入れればD2で上がれます。'},
+  {score:9, fat:["S1","D4"], sep:["S1","D4"], tags:['double'], theory:'【MyArrange 1位】S1→D4\nT1(3)に入ってもD3で上がれます。', miss:'S1外れT1(6)→次D3に入れれば上がれます。'},
+  {score:8, fat:["D4"], sep:["D4"], tags:['double'], theory:'【MyArrange 1位】D4 (1本フィニッシュ)\n面積が最大で最も狙いやすいダブルです。', miss:'D4外れS4(4)→次D2に入れれば上がれます。'},
+  {score:7, fat:["S3","D2"], sep:["S3","D2"], tags:['double'], theory:'【MyArrange 1位】S3→D2\nT3のバーストに注意。', miss:'S3狙いでT3に入った場合、バースト(残り0点未満)となり上がり目が消滅します。'},
+  {score:6, fat:["D3"], sep:["D3"], tags:['double'], theory:'【MyArrange 1位】D3 (1本フィニッシュ)\n満場一致のルートです。', miss:'D3外れS3(3)→次S1に入れればD1で上がれます。'},
+  {score:5, fat:["S1","D2"], sep:["S1","D2"], tags:['double'], theory:'【MyArrange 1位】S1→D2\nT1(3)に入ってもD1で上がれます。', miss:'S1外れT1(2)→次D1に入れれば上がれます。'},
+  {score:4, fat:["D2"], sep:["D2"], tags:['double'], theory:'【MyArrange 1位】D2 (1本フィニッシュ)\n満場一致のルートです。', miss:'D2外れS2(2)→次D1に入れれば上がれます。'},
+  {score:3, fat:["S1","D1"], sep:["S1","D1"], tags:['double'], theory:'【MyArrange 1位】S1→D1\nMASTER OUTならT1(1本)も可。', miss:'S1狙いでT1に入った場合、DOUBLE OUTならバースト。MASTER OUTなら1本上がりとなります。'},
+  {score:2, fat:["D1"], sep:["D1"], tags:['double','key'], theory:'【MyArrange 1位】D1 (1本フィニッシュ)\n満場一致のルートです。', miss:'D1外れS1(1)→バースト(上がり目消滅)となり、次のラウンドへ持ち越しです。'}
+];
+
+let ST={
+  mode:'quiz',level:'easy',bullMode:'fat',outMode:'double',taTime:15,
+  current:null,answered:false,showTheory:false,showRemain:false,
+  input:[],stats:{total:0,correct:0},history:[],
+  ta:{active:false,timeLeft:15,totalTime:15,correct:0,total:0,timer:null,history:[]},
+  _queue:[],_lastScore:null,
+};
+try{ST.history=JSON.parse(localStorage.getItem('darts_h6')||'[]');}catch(e){}
+
+function toggleRemain(on){ ST.showRemain = on; renderLog(); }
+
+function getThrows(a){
+  if(ST.outMode === 'master' || ST.outMode === 'open') {
+    if(a.score === 168) return ["T20","T20","T16"];
+    if(a.score === 165) return ["T20","T20","T15"];
+    if(a.score === 162) return ["T20","T20","T14"];
+    if(a.score === 159) return ["T19","T19","T15"];
+  }
+  
+  let route = ST.bullMode==='sep'?a.sep:a.fat;
+  if(!route) route = [];
+  
+  if(ST.outMode === 'master' || ST.outMode === 'open') {
+     if(a.score <= 60 && a.score % 3 === 0) return [`T${a.score/3}`];
+     if(a.score === 50) return ['Bull'];
+  }
+  if(ST.outMode === 'open') {
+     if(a.score <= 20) return [`S${a.score}`];
+     if(a.score === 25) return ['S25'];
+  }
+  return route;
+}
+
+function segVal(label){
+  if(label==='Bull')return 50; if(label==='S25')return 25;
+  if(label.startsWith('T'))return parseInt(label.slice(1),10)*3;
+  if(label.startsWith('D'))return parseInt(label.slice(1),10)*2;
+  if(label.startsWith('S'))return parseInt(label.slice(1),10);
+  return 0;
+}
+
+function isMathOut(input, targetScore, outMode) {
+  let sum = 0;
+  for(let i=0; i<input.length; i++) {
+    let val = segVal(input[i]);
+    sum += val;
+    if (i < input.length - 1 && sum >= targetScore) return false; 
+  }
+  if (sum !== targetScore) return false;
+
+  let lastDart = input[input.length - 1];
+  let isDouble = lastDart.startsWith('D') || lastDart === 'Bull';
+  let isTriple = lastDart.startsWith('T');
+
+  if (outMode === 'double') return isDouble;
+  else if (outMode === 'master') return isDouble || isTriple;
+  else return true;
+}
+
+function getPool(){
+  const bogeys = [169, 168, 166, 165, 163, 162, 159];
+  let v = ARRANGES.filter(a => {
+    if (ST.outMode === 'double' && bogeys.includes(a.score)) return false;
+    const t = getThrows(a); return t && t.length > 0;
+  });
+  if(ST.level==='easy') return v.filter(a=>a.score<=100);
+  if(ST.level==='normal') return v.filter(a=>a.score>=36&&a.score<=140);
+  return v;
+}
+function _buildQueue(){
+  let pool = getPool();
+  if(ST.mode === 'weak' && ST._weakPool) { pool = ST._weakPool.filter(a => !ST._weakAnswered.has(a.score)); if(pool.length === 0) pool = ST._weakPool; }
+  const arr=[...pool];
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  ST._queue=arr;
+}
+function _pickNext(){
+  if(ST._queue.length===0) _buildQueue();
+  if(ST._queue.length>1 && ST._queue[0].score===ST._lastScore){ ST._queue.push(ST._queue.shift()); }
+  const q=ST._queue.shift(); ST._lastScore=q.score; return q;
+}
+function normBull(seg){if(ST.bullMode==='fat'&&seg==='S25')return'Bull'; return seg;}
+function checkOrder(input,correct){
+  if(input.length!==correct.length)return false;
+  const si=[...input].sort().join(','),sc=[...correct].sort().join(',');
+  return si===sc&&JSON.stringify(input)!==JSON.stringify(correct);
+}
+
+function onTap(label,val,e){
+  if(ST.answered)return; if(ST.mode==='timeattack'&&!ST.ta.active)return;
+  if(ST.input.length>=3)return;
+  const n=normBull(label); SND.play(label); flashSeg(label); 
+  
+  if(e) {
+    const svg = document.getElementById('dartboard'); const pt = getSvgCoords(svg, e);
+    const dx = pt.x - CX, dy = pt.y - CY; const r_click = Math.sqrt(dx*dx + dy*dy);
+    let r = 0; let angle = 0;
+    if (label === 'Bull') { r = 0; angle = 0; } 
+    else if (label === 'S25') { r = 37.5; angle = Math.atan2(dy, dx) * 180 / Math.PI + 90; } 
+    else {
+      const num = parseInt(label.slice(1), 10); const idx = SECTORS.indexOf(num); angle = idx * 18;
+      if (label.startsWith('D')) r = 177;
+      else if (label.startsWith('T')) r = 116;
+      else { if (r_click > 100) r = 146; else r = 75; }
+    }
+    const rad = (angle - 90) * Math.PI / 180;
+    const baseX = CX + r * Math.cos(rad); const baseY = CY + r * Math.sin(rad);
+    const targetId = label + (label.startsWith('S') && label !== 'S25' ? (r_click > 100 ? '_o' : '_i') : '');
+    const count = document.querySelectorAll(`.thrown-dart[data-target="${targetId}"]`).length;
+    let ox = 0, oy = 0;
+    if (r === 0) {
+      if(count === 1) { ox = -8; oy = 8; } if(count === 2) { ox = 8; oy = -8; }
+    } else {
+      const tx = -Math.sin(rad); const ty = Math.cos(rad);
+      const shift = count === 1 ? 12 : count === 2 ? -12 : 0;
+      ox = shift * tx; oy = shift * ty;
+    }
+    drawDart(baseX + ox, baseY + oy, targetId);
+  }
+  ST.input.push(n); renderLog();
+}
+
+function renderLog(evalClass, msgExt){
+  const q=ST.current,throws=q?getThrows(q):[]; 
+  const log=document.getElementById('throw-log'),ctr=document.getElementById('throw-counter');
+  const scoreEl = document.getElementById('current-score');
+  const maxT=3; const rem=maxT-ST.input.length;
+
+  if(q){
+    let sum = 0; ST.input.forEach(seg => sum += segVal(seg));
+    if(ST.showRemain && ST.input.length > 0) {
+      let remScore = q.score - sum; let color = 'var(--gr)';
+      if(remScore < 0 || (ST.outMode !== 'open' && remScore === 1)) { color = 'var(--rd)'; } 
+      else if (remScore === 0) {
+         const last = ST.input[ST.input.length-1];
+         if(ST.outMode === 'double' && !(last.startsWith('D') || last==='Bull')) color = 'var(--rd)';
+         else if(ST.outMode === 'master' && !(last.startsWith('D') || last.startsWith('T') || last==='Bull')) color = 'var(--rd)';
+         else color = 'var(--yw)'; 
+      }
+      scoreEl.innerHTML = `${q.score} <span style="font-size:28px;color:${color};">→ ${remScore}</span>`;
+    } else { scoreEl.textContent = q.score; }
+  }
+  
+  const indicator = document.getElementById('darts-indicator');
+  if(indicator && ST.mode !== 'timeattack' || (ST.ta && ST.ta.active)) {
+    if(document.getElementById('ta-result').classList.contains('show')) {
+      indicator.style.display = 'none';
+    } else {
+      indicator.style.display = 'flex';
+      let dh = '';
+      for(let i=0; i<maxT; i++) {
+        const usedClass = (i < ST.input.length) ? 'used' : '';
+        dh += `<svg class="pink-dart ${usedClass}" viewBox="0 0 20 60">
+          <path d="M10,16 L2,4 L6,0 L10,5 L14,0 L18,4 Z" fill="var(--pk)" stroke="#111" stroke-width="0.5"/>
+          <path d="M10,16 L10,5 L14,0 L18,4 Z" fill="rgba(0,0,0,0.15)"/>
+          <rect x="8.5" y="15" width="3" height="18" fill="#ddd" stroke="#999" stroke-width="0.5"/>
+          <path d="M7,32 C7,30 13,30 13,32 L12,48 C12,50 8,50 8,48 Z" fill="#aaa" stroke="#555" stroke-width="0.5"/>
+          <line x1="7.5" y1="36" x2="12.5" y2="36" stroke="#555" stroke-width="1"/>
+          <line x1="7.5" y1="40" x2="12.5" y2="40" stroke="#555" stroke-width="1"/>
+          <line x1="7.8" y1="44" x2="12.2" y2="44" stroke="#555" stroke-width="1"/>
+          <path d="M9,49 L11,49 L10,60 Z" fill="#444"/>
+        </svg>`;
+      }
+      indicator.innerHTML = dh;
+    }
+  }
+
+  const cls_func=(t,i)=>{
+    if(!ST.answered)return'tchip'; 
+    if(evalClass === 'exc' || evalClass === 'good') return'tchip hit';
+    if(checkOrder(ST.input,throws))return'tchip partial'; return'tchip miss';
+  };
+  log.innerHTML=ST.input.map((t,i)=>{
+    const cls=cls_func(t,i); return`<div class="${cls}"><span>${t}</span>${!ST.answered?`<span class="del" onclick="rmThrow(${i})">✕</span>`:''}</div>`;
+  }).join('');
+  
+  if(!ST.answered){ ctr.textContent=rem>0?`あと${rem}本スロー（確定ボタンで完了）`:'（確定ボタンで完了）'; } 
+  else { ctr.textContent=''; }
+  
+  const confirmBtn = document.getElementById('confirm-btn-row'); const mainBtns = document.getElementById('main-btns');
+  if(!ST.answered && ST.input.length > 0) {
+    confirmBtn.style.display = 'flex'; if(mainBtns) mainBtns.style.display = 'none';
+  } else {
+    confirmBtn.style.display = 'none';
+    if(mainBtns) {
+      if(ST.mode === 'quiz' || ST.mode === 'study') { mainBtns.style.display = 'flex'; } 
+      else if(ST.mode === 'weak' && ST.answered) { mainBtns.style.display = 'flex'; }
+    }
+  }
+}
+
+function rmThrow(i){
+  if(ST.answered)return; ST.input.splice(i,1);
+  const darts = document.querySelectorAll('.thrown-dart');
+  if(darts.length > i) darts[i].remove();
+  renderLog();
+}
+
+function checkAnswer(){
+  if(!ST.current||ST.answered)return; ST.answered=true;
+  const q=ST.current, correct=getThrows(q), input=ST.input;
+  
+  const exactOk = JSON.stringify(input) === JSON.stringify(correct);
+  const mathOk = isMathOut(input, q.score, ST.outMode);
+  
+  let evaluation = 'miss';
+  let msgExt = "";
+
+  if (exactOk) {
+    evaluation = 'exc';
+    msgExt = "最優秀アレンジ";
+  } else if (mathOk) {
+    if (input.length < correct.length) {
+       evaluation = 'exc';
+       msgExt = "ショートカット成立！";
+    } else if (input.length === correct.length) {
+       evaluation = 'good';
+       msgExt = "ナイスアレンジ(別解)！";
+    } else {
+       evaluation = 'par';
+       msgExt = "イレギュラー上がり(手数が多め)";
+    }
+  } else if (correct.length > 0 && checkOrder(input, correct)) {
+    evaluation = 'par';
+    msgExt = "上がり目残し(順序違い)";
+  } else {
+    evaluation = 'miss';
+  }
+  
+  clearHL();
+  if(evaluation === 'exc' || evaluation === 'good'){ 
+      input.forEach(s=>hlSeg(s,PHX.sel_ok)); SND.ok(); 
+  } else if(evaluation === 'par'){ 
+      if(mathOk) input.forEach(s=>hlSeg(s,PHX.sel_or)); else correct.forEach(s=>hlSeg(s,PHX.sel_or)); 
+      SND.ng(); 
+  } else {
+    if(correct.length > 0) correct.forEach(s=>hlSeg(s,PHX.sel_ok));
+    input.forEach((s,i)=>{if(correct.length===0 || s!==correct[i])hlSeg(s,PHX.sel_ng);}); SND.ng();
+  }
+  
+  if(ST.mode==='timeattack'){
+    ST.ta.total++; if(evaluation !== 'miss') ST.ta.correct++;
+    ST.ta.history.push({ score: q.score, input: [...input], correct: [...correct], eval: evaluation, theory: q.theory, timeout: false });
+    renderLog(evaluation, msgExt); setTimeout(()=>{clearHL();if(ST.ta.active){ST.input=[];nextQuestion();}},800); return;
+  }
+  
+  ST.stats.total++; if(evaluation !== 'miss') ST.stats.correct++;
+  if(ST.mode==='weak' && (evaluation==='exc'||evaluation==='good')) markWeakAnswered(q.score, true);
+
+  const ban=document.getElementById('result-banner');
+  if(evaluation === 'exc' || evaluation === 'good'){
+    ban.className='result-banner show correct'; 
+    document.getElementById('result-icon').textContent= evaluation==='exc'?'◎':'◯';
+    document.getElementById('result-text').textContent=`Perfect! [${msgExt}] `+(q.theory||'').substring(0,45);
+  } else if(evaluation === 'par'){
+    ban.className='result-banner show partial'; document.getElementById('result-icon').textContent='△';
+    document.getElementById('result-text').textContent=`Partial: [${msgExt}] 正解例：${correct.join(' → ')}`;
+  } else {
+    ban.className='result-banner show wrong'; document.getElementById('result-icon').textContent='✗';
+    const cMsg = correct.length > 0 ? correct.join(' → ') : "上がり目なし";
+    document.getElementById('result-text').textContent='Miss: 正解例：' + cMsg;
+  }
+  renderLog(evaluation, msgExt); renderTheory(q, evaluation==='par', msgExt);
+  document.getElementById('theory-panel').classList.add('show'); updateStats();
+  document.getElementById('btn-hint').style.display='none';
+  saveHist({type:`quiz_${evaluation}`, score:q.score, throws:correct.length>0?correct.join(' → '):"なし", ts:Date.now()});
+}
+
+function nextQuestion(){
+  ST.answered=false;ST.input=[];clearHL(); if(ST.mode==='timeattack'&&!ST.ta.active)return;
+  ST.current=_pickNext();
+  if(ST.current) { const scoreEl = document.getElementById('current-score'); scoreEl.textContent=ST.current.score; }
+  document.getElementById('result-banner').className='result-banner'; document.getElementById('btn-hint').style.display='';
+  document.getElementById('theory-panel').classList.remove('show'); renderLog();
+  if(ST.mode==='study'||ST.showTheory){renderTheory(ST.current,false,"");document.getElementById('theory-panel').classList.add('show');}
+}
+
+function showAnswer(){
+  if(!ST.current||ST.answered)return; ST.answered=true;ST.stats.total++;
+  const q=ST.current,correct=getThrows(q); clearHL();correct.forEach(s=>hlSeg(s,PHX.sel_yw));
+  ST.input=[...correct];renderLog();
+  const ban=document.getElementById('result-banner'); ban.className='result-banner show wrong';
+  document.getElementById('result-icon').textContent='📖'; 
+  const cMsg = correct.length > 0 ? correct.join(' → ') : "上がり目なし";
+  document.getElementById('result-text').textContent='答え確認：' + cMsg;
+  renderTheory(q,false,"");document.getElementById('theory-panel').classList.add('show');
+  document.getElementById('btn-hint').style.display='none'; updateStats();
+}
+
+function renderTheory(q,isPartial,msgExt){
+  const isMaster=ST.outMode==='master'; const isOpen=ST.outMode==='open'; let h='';
+  if(q.theory){ h+=`<div class="tsec"><strong>■ セオリー</strong><br>${q.theory.replace(/\n/g,'<br>')}</div>`; }
+  
+  if(msgExt) {
+     h+=`<div class="order-note" style="color:var(--gr);border-color:var(--gd);background:rgba(0,255,127,0.08);"><b>✓ 成立！</b> ${msgExt}</div>`;
+  }
+  
+  if(q.miss&&q.miss.length>2){ h+=`<div class="tsec" style="margin-top:6px;"><strong>■ ミス時の対策</strong><div class="miss-case">${q.miss.replace(/\n/g,'<br>')}</div></div>`; }
+  document.getElementById('theory-content').innerHTML=h||'詳細情報なし';
+}
+
+function updateStats(){
+  document.getElementById('stat-total').textContent=ST.stats.total; document.getElementById('stat-correct').textContent=ST.stats.correct;
+  const r=ST.stats.total>0?Math.round(ST.stats.correct/ST.stats.total*100)+'%':'—'; document.getElementById('stat-rate').textContent=r;
+}
+function toggleTheory(on){
+  ST.showTheory=on;
+  if(on&&ST.current){renderTheory(ST.current,false,"");document.getElementById('theory-panel').classList.add('show');}
+  else document.getElementById('theory-panel').classList.remove('show');
+}
+
+function startTimeAttack(){
+  document.getElementById('ta-result').classList.remove('show'); 
+  document.getElementById('board-area').style.display='flex';
+  document.querySelector('.bottom-panel').style.display='block';
+  document.getElementById('main-btns').style.display='none'; 
+  document.getElementById('btn-hint').style.display='none';
+  document.getElementById('ta-start-btn').style.display='none';
+  
+  const indicator = document.getElementById('darts-indicator');
+  if(indicator) indicator.style.display = 'flex';
+
+  ST.ta={active:true,timeLeft:ST.taTime,totalTime:ST.taTime,correct:0,total:0,timer:null,history:[]};
+  
+  if(BGM.enabled) BGM.start();
+  
+  ST.ta.timer=setInterval(tick,100);
+  nextQuestion();
+}
+
+function tick(){
+  ST.ta.timeLeft-=0.1;
+  if(ST.ta.timeLeft < 0) ST.ta.timeLeft = 0; 
+  
+  const el=document.getElementById('timer-display'),bar=document.getElementById('timer-bar');
+  el.textContent=Math.ceil(ST.ta.timeLeft); el.className='timer-num'+(ST.ta.timeLeft<=5?' danger':'');
+  bar.style.width=(ST.ta.timeLeft/ST.ta.totalTime*100)+'%'; bar.className='timer-fill'+(ST.ta.timeLeft<=5?' danger':'');
+
+  if(ST.ta.timeLeft<=0 && ST.ta.active){
+    ST.ta.active = false;
+    clearInterval(ST.ta.timer);ST.ta.timer=null;
+    
+    BGM.stop(); SND.boom(); 
+    setTimeout(() => { BGM.playEnding(); }, 1200); 
+    
+    if(ST.current && !ST.answered) {
+      ST.ta.total++;
+      ST.ta.history.push({ score: ST.current.score, input: [...ST.input], correct: getThrows(ST.current), eval: 'miss', theory: ST.current.theory, timeout: true });
+    }
+    
+    setTimeout(showTAResult, 800);
+  }
+}
+
+function calcTARank(history, timeLimit, level){
+  let scoreBase = 0; let counts = { exc:0, good:0, par:0, miss:0 };
+  
+  history.forEach(h => {
+    if(h.eval === 'exc') { scoreBase += 3; counts.exc++; }
+    else if(h.eval === 'good') { scoreBase += 2; counts.good++; }
+    else if(h.eval === 'par') { scoreBase += 1; counts.par++; }
+    else { counts.miss++; }
+  });
+
+  const diffMult = level==='hard'?1.5 : level==='normal'?1.2 : 1.0;
+  const expectedTotal = (timeLimit / 15) * 5; 
+  const speedBonus = history.length / expectedTotal; 
+  
+  const rawScore = scoreBase * diffMult * (0.5 + speedBonus * 0.5);
+
+  let rankInfo = {};
+  if(history.length===0) rankInfo = {rank:'UNRANKED',color:'#4A5A4A',comment:'問題に1問も回答できませんでした。',emoji:'💀'};
+  else if(rawScore>=30) rankInfo = {rank:'SA RANK',color:'#FF4D8C',comment:'圧倒的なスピードと正確さ。プロ並みのチェックアウト能力です！',emoji:'👑'};
+  else if(rawScore>=20) rankInfo = {rank:'AA RANK',color:'#F5E642',comment:'非常に優秀。本番でも即座に対応できる実力です。',emoji:'⭐'};
+  else if(rawScore>=12) rankInfo = {rank:'A RANK', color:'#00FF7F',comment:'高い実力の持ち主。重要なフィニッシュを確実に理解しています。',emoji:'🎯'};
+  else if(rawScore>=7)  return {rank:'BB RANK',color:'#FF8C00',comment:'平均以上の理解度。主要アレンジは把握できています。',emoji:'🔥'};
+  else if(rawScore>=4)  return {rank:'B RANK', color:'#88AAFF',comment:'基礎的なアレンジは理解できています。スピードを磨きましょう。',emoji:'📊'};
+  else rankInfo = {rank:'C RANK', color:'#8AB890',comment:'まだ学習段階です。基本のアレンジから反復練習しましょう。',emoji:'📝'};
+  
+  return { ...rankInfo, counts, rawScore: Math.round(rawScore) };
+}
+
+function showTAResult(){
+  document.getElementById('board-area').style.display='none';
+  document.querySelector('.bottom-panel').style.display='none';
+  document.getElementById('ta-result').classList.add('show');
+  clearHL();
+
+  const rankData = calcTARank(ST.ta.history, ST.ta.totalTime, ST.level);
+  
+  document.getElementById('ta-bd-exc').textContent = rankData.counts.exc;
+  document.getElementById('ta-bd-good').textContent = rankData.counts.good;
+  document.getElementById('ta-bd-par').textContent = rankData.counts.par;
+  document.getElementById('ta-bd-miss').textContent = rankData.counts.miss;
+  document.getElementById('ta-final-calc-score').textContent = rankData.rawScore;
+
+  const badge=document.getElementById('ta-rank-badge');
+  const label=document.getElementById('ta-rank-label');
+  const comment=document.getElementById('ta-rank-comment');
+  badge.textContent=rankData.emoji+' '+rankData.rank;
+  badge.style.color=rankData.color;
+  badge.style.textShadow=`0 0 16px ${rankData.color}80`;
+  label.textContent='ARRANGE RANK';
+  comment.textContent=rankData.comment;
+
+  saveHist({
+    type:'ta',score:ST.ta.correct,
+    label:`TA(${ST.ta.totalTime}s)[${ST.level.toUpperCase()}]: 総合${rankData.rawScore}pts ${rankData.rank}`,
+    ts:Date.now()
+  });
+
+  const revContainer = document.getElementById('ta-review-list');
+  if(ST.ta.history.length === 0) {
+    revContainer.innerHTML = '';
+  } else {
+    const reviewHtml = ST.ta.history.map((h, i) => {
+      let icon = '✕'; let color = 'var(--rd)'; let txt = 'Miss';
+      if(h.eval === 'exc') { icon='◎'; color='var(--gr)'; txt='Perfect'; }
+      else if(h.eval === 'good') { icon='◯'; color='var(--yw)'; txt='Good'; }
+      else if(h.eval === 'par') { icon='△'; color='var(--or)'; txt='Partial'; }
+      
+      const inStr = h.timeout ? (h.input.length ? h.input.join(' → ') + ' (時間切れ)' : '時間切れ') : h.input.join(' → ');
+      const correctStr = h.correct.length > 0 ? h.correct.join(' → ') : "上がり目なし";
+      return `
+        <div style="background:var(--sf); border:1px solid #1E2A1E; border-radius:6px; padding:10px; font-size:12px; margin-bottom:6px; text-align:left;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px; align-items:center;">
+            <span style="color:var(--yw); font-family:var(--mo); font-size:15px; font-weight:bold;">Q${i+1}. ${h.score}</span>
+            <span style="color:${color}; font-weight:bold; font-size:12px;">${icon} ${txt}</span>
+          </div>
+          <div style="color:var(--wh); margin-bottom:4px;">
+            <span style="color:var(--mu); font-size:10px;">あなたの回答:</span> <span style="font-family:var(--mo); font-weight:bold; font-size:13px;">${inStr || 'なし'}</span>
+          </div>
+          ${h.eval !== 'exc' ? `<div style="color:var(--gr); margin-bottom:6px;">
+            <span style="color:var(--mu); font-size:10px;">最優秀ルート:</span> <span style="font-family:var(--mo); font-weight:bold; font-size:13px;">${correctStr}</span>
+          </div>` : ''}
+        </div>
+      `;
+    }).join('');
+    revContainer.innerHTML = `<div style="font-size:12px; font-weight:700; color:var(--mu); letter-spacing:2px; margin-bottom:10px; text-align:center; padding-top:20px; border-top:1px solid #1E2A1E;">REVIEW (答え合わせ)</div>` + reviewHtml;
+  }
+}
+
+function setMode(btn,mode){
+  document.querySelectorAll('.ctrl-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+  if(ST.ta.timer){clearInterval(ST.ta.timer);ST.ta.timer=null;} ST.ta.active=false;ST.mode=mode;
+  BGM.stop();
+  ST._queue=[];ST._lastScore=null;
+
+  const isWeak = mode==='weak';
+  document.getElementById('weak-panel').style.display='none';
+  document.getElementById('weak-empty').style.display='none';
+  document.getElementById('level-group').style.display = isWeak?'none':'flex';
+
+  const ta=mode==='timeattack';
+  document.getElementById('ta-timer-area').style.display=ta?'block':'none';
+  const tg=document.getElementById('ta-time-group'),vs=document.getElementById('ta-vsep');
+  if(tg)tg.style.display=ta?'flex':'none';if(vs)vs.style.display=ta?'block':'none';
+  document.getElementById('ta-result').classList.remove('show');
+  document.getElementById('board-area').style.display= isWeak?'none':'flex';
+  document.querySelector('.bottom-panel').style.display='block';
+  
+  const indicator = document.getElementById('darts-indicator');
+  if(indicator) indicator.style.display = 'flex';
+
+  document.getElementById('main-btns').style.display=(ta||isWeak)?'none':'flex';
+  document.getElementById('confirm-btn-row').style.display='none';
+  document.getElementById('ta-start-btn').style.display=ta?'flex':'none';
+  document.getElementById('theory-toggle-label').style.display=(ta||isWeak)?'none':'flex';
+  if(ta){document.getElementById('timer-display').textContent=ST.taTime;document.getElementById('timer-bar').style.width='100%';}
+
+  if(isWeak){ startWeakMode(); } else { nextQuestion(); }
+}
+function setOutMode(btn,mode){
+  document.querySelectorAll('#out-master,#out-open, #out-double').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');ST.outMode=mode; ST._queue=[];ST._lastScore=null; nextQuestion();
+}
+function setBull(btn,mode){
+  document.querySelectorAll('#bull-fat,#bull-sep').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');ST.bullMode=mode; ST._queue=[];ST._lastScore=null; nextQuestion();
+}
+function setTATime(btn,t){
+  document.querySelectorAll('#ta15,#ta30,#ta60').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');ST.taTime=t; document.getElementById('timer-display').textContent=t; document.getElementById('timer-bar').style.width='100%';
+}
+function setLevel(btn,level){
+  document.querySelectorAll('#level-group .pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');ST.level=level; if(ST.ta.timer){clearInterval(ST.ta.timer);ST.ta.timer=null;} ST.ta.active=false; ST._queue=[];ST._lastScore=null; nextQuestion();
+}
+
+let tblFilter='all';
+function renderTable(){
+  let data=ARRANGES;
+  if(tblFilter==='key') data=ARRANGES.filter(a=>(a.tags||[]).includes('key'));
+  if(tblFilter==='bull') data=ARRANGES.filter(a=>(a.tags||[]).includes('bull'));
+  if(tblFilter==='double')data=ARRANGES.filter(a=>(a.tags||[]).includes('double'));
+  if(tblFilter==='high') data=ARRANGES.filter(a=>a.score>=120);
+  const c=document.getElementById('arrange-table');c.innerHTML='';
+  data.forEach(a=>{
+    const throws=getThrows(a); const wrap=document.createElement('div');wrap.style.marginBottom='2px';
+    const row=document.createElement('div');row.className='arr-row';
+    const ts=(!throws||!throws.length)?'上がり不可':throws.join(' → ');
+    const tags=(a.tags||[]).map(t=>`<span class="ar-tag ${t}">${t.toUpperCase()}</span>`).join('');
+    row.innerHTML=`<span class="ar-s">${a.score}</span><div class="ar-t">${ts}<small>${a.theory?a.theory.substring(0,50)+'…':''}</small></div>${tags}`;
+    if(a.theory){
+      const det=document.createElement('div');det.className='arr-det';
+      let h=`<strong>セオリー：</strong><br>${a.theory.replace(/\n/g,'<br>')}`;
+      if(a.order)h+=`<span class="miss" style="color:#DDAA66;border-color:#885500;"><b>順序の理由：</b>${a.order}</span>`;
+      if(a.miss&&a.miss.length>2)h+=`<span class="miss"><b>ミス時：</b>${a.miss.replace(/\n/g,'<br>')}</span>`;
+      det.innerHTML=h; row.onclick=()=>det.classList.toggle('open');
+      wrap.appendChild(row);wrap.appendChild(det);
+    }else{wrap.appendChild(row);}
+    c.appendChild(wrap);
+  });
+}
+function filterTable(btn,f){ document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); tblFilter=f; renderTable(); }
+
+function renderHistory(){
+  const list=document.getElementById('history-list');
+  if(!ST.history.length){list.innerHTML='<div class="empty-state">まだ記録がありません</div>';return;}
+  list.innerHTML=ST.history.slice(0,40).map(h=>{
+    const d=new Date(h.ts); const t=`${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+    if(h.type==='ta')return`<div class="hist-item"><div class="hi-s">TA</div><div class="hi-a">${h.label}<small>${t}</small></div><div class="hi-r ta">SCORE</div></div>`;
+    
+    let icon = '✕'; let cls = 'miss';
+    if(h.type==='quiz_exc') { icon='◎'; cls='exc'; }
+    else if(h.type==='quiz_good') { icon='◯'; cls='good'; }
+    else if(h.type==='quiz_par') { icon='△'; cls='par'; }
+    
+    return`<div class="hist-item"><div class="hi-s">${h.score}</div><div class="hi-a">${h.throws}<small>${t}</small></div><div class="hi-r ${cls}">${icon}</div></div>`;
+  }).join('');
+}
+function clearHistory(){ST.history=[];try{localStorage.removeItem('darts_h6');}catch(e){}renderHistory();}
+function saveHist(e){ST.history.unshift(e);if(ST.history.length>80)ST.history.pop();try{localStorage.setItem('darts_h6',JSON.stringify(ST.history));}catch(e){}}
+
+function getWeakTop10(){
+  const map = {};
+  for(const h of ST.history){
+    if(!h.type.startsWith('quiz_')) continue;
+    if(!h.score) continue;
+    if(!map[h.score]) map[h.score]={ng:0,ok:0};
+    if(h.type==='quiz_miss' || h.type==='quiz_par') map[h.score].ng++;
+    else map[h.score].ok++;
+  }
+  const scored = Object.entries(map)
+    .filter(([s,v])=>v.ng>0)
+    .map(([s,v])=>{
+      const total=v.ng+v.ok;
+      const ngRate = total>0 ? v.ng/total : 0;
+      return {score:parseInt(s), ng:v.ng, ok:v.ok, total, ngRate};
+    })
+    .sort((a,b)=> b.ng!==a.ng ? b.ng-a.ng : b.ngRate-a.ngRate)
+    .slice(0,10);
+  return scored;
+}
+
+function getWeakPool(){
+  const top10 = getWeakTop10();
+  const scores = new Set(top10.map(x=>x.score));
+  return ARRANGES.filter(a=>{
+    const t=getThrows(a);
+    return t&&t.length>0&&scores.has(a.score);
+  });
+}
+
+function renderWeakHeader(){
+  const top10 = getWeakTop10();
+  const list = document.getElementById('weak-list');
+  const prog = document.getElementById('weak-progress');
+  const answered = ST._weakAnswered||new Set();
+  prog.textContent = `${answered.size}/${top10.length}問クリア`;
+  list.innerHTML = top10.map(({score,ng,ok,ngRate})=>{
+    const done = answered.has(score);
+    const pct = Math.round(ngRate*100);
+    const col = pct>=70?'var(--rd)':pct>=40?'var(--or)':'var(--yw)';
+    return `<div style="
+      background:${done?'rgba(0,255,127,0.12)':'rgba(255,77,140,0.1)'};
+      border:1px solid ${done?'var(--gd)':'rgba(255,77,140,0.3)'};
+      border-radius:5px;padding:3px 7px;font-size:11px;font-weight:700;
+      color:${done?'var(--gr)':col};
+      font-family:var(--mo);
+    ">${done?'✓':''} ${score}<span style="font-size:9px;color:var(--mu);margin-left:3px;">✗${ng}</span></div>`;
+  }).join('');
+}
+
+function startWeakMode(){
+  const top10 = getWeakTop10();
+  const pool = getWeakPool();
+
+  if(top10.length===0){
+    document.getElementById('weak-panel').style.display='none';
+    document.getElementById('weak-empty').style.display='flex';
+    document.getElementById('board-area').style.display='none';
+    document.getElementById('main-btns').style.display='none';
+    document.getElementById('confirm-btn-row').style.display='none';
+    document.getElementById('ta-start-btn').style.display='none';
+    document.getElementById('theory-toggle-label').style.display='none';
+    const ngTotal = ST.history.filter(h=>h.type==='quiz_miss' || h.type==='quiz_par').length;
+    document.getElementById('weak-current-count').textContent =
+      ngTotal>0 ? `現在の誤回答数: ${ngTotal}問` : '誤回答の記録がまだありません';
+    return;
+  }
+
+  document.getElementById('weak-empty').style.display='none';
+  document.getElementById('weak-panel').style.display='block';
+  document.getElementById('board-area').style.display='flex';
+  document.getElementById('main-btns').style.display='flex';
+
+  ST._weakAnswered = ST._weakAnswered||new Set();
+  ST._weakPool = pool;
+  ST._queue = [...pool].sort(()=>Math.random()-0.5);
+  ST._lastScore = null;
+
+  renderWeakHeader();
+  nextQuestion();
+}
+
+function markWeakAnswered(score, ok){
+  if(!ST._weakAnswered) ST._weakAnswered=new Set();
+  if(ok) ST._weakAnswered.add(score);
+  renderWeakHeader();
+
+  const top10 = getWeakTop10();
+  const allClear = top10.every(x=>ST._weakAnswered.has(x.score));
+  if(allClear && top10.length>0){
+    setTimeout(()=>{
+      showWeakComplete(top10.length);
+    },600);
+  }
+}
+
+function showWeakComplete(count){
+  const board = document.getElementById('board-area');
+  board.innerHTML = `
+    <div style="text-align:center;padding:20px;">
+      <div style="font-size:48px;margin-bottom:8px;">🏆</div>
+      <div style="font-size:20px;font-weight:900;color:var(--pk);margin-bottom:6px;">苦手${count}問 全クリア！</div>
+      <div style="font-size:12px;color:var(--mu);line-height:1.8;margin-bottom:16px;">
+        苦手だったアレンジを全て正解しました。<br>引き続き練習を続けましょう！
+      </div>
+      <button class="btn btn-primary" onclick="restartWeakMode()" style="width:160px;margin-bottom:8px;">もう一度挑戦</button>
+    </div>`;
+}
+
+function restartWeakMode(){
+  ST._weakAnswered = new Set();
+  document.getElementById('board-area').innerHTML=`
+    <div class="score-badge" id="current-score">—</div>
+    <div class="score-sub">REMAINING</div>
+    <div class="board-wrap">
+      <svg id="dartboard" viewBox="-30 -30 460 460" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>`;
+  buildBoard();
+  startWeakMode();
+}
+
+function switchView(name,btn){
+  document.getElementById('view-training').className='';
+  ['table','history'].forEach(v=>{const el=document.getElementById('view-'+v);if(el)el.className='view';});
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active');
+  if(name==='training'){document.getElementById('view-training').className='active';}
+  else{document.getElementById('view-'+name).className='view active';}
+  if(name==='table')renderTable(); if(name==='history')renderHistory();
+}
+
+let _dp=null;
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault();_dp=e; document.getElementById('install-banner').classList.add('show'); });
+window.addEventListener('appinstalled',()=>{ document.getElementById('install-banner').classList.remove('show');_dp=null; });
+function pwaInstall(){
+  if(_dp){ _dp.prompt(); _dp.userChoice.then(r=>{if(r.outcome==='accepted')_dp=null;}); }
+  else {
+    const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    if(isIOS){ alert('iPhoneでのインストール方法:\n\n① SafariでこのURLを開く\n② 画面下の「共有」ボタン(□↑)をタップ\n③「ホーム画面に追加」をタップ\n④「追加」をタップ\n\nアイコンがホーム画面に追加されます！'); }
+    else { alert('ホーム画面への追加方法:\n\nブラウザのメニュー(右上「⋮」ボタンなど)から「ホーム画面に追加」または「インストール」をタップしてください。'); }
+  }
+  document.getElementById('install-banner').classList.remove('show');
+}
+function dismissInstall(){document.getElementById('install-banner').classList.remove('show');}
+function checkIOSInstall(){
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isSafari=/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const isStandalone='standalone' in navigator&&navigator.standalone;
+  if(isIOS&&isSafari&&!isStandalone){
+    setTimeout(()=>{
+      document.getElementById('install-banner').classList.add('show');
+      document.getElementById('install-btn').textContent='追加方法';
+    },2000);
+  }
+}
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+buildBoard();nextQuestion();setTimeout(checkIOSInstall,1500);
+</script>
+</body>
+</html>
