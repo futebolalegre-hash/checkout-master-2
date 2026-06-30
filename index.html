@@ -296,7 +296,6 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
     </div>
 
     <div class="board-area" id="board-area">
-      <!-- 🎯 LEFTとスコアを横並びにして縦幅を節約 -->
       <div style="display:flex; align-items:flex-end; justify-content:center; gap:8px; margin-bottom:2px; flex-shrink:0;">
         <div class="score-sub" style="margin-bottom:5px;">LEFT</div>
         <div class="score-badge" id="current-score">—</div>
@@ -960,14 +959,16 @@ function isMathOut(input, targetScore, outMode) {
   else return true;
 }
 
+// 🎯 EASY(2-60), NORMAL(61-110), HARD(111-180) に分割
 function getPool(){
   const bogeys = [169, 168, 166, 165, 163, 162, 159];
   let v = ARRANGES.filter(a => {
     if (ST.outMode === 'double' && bogeys.includes(a.score)) return false;
     const t = getThrows(a); return t && t.length > 0;
   });
-  if(ST.level==='easy') return v.filter(a=>a.score<=100);
-  if(ST.level==='normal') return v.filter(a=>a.score>=36&&a.score<=140);
+  if(ST.level==='easy') return v.filter(a=>a.score<=60);
+  if(ST.level==='normal') return v.filter(a=>a.score>=61 && a.score<=110);
+  if(ST.level==='hard') return v.filter(a=>a.score>=111);
   return v;
 }
 
