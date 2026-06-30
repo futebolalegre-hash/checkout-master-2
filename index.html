@@ -99,7 +99,6 @@ header{border-bottom:1px solid #1E2A1E;padding:4px 10px;padding-top:calc(4px + v
 .score-badge{font-family:var(--mo);font-size:36px;font-weight:bold;color:var(--yw);line-height:1;text-align:center;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:6px;}
 .score-sub{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--mu);text-align:center;margin:0;flex-shrink:0;}
 .board-wrap{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;padding:0 4px;}
-
 .board-wrap svg{width:100%;height:100%;max-width:480px;max-height:480px;display:block;overflow:visible;filter:drop-shadow(0 3px 14px rgba(0,0,0,.85));touch-action:manipulation;}
 @keyframes segFlash{0%{opacity:1}40%{opacity:.15}100%{opacity:1}}
 .seg-flash{animation:segFlash .2s ease-out;}
@@ -124,7 +123,6 @@ header{border-bottom:1px solid #1E2A1E;padding:4px 10px;padding-top:calc(4px + v
 .tchip.hit{border-color:var(--gd);color:var(--gr);}
 .tchip.miss{border-color:var(--rd);color:var(--rd);}
 .tchip.partial{border-color:var(--or);color:var(--or);}
-
 .result-banner{border-radius:6px;padding:7px 11px;font-size:12px;font-weight:600;margin-bottom:4px;display:none;align-items:flex-start;gap:7px;}
 .result-banner.show{display:flex;}
 .result-banner.correct{background:rgba(0,255,127,.1);border:1px solid var(--gd);color:var(--gr);}
@@ -165,6 +163,7 @@ header{border-bottom:1px solid #1E2A1E;padding:4px 10px;padding-top:calc(4px + v
 .hist-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .hist-ttl{font-size:13px;font-weight:700;letter-spacing:3px;color:var(--mu);}
 .clr-btn{background:none;border:1px solid #2A3A2A;color:var(--mu);font-size:12px;font-weight:600;padding:5px 11px;border-radius:5px;cursor:pointer;}
+.clr-btn:hover{color:var(--rd);border-color:#662222;}
 .hist-list{display:flex;flex-direction:column;gap:5px;}
 .hist-item{background:var(--sf);border:1px solid #1E2A1E;border-radius:7px;padding:9px 13px;display:flex;align-items:center;gap:10px;}
 .hi-s{font-family:var(--mo);font-size:19px;font-weight:bold;color:var(--yw);width:40px;flex-shrink:0;}
@@ -175,7 +174,14 @@ header{border-bottom:1px solid #1E2A1E;padding:4px 10px;padding-top:calc(4px + v
 .hi-r.good{background:rgba(245,230,66,.15);color:var(--yw);}
 .hi-r.par{background:rgba(255,140,0,.15);color:var(--or);}
 .hi-r.miss{background:rgba(255,68,68,.15);color:var(--rd);}
-.hi-r.ta{background:rgba(255,77,140,.15);color:var(--pk);width:auto;padding:3px 9px;letter-spacing:1px;}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--mu);font-size:13px;line-height:2.2;}
+.install-banner{background:var(--sf);border-top:1px solid #1E2A1E;padding:8px 14px;padding-bottom:calc(8px + var(--sb));display:none;align-items:center;gap:9px;flex-shrink:0;}
+.install-banner.show{display:flex;}
+.install-txt{flex:1;font-size:12px;font-weight:600;color:var(--mu);line-height:1.5;}
+.install-txt b{color:var(--wh);}
+.install-btn{background:var(--gr);color:#0D1117;border:none;border-radius:6px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;}
+.install-close{background:none;border:none;color:var(--mu);cursor:pointer;font-size:18px;padding:2px 5px;}
 </style>
 </head>
 <body>
@@ -191,7 +197,7 @@ header{border-bottom:1px solid #1E2A1E;padding:4px 10px;padding-top:calc(4px + v
 
   <header>
     <div class="logo" onclick="resetToHome()">
-      <div class="logo-top"><span class="logo-main">Checkout Master</span><span class="logo-ver">ver.1.04</span></div>
+      <div class="logo-top"><span class="logo-main">Checkout Master</span><span class="logo-ver">ver.1.06</span></div>
       <span class="logo-sub">for Puku Freaks</span>
     </div>
     <nav class="nav-tabs">
@@ -380,898 +386,334 @@ header{border-bottom:1px solid #1E2A1E;padding:4px 10px;padding-top:calc(4px + v
 </div>
 
 <script>
-// --- 音声・BGMエンジン ---
-const SND={ enabled:true, _ac:null, _getAC(){ if(!this._ac) this._ac=new(window.AudioContext||window.webkitAudioContext)(); if(this._ac.state==='suspended') this._ac.resume(); return this._ac; }, _tu(freq, vol, dur, attack, startTime){ const ac=this._getAC(); const t=startTime||ac.currentTime; const osc=ac.createOscillator(); const gain=ac.createGain(); const filter=ac.createBiquadFilter(); filter.type='bandpass'; filter.frequency.value=freq*1.2; filter.Q.value=2; osc.connect(filter); filter.connect(gain); gain.connect(ac.destination); osc.type='triangle'; osc.frequency.setValueAtTime(freq*1.1,t); osc.frequency.exponentialRampToValueAtTime(freq*0.95,t+dur*0.3); gain.gain.setValueAtTime(0.001,t); gain.gain.linearRampToValueAtTime(vol,t+attack); gain.gain.exponentialRampToValueAtTime(0.001,t+dur); osc.start(t); osc.stop(t+dur+0.05); }, _hit(vol, dur, freq, startTime){ const ac=this._getAC(); const t=startTime||ac.currentTime; const bufLen=Math.ceil(ac.sampleRate*dur); const buf=ac.createBuffer(1,bufLen,ac.sampleRate); const data=buf.getChannelData(0); for(let i=0;i<bufLen;i++) data[i]=(Math.random()*2-1); const src=ac.createBufferSource(); src.buffer=buf; const gain=ac.createGain(); const f=ac.createBiquadFilter(); f.type='bandpass'; f.frequency.value=freq||1200; f.Q.value=1.5; src.connect(f); f.connect(gain); gain.connect(ac.destination); gain.gain.setValueAtTime(vol,t); gain.gain.exponentialRampToValueAtTime(0.001,t+dur); src.start(t); src.stop(t+dur+0.02); }, _boom(freq, vol, dur, startTime){ const ac=this._getAC(); const t=startTime||ac.currentTime; const osc=ac.createOscillator(); const gain=ac.createGain(); osc.type='sine'; osc.frequency.setValueAtTime(freq,t); osc.frequency.exponentialRampToValueAtTime(freq*0.5,t+dur); osc.connect(gain); gain.connect(ac.destination); gain.gain.setValueAtTime(vol,t); gain.gain.exponentialRampToValueAtTime(0.001,t+dur); osc.start(t); osc.stop(t+dur+0.05); }, single(){ if(!this.enabled)return; try{ const ac=this._getAC(); const t=ac.currentTime; this._hit(0.15, 0.06, 1800, t); this._tu(520, 0.10, 0.12, 0.005, t); }catch(e){} }, double(){ if(!this.enabled)return; try{ const ac=this._getAC(); const t=ac.currentTime; const gap=0.10; this._hit(0.18, 0.05, 1600, t); this._tu(620, 0.12, 0.10, 0.005, t); this._hit(0.20, 0.07, 1800, t+gap); this._tu(780, 0.15, 0.20, 0.005, t+gap); this._tu(780*0.5, 0.04, 0.18, 0.01, t+gap+0.10); }catch(e){} }, triple(){ if(!this.enabled)return; try{ const ac=this._getAC(); const t=ac.currentTime; const gap=0.09; this._hit(0.18, 0.05, 1400, t); this._tu(580, 0.11, 0.09, 0.005, t); this._hit(0.20, 0.05, 1600, t+gap); this._tu(700, 0.12, 0.09, 0.005, t+gap); this._hit(0.24, 0.07, 1900, t+gap*2); this._tu(880, 0.16, 0.22, 0.005, t+gap*2); this._tu(880*0.5, 0.05, 0.20, 0.01, t+gap*2+0.12); this._tu(880*1.5, 0.03, 0.15, 0.01, t+gap*2+0.08); }catch(e){} }, outerBull(){ if(!this.enabled)return; try{ const ac=this._getAC(); const t=ac.currentTime; this._hit(0.40, 0.12, 300, t); this._hit(0.25, 0.18, 1200, t); this._boom(80, 0.35, 0.35, t); this._boom(120, 0.20, 0.30, t); this._tu(220, 0.18, 0.40, 0.02, t+0.05); this._tu(180, 0.10, 0.50, 0.04, t+0.08); }catch(e){} }, innerBull(){ if(!this.enabled)return; try{ const ac=this._getAC(); const t=ac.currentTime; this._hit(0.50, 0.10, 200, t); this._hit(0.30, 0.14, 800, t); this._boom(60, 0.45, 0.25, t); this._boom(100, 0.30, 0.20, t); this._tu(200, 0.20, 0.18, 0.01, t); const t2=t+0.12; this._hit(0.55, 0.14, 250, t2); this._hit(0.35, 0.18, 1000, t2); this._boom(55, 0.50, 0.45, t2); this._boom(90, 0.35, 0.38, t2); this._tu(160, 0.25, 0.55, 0.015, t2); this._tu(660, 0.12, 0.25, 0.02, t2+0.05); this._tu(990, 0.08, 0.20, 0.02, t2+0.12); this._tu(1320,0.05, 0.18, 0.02, t2+0.20); }catch(e){} }, play(label){ if(!this.enabled)return; if(label==='Bull') this.innerBull(); else if(label==='S25') this.outerBull(); else if(label.startsWith('T')) this.triple(); else if(label.startsWith('D')) this.double(); else this.single(); }, ok(){ if(!this.enabled)return; try{ const ac=this._getAC(); const t=ac.currentTime; this._tu(523.25, 0.1, 0.1, 0.01, t); this._tu(659.25, 0.1, 0.1, 0.01, t+0.1); this._tu(783.99, 0.15, 0.2, 0.01, t+0.2); }catch(e){} }, ng(){ if(!this.enabled)return; try{ const ac=this._getAC(); const t=ac.currentTime; this._tu(300, 0.15, 0.2, 0.02, t); this._tu(250, 0.15, 0.3, 0.02, t+0.15); }catch(e){} }, boom(){ if(!this.enabled)return; try{ const ac=this._getAC(); const t=ac.currentTime; for(const [f,v,d] of [[40,1.2,1.5],[55,0.9,1.2],[30,1.0,1.8],[80,0.7,0.9]]){ const osc=ac.createOscillator(), g=ac.createGain(); osc.connect(g); g.connect(ac.destination); osc.type='sine'; osc.frequency.setValueAtTime(f*2,t); osc.frequency.exponentialRampToValueAtTime(f*0.3,t+d); g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.001,t+d); osc.start(t); osc.stop(t+d+0.1); } }catch(e){} } };
+const SND={
+  enabled:true,
+  _ac:null,
+  _getAC(){
+    if(!this._ac) this._ac=new(window.AudioContext||window.webkitAudioContext)();
+    if(this._ac.state==='suspended') this._ac.resume();
+    return this._ac;
+  },
+  _tu(freq, vol, dur, attack, startTime){
+    const ac=this._getAC(); const t=startTime||ac.currentTime;
+    const osc=ac.createOscillator(); const gain=ac.createGain();
+    const filter=ac.createBiquadFilter(); filter.type='bandpass'; filter.frequency.value=freq*1.2; filter.Q.value=2;
+    osc.connect(filter); filter.connect(gain); gain.connect(ac.destination);
+    osc.type='triangle'; osc.frequency.setValueAtTime(freq*1.1,t);
+    osc.frequency.exponentialRampToValueAtTime(freq*0.95,t+dur*0.3);
+    gain.gain.setValueAtTime(0.001,t); gain.gain.linearRampToValueAtTime(vol,t+attack);
+    gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.start(t); osc.stop(t+dur+0.05);
+  },
+  _hit(vol, dur, freq, startTime){
+    const ac=this._getAC(); const t=startTime||ac.currentTime;
+    const bufLen=Math.ceil(ac.sampleRate*dur); const buf=ac.createBuffer(1,bufLen,ac.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<bufLen;i++) data[i]=(Math.random()*2-1);
+    const src=ac.createBufferSource(); src.buffer=buf;
+    const gain=ac.createGain(); const f=ac.createBiquadFilter(); f.type='bandpass'; f.frequency.value=freq||1200; f.Q.value=1.5;
+    src.connect(f); f.connect(gain); gain.connect(ac.destination);
+    gain.gain.setValueAtTime(vol,t); gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    src.start(t); src.stop(t+dur+0.02);
+  },
+  _boom(freq, vol, dur, startTime){
+    const ac=this._getAC(); const t=startTime||ac.currentTime;
+    const osc=ac.createOscillator(); const gain=ac.createGain();
+    osc.type='sine'; osc.frequency.setValueAtTime(freq,t); osc.frequency.exponentialRampToValueAtTime(freq*0.5,t+dur);
+    osc.connect(gain); gain.connect(ac.destination);
+    gain.gain.setValueAtTime(vol,t); gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.start(t); osc.stop(t+dur+0.05);
+  },
+  single(){
+    if(!this.enabled)return;
+    try{ const ac=this._getAC(); const t=ac.currentTime; this._hit(0.15, 0.06, 1800, t); this._tu(520, 0.10, 0.12, 0.005, t); }catch(e){}
+  },
+  double(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime; const gap=0.10;
+      this._hit(0.18, 0.05, 1600, t); this._tu(620, 0.12, 0.10, 0.005, t);
+      this._hit(0.20, 0.07, 1800, t+gap); this._tu(780, 0.15, 0.20, 0.005, t+gap);
+      this._tu(780*0.5, 0.04, 0.18, 0.01, t+gap+0.10);
+    }catch(e){}
+  },
+  triple(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime; const gap=0.09;
+      this._hit(0.18, 0.05, 1400, t); this._tu(580, 0.11, 0.09, 0.005, t);
+      this._hit(0.20, 0.05, 1600, t+gap); this._tu(700, 0.12, 0.09, 0.005, t+gap);
+      this._hit(0.24, 0.07, 1900, t+gap*2); this._tu(880, 0.16, 0.22, 0.005, t+gap*2);
+      this._tu(880*0.5, 0.05, 0.20, 0.01, t+gap*2+0.12); this._tu(880*1.5, 0.03, 0.15, 0.01, t+gap*2+0.08);
+    }catch(e){}
+  },
+  outerBull(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime; this._hit(0.40, 0.12, 300, t); this._hit(0.25, 0.18, 1200, t);
+      this._boom(80, 0.35, 0.35, t); this._boom(120, 0.20, 0.30, t);
+      this._tu(220, 0.18, 0.40, 0.02, t+0.05); this._tu(180, 0.10, 0.50, 0.04, t+0.08);
+    }catch(e){}
+  },
+  innerBull(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime;
+      this._hit(0.50, 0.10, 200, t); this._hit(0.30, 0.14, 800, t); this._boom(60, 0.45, 0.25, t); this._boom(100, 0.30, 0.20, t); this._tu(200, 0.20, 0.18, 0.01, t);
+      const t2=t+0.12;
+      this._hit(0.55, 0.14, 250, t2); this._hit(0.35, 0.18, 1000, t2); this._boom(55, 0.50, 0.45, t2); this._boom(90, 0.35, 0.38, t2); this._tu(160, 0.25, 0.55, 0.015, t2);
+      this._tu(660, 0.12, 0.25, 0.02, t+0.05); this._tu(990, 0.08, 0.20, 0.02, t+0.12); this._tu(1320,0.05, 0.18, 0.02, t+0.20);
+    }catch(e){}
+  },
+  play(label){
+    if(!this.enabled)return;
+    if(label==='Bull') this.innerBull();
+    else if(label==='S25') this.outerBull();
+    else if(label.startsWith('T')) this.triple();
+    else if(label.startsWith('D')) this.double();
+    else this.single();
+  },
+  ok(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime;
+      this._tu(523.25, 0.1, 0.1, 0.01, t);
+      this._tu(659.25, 0.1, 0.1, 0.01, t+0.1);
+      this._tu(783.99, 0.15, 0.2, 0.01, t+0.2);
+    }catch(e){}
+  },
+  ng(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime;
+      this._tu(300, 0.15, 0.2, 0.02, t);
+      this._tu(250, 0.15, 0.3, 0.02, t+0.15);
+    }catch(e){}
+  },
+  boom(){
+    if(!this.enabled)return;
+    try{
+      const ac=this._getAC(); const t=ac.currentTime;
+      for(const [f,v,d] of [[40,1.2,1.5],[55,0.9,1.2],[30,1.0,1.8],[80,0.7,0.9]]){
+        const osc=ac.createOscillator(), g=ac.createGain();
+        osc.connect(g); g.connect(ac.destination); osc.type='sine'; osc.frequency.setValueAtTime(f*2,t);
+        osc.frequency.exponentialRampToValueAtTime(f*0.3,t+d);
+        g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.001,t+d);
+        osc.start(t); osc.stop(t+d+0.1);
+      }
+    }catch(e){}
+  }
+};
 function toggleSound(on){ SND.enabled=on; if(on)try{SND._getAC();}catch(e){} }
-const BGM = { enabled: true, currentTrack: 'bgm-upbeat', start(){ if(!this.enabled) return; this.stop(); const sel = document.getElementById('bgm-select'); this.currentTrack = sel ? sel.value : 'bgm-upbeat'; const audio = document.getElementById(this.currentTrack); if(audio) { audio.currentTime = 0; audio.play().catch(e=>{}); } }, stop(){ ['bgm-upbeat','bgm-cyber','bgm-calm','bgm-ending'].forEach(id => { const audio = document.getElementById(id); if(audio) { audio.pause(); audio.currentTime = 0; } }); }, playEnding(){ if(!this.enabled) return; this.stop(); const audio = document.getElementById('bgm-ending'); if(audio) { audio.currentTime = 0; audio.play().catch(e=>{}); } } };
-function toggleBGM(on){ BGM.enabled=on; if(!on) BGM.stop(); else { if(ST.ta && ST.ta.active) BGM.start(); else if(document.getElementById('ta-result').classList.contains('show')) BGM.playEnding(); } }
-function changeBGM() { if(BGM.enabled && ST.ta && ST.ta.active) { BGM.start(); } }
+
+const BGM = {
+  enabled: true,
+  currentTrack: 'bgm-upbeat',
+  start(){
+    if(!this.enabled) return;
+    this.stop();
+    const sel = document.getElementById('bgm-select');
+    this.currentTrack = sel ? sel.value : 'bgm-upbeat';
+    const audio = document.getElementById(this.currentTrack);
+    if(audio) {
+      audio.currentTime = 0;
+      audio.play().catch(e=>{});
+    }
+  },
+  stop(){
+    ['bgm-upbeat','bgm-cyber','bgm-calm','bgm-ending'].forEach(id => {
+      const audio = document.getElementById(id);
+      if(audio) { audio.pause(); audio.currentTime = 0; }
+    });
+  },
+  playEnding(){
+    if(!this.enabled) return;
+    this.stop();
+    const audio = document.getElementById('bgm-ending');
+    if(audio) {
+      audio.currentTime = 0;
+      audio.play().catch(e=>{});
+    }
+  }
+};
+
+function toggleBGM(on){ 
+  BGM.enabled=on; 
+  if(!on) BGM.stop(); 
+  else {
+    if(ST.ta && ST.ta.active) BGM.start();
+    else if(document.getElementById('ta-result').classList.contains('show')) BGM.playEnding();
+  }
+}
+
+function changeBGM() {
+  if(BGM.enabled && ST.ta && ST.ta.active) {
+    BGM.start();
+  }
+}
 
 const CX=200,CY=200;
 const R={bi:25,bo:50,ti:100,to:132,di:160,do_:194};
 const SECTORS=[20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
 const N=20,DEG=18;
-const PHX={ blk:'#1C100A',crm:'#EDE0A8',red:'#B8172A',grn:'#1A6535', bull_out_fill:'#B8172A',bull_in_fill:'#0A0A0A',wire:'#9A9070', sel_ok:'rgba(0,230,90,0.65)',sel_ng:'rgba(255,40,40,0.65)', sel_yw:'rgba(240,215,30,0.65)',sel_or:'rgba(255,140,0,0.55)' };
+const PHX={
+  blk:'#1C100A',crm:'#EDE0A8',red:'#B8172A',grn:'#1A6535',
+  bull_out_fill:'#B8172A',bull_in_fill:'#0A0A0A',wire:'#9A9070',
+  sel_ok:'rgba(0,230,90,0.65)',sel_ng:'rgba(255,40,40,0.65)',
+  sel_yw:'rgba(240,215,30,0.65)',sel_or:'rgba(255,140,0,0.55)',
+};
 const ns='http://www.w3.org/2000/svg';
 
-// --- ボード描画 ---
 function polar(r,deg){const rad=(deg-90)*Math.PI/180;return[CX+r*Math.cos(rad),CY+r*Math.sin(rad)];}
-function arc(r1,r2,a1,a2){ const[x1,y1]=polar(r1,a1),[x2,y2]=polar(r2,a1); const[x3,y3]=polar(r2,a2),[x4,y4]=polar(r1,a2); const lg=(a2-a1)>180?1:0; return`M${x1},${y1}L${x2},${y2}A${r2},${r2} 0 ${lg},1 ${x3},${y3}L${x4},${y4}A${r1},${r1} 0 ${lg},0 ${x1},${y1}Z`; }
-function getSvgCoords(svg, e) { let pt = svg.createSVGPoint(); if (e.touches && e.touches.length > 0) { pt.x = e.touches[0].clientX; pt.y = e.touches[0].clientY; } else if (e.changedTouches && e.changedTouches.length > 0) { pt.x = e.changedTouches[0].clientX; pt.y = e.changedTouches[0].clientY; } else { pt.x = e.clientX; pt.y = e.clientY; } return pt.matrixTransform(svg.getScreenCTM().inverse()); }
-function drawDart(x, y, targetId) { const svg = document.getElementById('dartboard'); const dart = document.createElementNS(ns, 'g'); dart.setAttribute('class', 'thrown-dart'); dart.setAttribute('data-target', targetId); const angle = 15 + Math.random() * 15; dart.setAttribute('transform', `translate(${x}, ${y}) scale(1.3) rotate(${angle})`); const shadow = document.createElementNS(ns, 'path'); shadow.setAttribute('d', 'M0,0 L-5,-10 L-5,-28 L0,-22 L4,-28 L4,-10 Z'); shadow.setAttribute('fill', 'rgba(0,0,0,0.5)'); shadow.setAttribute('transform', 'translate(4, 4) skewX(20)'); dart.appendChild(shadow); const tip = document.createElementNS(ns, 'polygon'); tip.setAttribute('points', '-1,-5 1,-5 0,0'); tip.setAttribute('fill', '#E0E0E0'); dart.appendChild(tip); const barrel = document.createElementNS(ns, 'rect'); barrel.setAttribute('x', '-2'); barrel.setAttribute('y', '-16'); barrel.setAttribute('width', '4'); barrel.setAttribute('height', '11'); barrel.setAttribute('rx', '1'); barrel.setAttribute('fill', '#999'); barrel.setAttribute('stroke', '#333'); barrel.setAttribute('stroke-width', '0.5'); dart.appendChild(barrel); for(let by = -14; by <= -7; by += 2) { const cut = document.createElementNS(ns, 'line'); cut.setAttribute('x1', '-2'); cut.setAttribute('y1', by); cut.setAttribute('x2', '2'); cut.setAttribute('y2', by); cut.setAttribute('stroke', '#222'); cut.setAttribute('stroke-width', '0.5'); dart.appendChild(cut); } const shaft = document.createElementNS(ns, 'rect'); shaft.setAttribute('x', '-1'); shaft.setAttribute('y', '-25'); shaft.setAttribute('width', '2'); shaft.setAttribute('height', '9'); shaft.setAttribute('fill', '#E8EEE8'); dart.appendChild(shaft); const flight = document.createElementNS(ns, 'path'); flight.setAttribute('d', 'M0,-22 L-9,-31 L-7,-38 L0,-34 L7,-38 L9,-31 Z'); flight.setAttribute('fill', 'var(--pk)'); flight.setAttribute('stroke', '#1C100A'); flight.setAttribute('stroke-width', '0.5'); dart.appendChild(flight); const flightDetail = document.createElementNS(ns, 'path'); flightDetail.setAttribute('d', 'M0,-22 L0,-34 L7,-38 L9,-31 Z'); flightDetail.setAttribute('fill', 'rgba(0,0,0,0.15)'); dart.appendChild(flightDetail); dart.setAttribute('pointer-events', 'none'); svg.appendChild(dart); }
-function mkPath(svg,label,val,d,fill,ev){ const p=document.createElementNS(ns,'path'); p.setAttribute('d',d);p.setAttribute('fill',fill); p.setAttribute('data-orig-fill',fill);p.setAttribute('stroke',PHX.wire);p.setAttribute('stroke-width','0.4'); p.setAttribute('data-seg',label);p.setAttribute('data-val',val); if(ev){p.style.cursor='pointer';p.addEventListener('click',(e)=>onTap(label,val,e));} svg.appendChild(p);return p; }
-function buildBoard(){ const svg=document.getElementById('dartboard');svg.innerHTML=''; const bg=document.createElementNS(ns,'circle'); bg.setAttribute('cx',CX);bg.setAttribute('cy',CY);bg.setAttribute('r',R.do_+12); bg.setAttribute('fill','#0C0C0A');svg.appendChild(bg); const nr=document.createElementNS(ns,'circle'); nr.setAttribute('cx',CX);nr.setAttribute('cy',CY);nr.setAttribute('r',R.do_+7); nr.setAttribute('fill','#181208');svg.appendChild(nr); for(let i=0;i<N;i++){ const num=SECTORS[i],a1=i*DEG-DEG/2,a2=a1+DEG,even=i%2===0; const sc=even?PHX.blk:PHX.crm,bc=even?PHX.red:PHX.grn; mkPath(svg,`S${num}`,num,arc(R.to,R.di,a1,a2),sc,true); mkPath(svg,`D${num}`,num*2,arc(R.di,R.do_,a1,a2),bc,true); mkPath(svg,`S${num}`,num,arc(R.bo,R.ti,a1,a2),sc,true); mkPath(svg,`T${num}`,num*3,arc(R.ti,R.to,a1,a2),bc,true); } mkPath(svg,'S25',25,arc(R.bi,R.bo,0,359.99),PHX.bull_out_fill,true); const bi=document.createElementNS(ns,'circle'); bi.setAttribute('cx',CX);bi.setAttribute('cy',CY);bi.setAttribute('r',R.bi); bi.setAttribute('fill','#0A0A0A');bi.setAttribute('data-orig-fill','#0A0A0A'); bi.setAttribute('stroke','#6A6050');bi.setAttribute('stroke-width','1.2'); bi.setAttribute('data-seg','Bull');bi.setAttribute('data-val','50'); bi.style.cursor='pointer';bi.addEventListener('click',(e)=>onTap('Bull',50,e)); svg.appendChild(bi); for(let i=0;i<N;i++){ const num=SECTORS[i],[lx,ly]=polar(R.do_+20,i*DEG); const t=document.createElementNS(ns,'text'); t.setAttribute('x',lx);t.setAttribute('y',ly); t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','middle'); t.setAttribute('font-size','22');t.setAttribute('font-family','Courier New,monospace'); t.setAttribute('fill','#D8CCA0');t.setAttribute('font-weight','bold'); t.setAttribute('pointer-events','none');t.textContent=num;svg.appendChild(t); } [R.bi,R.bo,R.ti,R.to,R.di,R.do_].forEach(r=>{ const c=document.createElementNS(ns,'circle'); c.setAttribute('cx',CX);c.setAttribute('cy',CY);c.setAttribute('r',r); c.setAttribute('fill','none');c.setAttribute('stroke',PHX.wire);c.setAttribute('stroke-width','1.5');c.setAttribute('pointer-events','none');svg.appendChild(c); }); for(let i=0;i<N;i++){ const deg=i*DEG-DEG/2,[x1,y1]=polar(R.bo,deg),[x2,y2]=polar(R.do_,deg); const l=document.createElementNS(ns,'line'); l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2); l.setAttribute('stroke',PHX.wire);l.setAttribute('stroke-width','1.5');l.setAttribute('pointer-events','none');svg.appendChild(l); } }
-let _hl=[];
-function clearHL(){ _hl.forEach(({el,f})=>{const orig=el.getAttribute('data-orig-fill');el.setAttribute('fill',orig||f);}); _hl=[]; document.querySelectorAll('.thrown-dart').forEach(el => el.remove()); }
-function hlSeg(label,color){ document.querySelectorAll(`[data-seg="${label}"]`).forEach(el=>{ const orig=el.getAttribute('data-orig-fill'); _hl.push({el,f:orig||el.getAttribute('fill')});el.setAttribute('fill',color); }); }
-function flashSeg(label){ document.querySelectorAll(`[data-seg="${label}"]`).forEach(el=>{el.classList.remove('seg-flash');void el.offsetWidth;el.classList.add('seg-flash');}); }
+function arc(r1,r2,a1,a2){
+  const[x1,y1]=polar(r1,a1),[x2,y2]=polar(r2,a1);
+  const[x3,y3]=polar(r2,a2),[x4,y4]=polar(r1,a2);
+  const lg=(a2-a1)>180?1:0;
+  return`M${x1},${y1}L${x2},${y2}A${r2},${r2} 0 ${lg},1 ${x3},${y3}L${x4},${y4}A${r1},${r1} 0 ${lg},0 ${x1},${y1}Z`;
+}
 
-// 🎯 My Arrange 完全ハードコード DB (AIの上書きを排除)
-window.CUSTOM_DB = {
-"1_0_0":{a:"S1",m:""},
-"10_0_0":{a:"S10",m:""},
-"100_0_0":{a:"Bull Bull",m:""},
-"101_0_0":{a:"Bull Bull S1",m:""},
-"102_0_0":{a:"Bull Bull S2",m:""},
-"103_0_0":{a:"Bull Bull S3",m:""},
-"104_0_0":{a:"Bull Bull S4",m:""},
-"105_0_0":{a:"T19 T16",m:""},
-"106_0_0":{a:"Bull Bull S6",m:""},
-"107_0_0":{a:"Bull Bull S7",m:""},
-"108_0_0":{a:"Bull Bull S8",m:""},
-"109_0_0":{a:"Bull Bull S9",m:""},
-"11_0_0":{a:"S11",m:""},
-"110_0_0":{a:"Bull Bull S10",m:""},
-"111_0_0":{a:"Bull Bull S11",m:""},
-"112_0_0":{a:"Bull Bull S12",m:""},
-"113_0_0":{a:"Bull Bull S13",m:""},
-"114_0_0":{a:"Bull Bull S14",m:""},
-"115_0_0":{a:"Bull Bull S15",m:""},
-"116_0_0":{a:"Bull Bull S16",m:""},
-"117_0_0":{a:"Bull Bull S17",m:""},
-"118_0_0":{a:"Bull Bull S18",m:""},
-"119_0_0":{a:"Bull Bull S19",m:""},
-"12_0_0":{a:"S12",m:""},
-"120_0_0":{a:"Bull Bull S20",m:""},
-"121_0_0":{a:"T17 S20 Bull",m:""},
-"122_0_0":{a:"Bull D11 Bull",m:""},
-"126_0_0":{a:"Bull Bull D13",m:""},
-"13_0_0":{a:"S13",m:""},
-"133_0_0":{a:"Bull T17 D16",m:""},
-"14_0_0":{a:"S14",m:""},
-"140_0_0":{a:"T20 S20 T20",m:""},
-"144_0_0":{a:"T18 T18 D18",m:""},
-"15_0_0":{a:"S15",m:""},
-"16_0_0":{a:"S16",m:""},
-"17_0_0":{a:"S17",m:""},
-"174_0_0":{a:"T20 T18 T20",m:""},
-"177_0_0":{a:"T20 T19 T20",m:""},
-"18_0_0":{a:"S18",m:""},
-"180_0_0":{a:"T20 T20 T20",m:"迷わずトンパ、外したらブルへシフト"},
-"19_0_0":{a:"S19",m:""},
-"2_0_0":{a:"S2",m:""},
-"20_0_0":{a:"S20",m:""},
-"21_0_0":{a:"S7 S7 S7",m:""},
-"22_0_0":{a:"S11 S11",m:""},
-"23_0_0":{a:"S6 S17",m:""},
-"24_0_0":{a:"D12",m:""},
-"25_0_0":{a:"S20 S5",m:""},
-"26_0_0":{a:"S13 S13",m:""},
-"27_0_0":{a:"S9 S9 S9",m:""},
-"28_0_0":{a:"S14 S14",m:""},
-"29_0_0":{a:"S20 S9",m:""},
-"3_0_0":{a:"S3",m:""},
-"30_0_0":{a:"S15 S15",m:""},
-"31_0_0":{a:"S20 S11",m:""},
-"32_0_0":{a:"D16",m:""},
-"33_0_0":{a:"S20 S13",m:""},
-"34_0_0":{a:"S17 S17",m:""},
-"35_0_0":{a:"S19 S16",m:"3や7に入っても上がれる数字　15狙いで10や2に入るとちょっと難しい数字か上がれない数字が残る"},
-"36_0_0":{a:"S18 S18",m:""},
-"360_0_0":{a:"T20 T20 T20",m:"次のトンパチへ繋ぐ"},
-"37_0_0":{a:"S20 S17",m:""},
-"38_0_0":{a:"S19 S19",m:""},
-"39_0_0":{a:"S13 S13 S13",m:""},
-"4_0_0":{a:"S4",m:""},
-"40_0_0":{a:"S20 S20",m:""},
-"41_0_0":{a:"S20 S20 S1",m:""},
-"42_0_0":{a:"S14 S14 S14",m:""},
-"43_0_0":{a:"S20 S20 S3",m:""},
-"44_0_0":{a:"S20 S20 S4",m:""},
-"45_0_0":{a:"S15 S15 S15",m:""},
-"46_0_0":{a:"S20 S20 S6",m:""},
-"47_0_0":{a:"S20 S20 S7",m:""},
-"48_0_0":{a:"S20 S20 S8",m:""},
-"49_0_0":{a:"S20 S20 S9",m:""},
-"5_0_0":{a:"S5",m:""},
-"50_0_0":{a:"Bull",m:""},
-"51_0_0":{a:"S17 S17 S17",m:""},
-"52_0_0":{a:"Bull S2",m:""},
-"53_0_0":{a:"Bull S3",m:""},
-"54_0_0":{a:"S18 S18 S18",m:""},
-"55_0_0":{a:"Bull S5",m:""},
-"56_0_0":{a:"Bull S6",m:""},
-"57_0_0":{a:"S19 S19 S19",m:""},
-"58_0_0":{a:"Bull S8",m:""},
-"59_0_0":{a:"Bull S9",m:""},
-"6_0_0":{a:"S6",m:""},
-"60_0_0":{a:"S10 Bull",m:"残り2本ならこれ！6、10、15のシングル、ダブル、トリプルどこに入ってもテンパイが残る"},
-"61_0_0":{a:"Bull S11",m:""},
-"62_0_0":{a:"Bull S12",m:""},
-"63_0_0":{a:"Bull S13",m:""},
-"64_0_0":{a:"Bull S14",m:""},
-"65_0_0":{a:"Bull S15",m:""},
-"66_0_0":{a:"Bull S16",m:""},
-"67_0_0":{a:"Bull S17",m:""},
-"68_0_0":{a:"Bull S18",m:""},
-"69_0_0":{a:"Bull S19",m:""},
-"7_0_0":{a:"S7",m:""},
-"70_0_0":{a:"Bull S20",m:""},
-"71_0_0":{a:"T17 S20",m:"一投目シングルなら54残"},
-"72_0_0":{a:"Bull S11 S11",m:""},
-"73_0_0":{a:"T19 S8 S8",m:""},
-"74_0_0":{a:"Bull S12 S12",m:""},
-"75_0_0":{a:"T17 S12 S12",m:""},
-"76_0_0":{a:"T19 S19",m:"19を4本"},
-"77_0_0":{a:"T20 S17",m:"一投目シングルなら57残"},
-"78_0_0":{a:"Bull S14 S14",m:""},
-"79_0_0":{a:"T19 S11 S11",m:""},
-"8_0_0":{a:"S8",m:""},
-"80_0_0":{a:"Bull S15 S15",m:""},
-"81_0_0":{a:"T15 D18",m:"ヒューゴがアレンジしてた"},
-"82_0_0":{a:"Bull S16 S16",m:""},
-"83_0_0":{a:"T20 S10 S13",m:""},
-"84_0_0":{a:"Bull S17 S17",m:""},
-"85_0_0":{a:"T19 S14 S14",m:""},
-"86_0_0":{a:"Bull S18 S18",m:""},
-"87_0_0":{a:"T17 S18 S18",m:""},
-"88_0_0":{a:"Bull S19 S19",m:""},
-"89_0_0":{a:"T19 S16 S16",m:""},
-"9_0_0":{a:"S9",m:""},
-"90_0_0":{a:"Bull S20 S20",m:""},
-"91_0_0":{a:"Bull T10 S11",m:""},
-"92_0_0":{a:"Bull T10 S12",m:""},
-"93_0_0":{a:"Bull T10 S13",m:""},
-"94_0_0":{a:"Bull T10 S14",m:""},
-"95_0_0":{a:"Bull T10 S15",m:""},
-"96_0_0":{a:"Bull T10 S16",m:""},
-"97_0_0":{a:"T19 S20 S20",m:""},
-"98_0_0":{a:"Bull T10 S18",m:""},
-"99_0_0":{a:"T20 S20 S19",m:""},
-"10_0_1":{a:"D5",m:""},
-"100_0_1":{a:"T20 D20",m:""},
-"11_0_1":{a:"T1 D4",m:""},
-"110_0_1":{a:"Bull S20 D20",m:""},
-"117_0_1":{a:"T20 S17 D20",m:"一投目がS20の場合でもT19でD20が残せる"},
-"118_0_1":{a:"T20 S18 D20",m:""},
-"12_0_1":{a:"D6",m:""},
-"122_0_1":{a:"Bull Bull D11",m:""},
-"123_0_1":{a:"T19 Bull D8",m:""},
-"13_0_1":{a:"T1 D5",m:""},
-"14_0_1":{a:"D7",m:""},
-"143_0_1":{a:"Bull T19 D18",m:""},
-"16_0_1":{a:"D8",m:""},
-"17_0_1":{a:"T3 D4",m:""},
-"170_0_1":{a:"T20 T20 Bull",m:""},
-"173_0_1":{a:"T19 T19 S19",m:""},
-"18_0_1":{a:"D9",m:""},
-"19_0_1":{a:"T3 D5",m:""},
-"2_0_1":{a:"D1",m:""},
-"20_0_1":{a:"D10",m:""},
-"22_0_1":{a:"D11",m:""},
-"23_0_1":{a:"T7 D1",m:""},
-"24_0_1":{a:"D12",m:""},
-"25_0_1":{a:"T5 D5",m:""},
-"26_0_1":{a:"D13",m:""},
-"28_0_1":{a:"D14",m:""},
-"29_0_1":{a:"T7 D4",m:""},
-"3_0_1":{a:"S1 D1",m:""},
-"30_0_1":{a:"D15",m:""},
-"309_0_1":{a:"T19 Bull T20",m:""},
-"31_0_1":{a:"T7 D5",m:""},
-"32_0_1":{a:"D16",m:""},
-"34_0_1":{a:"D17",m:""},
-"35_0_1":{a:"T9 D4",m:""},
-"36_0_1":{a:"D18",m:""},
-"37_0_1":{a:"T9 D5",m:""},
-"38_0_1":{a:"D19",m:""},
-"4_0_1":{a:"D2",m:""},
-"40_0_1":{a:"S8 D16",m:"よく投げる32に合わせて"},
-"41_0_1":{a:"T9 D7",m:""},
-"43_0_1":{a:"T11 D5",m:""},
-"44_0_1":{a:"T12 D4",m:""},
-"46_0_1":{a:"T10 D8",m:""},
-"47_0_1":{a:"T11 D7",m:""},
-"49_0_1":{a:"T11 D8",m:""},
-"5_0_1":{a:"S1 D2",m:""},
-"50_0_1":{a:"Bull",m:""},
-"52_0_1":{a:"Bull D1",m:""},
-"53_0_1":{a:"T13 D7",m:""},
-"55_0_1":{a:"S15 D20",m:""},
-"56_0_1":{a:"Bull D3",m:""},
-"58_0_1":{a:"Bull D4",m:""},
-"59_0_1":{a:"T13 D10",m:""},
-"6_0_1":{a:"D3",m:""},
-"61_0_1":{a:"T15 D8",m:""},
-"62_0_1":{a:"Bull D6",m:""},
-"63_0_1":{a:"T13 D12",m:""},
-"64_0_1":{a:"Bull D7",m:""},
-"65_0_1":{a:"T15 D10",m:""},
-"66_0_1":{a:"Bull D8",m:""},
-"67_0_1":{a:"T17 D8",m:""},
-"68_0_1":{a:"Bull D9",m:""},
-"69_0_1":{a:"T19 D6",m:""},
-"7_0_1":{a:"T1 D2",m:""},
-"70_0_1":{a:"Bull D10",m:""},
-"71_0_1":{a:"T17 D10",m:""},
-"72_0_1":{a:"T12 D18",m:""},
-"73_0_1":{a:"T19 D8",m:""},
-"74_0_1":{a:"Bull D12",m:""},
-"75_0_1":{a:"T17 D12",m:""},
-"76_0_1":{a:"Bull D13",m:""},
-"77_0_1":{a:"T19 D10",m:""},
-"78_0_1":{a:"Bull D14",m:""},
-"79_0_1":{a:"T19 D11",m:""},
-"8_0_1":{a:"D4",m:""},
-"80_0_1":{a:"Bull D15",m:""},
-"81_0_1":{a:"T15 D18",m:"オモロイ"},
-"82_0_1":{a:"Bull D16",m:""},
-"83_0_1":{a:"T17 D16",m:""},
-"84_0_1":{a:"Bull D17",m:""},
-"85_0_1":{a:"T15 D20",m:""},
-"86_0_1":{a:"Bull D18",m:""},
-"87_0_1":{a:"T17 D18",m:""},
-"88_0_1":{a:"Bull D19",m:""},
-"89_0_1":{a:"T19 D16",m:"57-32で32アレンジ"},
-"9_0_1":{a:"T1 D3",m:""},
-"90_0_1":{a:"Bull D20",m:""},
-"91_0_1":{a:"T17 D20",m:""},
-"92_0_1":{a:"T20 D16",m:""},
-"93_0_1":{a:"T19 D18",m:""},
-"94_0_1":{a:"T18 D20",m:""},
-"95_0_1":{a:"T19 D19",m:""},
-"96_0_1":{a:"T20 D18",m:""},
-"97_0_1":{a:"T19 D20",m:""},
-"98_0_1":{a:"T20 D19",m:""},
-"99_0_1":{a:"T19 S10 D16",m:""},
-"10_0_2":{a:"D5",m:""},
-"100_0_2":{a:"Bull Bull",m:""},
-"101_0_2":{a:"Bull T17",m:""},
-"102_0_2":{a:"T17 T17",m:"外してもリカバリーが効くアレンジ"},
-"103_0_2":{a:"Bull S3 Bull",m:""},
-"104_0_2":{a:"Bull T18",m:""},
-"105_0_2":{a:"T19 T16",m:"19シングルなら→50→18ダブル"},
-"106_0_2":{a:"Bull S6 Bull",m:""},
-"107_0_2":{a:"Bull T19",m:""},
-"108_0_2":{a:"Bull S8 Bull",m:""},
-"109_0_2":{a:"Bull S9 Bull",m:""},
-"11_0_2":{a:"S3 D4",m:""},
-"110_0_2":{a:"Bull T20",m:"T20外してもD20でトライ出来るのが好き"},
-"111_0_2":{a:"Bull S11 Bull",m:""},
-"112_0_2":{a:"Bull S12 Bull",m:""},
-"113_0_2":{a:"Bull S13 Bull",m:""},
-"114_0_2":{a:"Bull S14 Bull",m:""},
-"115_0_2":{a:"Bull S15 Bull",m:""},
-"116_0_2":{a:"Bull S16 Bull",m:""},
-"117_0_2":{a:"T19 T20",m:"1投目外してもリカバリーが効くアレンジ"},
-"118_0_2":{a:"T20 S18 D20",m:"20-60-38\n1-57-20 40残\n5-60-12 40残\n3-60-14 40残\n15-60-11 32残"},
-"119_0_2":{a:"Bull S19 Bull",m:""},
-"12_0_2":{a:"D6",m:""},
-"120_0_2":{a:"T20 T20",m:""},
-"121_0_2":{a:"T17 S20 Bull",m:"17シングルの場合はブル、54"},
-"122_0_2":{a:"T18 S18 Bull",m:"1本目　2本目どちらかかがトリプル入れば50残りになる　　オープンアウトならブルからが有効"},
-"123_0_2":{a:"T20 T20 T1",m:"真澄チャレンジ"},
-"124_0_2":{a:"Bull Bull D12",m:""},
-"125_0_2":{a:"T15 T16 D16",m:"T15外しても、T20でトライ出来るし、2投目のT20を外してもD20やBULLでリカバリー出来る"},
-"126_0_2":{a:"Bull Bull D13",m:""},
-"127_0_2":{a:"T20 S17 Bull",m:""},
-"128_0_2":{a:"Bull Bull D14",m:""},
-"129_0_2":{a:"T19 S12 T20",m:""},
-"13_0_2":{a:"S5 D4",m:""},
-"130_0_2":{a:"T20 S20 Bull",m:"1本目か2本目にトリプル入ればブル行ける、最初にブル行くと2本持ちの80になるので個人的には苦手"},
-"131_0_2":{a:"T17 D15 Bull",m:"シングル１７に外しても114でT19、2本で上がれる"},
-"132_0_2":{a:"T20 T16 D12",m:"1投目外してもS12→BULLでリカバリーできるし、2投目に外してもS16→40残、S6→BULL残に出来るから使いやすい"},
-"133_0_2":{a:"T19 S19 T19",m:"シングル外れてもそのまま57"},
-"134_0_2":{a:"Bull Bull D17",m:""},
-"135_0_2":{a:"T15 Bull D20",m:"シングルに外れたら60→60"},
-"136_0_2":{a:"Bull Bull D18",m:""},
-"137_0_2":{a:"T17 Bull D18",m:"シングルに外れたら60→60"},
-"138_0_2":{a:"Bull Bull D19",m:""},
-"139_0_2":{a:"T19 Bull D16",m:"シングルに外れたら60→60"},
-"14_0_2":{a:"D7",m:""},
-"140_0_2":{a:"Bull Bull D20",m:""},
-"141_0_2":{a:"T20 T17 D15",m:""},
-"142_0_2":{a:"Bull Bull T14",m:""},
-"143_0_2":{a:"Bull T19 D18",m:""},
-"144_0_2":{a:"Bull T18 D20",m:""},
-"145_0_2":{a:"Bull Bull T15",m:""},
-"146_0_2":{a:"Bull T16 T16",m:""},
-"147_0_2":{a:"Bull T19 D20",m:""},
-"148_0_2":{a:"Bull Bull T16",m:""},
-"149_0_2":{a:"Bull T17 T16",m:""},
-"15_0_2":{a:"T5",m:""},
-"150_0_2":{a:"Bull Bull Bull",m:""},
-"151_0_2":{a:"Bull Bull T17",m:""},
-"152_0_2":{a:"Bull T20 T14",m:""},
-"153_0_2":{a:"T20 T19 D18",m:""},
-"154_0_2":{a:"Bull Bull T18",m:""},
-"155_0_2":{a:"Bull T19 T16",m:""},
-"156_0_2":{a:"T20 T20 D18",m:""},
-"157_0_2":{a:"Bull Bull T19",m:""},
-"158_0_2":{a:"Bull T18 T18",m:""},
-"159_0_2":{a:"T20 T17 T16",m:""},
-"16_0_2":{a:"D8",m:""},
-"160_0_2":{a:"Bull Bull T20",m:""},
-"161_0_2":{a:"T17 T20 Bull",m:""},
-"162_0_2":{a:"T14 T20 T20",m:"1本目外したら148 2本目以降ブル"},
-"164_0_2":{a:"Bull T19 T19",m:""},
-"165_0_2":{a:"T15 T20 T20",m:""},
-"167_0_2":{a:"T19 Bull T20",m:"下から上"},
-"168_0_2":{a:"T19 T19 T18",m:""},
-"17_0_2":{a:"S9 D4",m:""},
-"170_0_2":{a:"T20 T20 Bull",m:"T20を決めた"},
-"171_0_2":{a:"T19 T19 T19",m:"オシャレあがり！😎"},
-"174_0_2":{a:"T20 T20 T18",m:"T20を狙う方がなれてるはず"},
-"177_0_2":{a:"T20 T20 T19",m:"これしかない"},
-"179_0_2":{a:"Bull T20 S19",m:""},
-"18_0_2":{a:"D9",m:""},
-"180_0_2":{a:"T20 T20 T20",m:"頑張ってトンパチ"},
-"19_0_2":{a:"S3 D8",m:""},
-"2_0_2":{a:"D1",m:""},
-"20_0_2":{a:"D10",m:""},
-"21_0_2":{a:"T7",m:""},
-"22_0_2":{a:"S6 D8",m:"S10に入ったら残り12"},
-"23_0_2":{a:"S7 D8",m:""},
-"234_0_2":{a:"T20",m:""},
-"237_0_2":{a:"T20",m:""},
-"24_0_2":{a:"D12",m:""},
-"240_0_2":{a:"T20",m:""},
-"25_0_2":{a:"S9 D8",m:""},
-"26_0_2":{a:"D13",m:""},
-"27_0_2":{a:"T9",m:""},
-"28_0_2":{a:"D14",m:""},
-"29_0_2":{a:"S13 D8",m:""},
-"3_0_2":{a:"S1 D1",m:"シングルに外れてもそのままD1"},
-"30_0_2":{a:"D15",m:""},
-"31_0_2":{a:"S15 D8",m:""},
-"32_0_2":{a:"D16",m:"シングルでも16残りでD8。ダブルだからマスターでもダブルアウトでもOK。便利。"},
-"321_0_2":{a:"T20 T20 T20",m:"ひたすらT20狙い！"},
-"33_0_2":{a:"S1 D16",m:""},
-"34_0_2":{a:"D17",m:""},
-"35_0_2":{a:"S3 D16",m:""},
-"36_0_2":{a:"D18",m:"S4に外れたらD16"},
-"361_0_2":{a:"T20",m:"180"},
-"37_0_2":{a:"S5 D16",m:""},
-"38_0_2":{a:"D19",m:""},
-"39_0_2":{a:"T13",m:""},
-"4_0_2":{a:"D2",m:""},
-"40_0_2":{a:"D20",m:""},
-"41_0_2":{a:"S9 D16",m:""},
-"42_0_2":{a:"T14",m:""},
-"43_0_2":{a:"S11 D16",m:""},
-"44_0_2":{a:"S12 D16",m:""},
-"45_0_2":{a:"T15",m:""},
-"46_0_2":{a:"S10 D18",m:"S6に外れたらD20"},
-"47_0_2":{a:"S15 D16",m:""},
-"48_0_2":{a:"T16",m:""},
-"49_0_2":{a:"S17 D16",m:""},
-"5_0_2":{a:"D1 T1",m:"1しか狙えないマン"},
-"50_0_2":{a:"Bull",m:""},
-"501_0_2":{a:"T20 T20 T20",m:"ひたすらT20狙い！"},
-"51_0_2":{a:"T17",m:""},
-"52_0_2":{a:"S20 D16",m:""},
-"53_0_2":{a:"S3 Bull",m:""},
-"54_0_2":{a:"T18",m:""},
-"55_0_2":{a:"S5 Bull",m:""},
-"56_0_2":{a:"S6 Bull",m:""},
-"57_0_2":{a:"T19",m:""},
-"58_0_2":{a:"S8 Bull",m:""},
-"59_0_2":{a:"T9 D16",m:"外れてもS9→BULL"},
-"6_0_2":{a:"T2",m:"下のダブル難しい"},
-"60_0_2":{a:"T20",m:""},
-"61_0_2":{a:"S11 Bull",m:""},
-"62_0_2":{a:"S12 Bull",m:""},
-"63_0_2":{a:"S13 Bull",m:""},
-"64_0_2":{a:"S14 Bull",m:""},
-"65_0_2":{a:"S15 Bull",m:""},
-"66_0_2":{a:"S16 Bull",m:""},
-"67_0_2":{a:"S17 Bull",m:"トリプル寄り。トリプルで16。3シングルで64"},
-"68_0_2":{a:"S18 Bull",m:"ダブル寄り。ダブルで32"},
-"69_0_2":{a:"S19 Bull",m:""},
-"7_0_2":{a:"S3 D2",m:""},
-"70_0_2":{a:"S20 Bull",m:""},
-"71_0_2":{a:"T17 D10",m:"S17→54"},
-"72_0_2":{a:"T12 D18",m:"S12→T20"},
-"73_0_2":{a:"T19 D8",m:"S19→54"},
-"74_0_2":{a:"T14 D16",m:"42→32　14シングル入っても60残りなのが良い"},
-"76_0_2":{a:"T16 D14",m:"S16-T20"},
-"77_0_2":{a:"T15 D16",m:"S15-S12-Bull"},
-"78_0_2":{a:"Bull D14",m:""},
-"79_0_2":{a:"T13 D20",m:"S13→66"},
-"8_0_2":{a:"D4",m:""},
-"80_0_2":{a:"D20 D20",m:"1本目にトリプル入ると10Dになるのであまり好きではないトリプルダブルより　ダブルダブルの方が成功確率が高いはず、1本目にシングル入ったら2本目はトリプル狙ってシングル入ったらダブル、20で完結させたほうが良いかと思われる"},
-"81_0_2":{a:"T19 D12",m:""},
-"82_0_2":{a:"Bull D16",m:""},
-"83_0_2":{a:"T17 D16",m:"S17-S16-Bull"},
-"84_0_2":{a:"T20 D12",m:"S20-S14-Bull"},
-"85_0_2":{a:"T15 D20",m:"S15-S20-Bull"},
-"86_0_2":{a:"Bull D18",m:""},
-"87_0_2":{a:"T17 D18",m:"S17-S20-Bull"},
-"88_0_2":{a:"D19 Bull",m:"マスターアウトの場合はブル→19Dねらって、19残りになるのをさける為、先に19ダブルを狙う、シングル入ったらもう1本19行ってブル、そもそも上がるにはブルに入れるのがマストなので最後ブルに持って行っても確率は変わらないし、何より決めた時カッコいい"},
-"89_0_2":{a:"T19 D16",m:""},
-"9_0_2":{a:"T3",m:""},
-"90_0_2":{a:"Bull D20",m:""},
-"91_0_2":{a:"T17 D20",m:""},
-"92_0_2":{a:"Bull T14",m:""},
-"93_0_2":{a:"T17 T14",m:""},
-"94_0_2":{a:"T18 D20",m:""},
-"95_0_2":{a:"Bull T15",m:""},
-"96_0_2":{a:"T20 D18",m:""},
-"97_0_2":{a:"T19 D20",m:""},
-"98_0_2":{a:"Bull T16",m:""},
-"99_0_2":{a:"T16 T17",m:""},
-"10_1_1":{a:"D5",m:""},
-"100_1_1":{a:"T20 D20",m:"s20→t20→d10                                            s20→s20→s20 40残"},
-"101_1_1":{a:"T19 S4 D20",m:"S19(82)→T14(40) 残り1投で101残りの場合はアウターブルに入れて76残りとする(80以下はシングル2本以内でダブルが打てる数字)"},
-"102_1_1":{a:"T18 S8 D20",m:"S18(84)→20T(24) 残り1投で102残りの場合はアウターブルに入れて77残りとする(80以下はシングル2本以内でダブルが打てる数字)"},
-"103_1_1":{a:"T19 S6 D20",m:"S19(84)→T20(24) 残り1投で103残りの場合はアウターブルに入れて78残りとする(80以下はシングル2本以内でダブルが打てる数字)"},
-"104_1_1":{a:"T19 S19 D14",m:"19狙いでS7に外しても次でT19ならD20残　S3に外しでもT17→DBの目が残る"},
-"105_1_1":{a:"S19 T18 D16",m:"最後に「32」を残したいなら、このアレンジです。"},
-"106_1_1":{a:"T20 S6 D20",m:""},
-"107_1_1":{a:"T20 S7 D20",m:""},
-"108_1_1":{a:"T19 S19 D16",m:"17を4本入れてトップ"},
-"109_1_1":{a:"T20 S9 D20",m:""},
-"11_1_1":{a:"S3 D4",m:""},
-"110_1_1":{a:"T19 S17 D18",m:"オシャレアウト😎詳細は菊山動画にて"},
-"111_1_1":{a:"T20 S11 D20",m:""},
-"112_1_1":{a:"T18 S18 D20",m:"18を4本入れてトップ"},
-"113_1_1":{a:"T20 S13 D20",m:""},
-"114_1_1":{a:"T19 S17 D20",m:""},
-"115_1_1":{a:"T20 S15 D20",m:""},
-"116_1_1":{a:"T19 S19 D20",m:"19を4本入れてトップ"},
-"117_1_1":{a:"T20 S17 D20",m:"20s→19t→20d"},
-"118_1_1":{a:"T20 S18 D20",m:"18からだと54のときにもう1本トリプルかブルが必要"},
-"119_1_1":{a:"T19 T12 D13",m:""},
-"12_1_1":{a:"D6",m:""},
-"120_1_1":{a:"T20 S20 D20",m:""},
-"121_1_1":{a:"Outer Bull T20 D18",m:"D-Bull(71)→T13(32)→D16"},
-"122_1_1":{a:"Outer Bull T19 D20",m:"ブル以外から投げるメリットがわからない　50→48→24"},
-"123_1_1":{a:"T19 T16 D9",m:"S19でも104残り"},
-"124_1_1":{a:"T20 T14 D11",m:""},
-"125_1_1":{a:"Inner Bull T17 D12",m:"25でも100残り"},
-"126_1_1":{a:"T19 T19 D6",m:"シングル外してもインナーチャレンジ残るから"},
-"127_1_1":{a:"T20 T17 D8",m:""},
-"128_1_1":{a:"T18 T18 D10",m:"S18(110)→T20(50)"},
-"129_1_1":{a:"T19 T16 D12",m:"S19(110)→T20(50)"},
-"13_1_1":{a:"S5 D4",m:""},
-"130_1_1":{a:"T20 T20 D5",m:""},
-"131_1_1":{a:"T19 T14 D16",m:"S19→T20(S20)→S12(T20)→40(32)残り"},
-"132_1_1":{a:"Inner Bull Inner Bull D16",m:"SB(107)→T19(50)"},
-"133_1_1":{a:"T19 D19 D19",m:"憧れる"},
-"134_1_1":{a:"T19 T19 D10",m:"S19(115)→SB(90)→DB(40) SB(65)"},
-"135_1_1":{a:"DB T15 D20",m:""},
-"136_1_1":{a:"T16 T16 D20",m:"トップを残したい"},
-"137_1_1":{a:"T19 T16 D16",m:""},
-"138_1_1":{a:"T19 T19 D12",m:"S19(119)→S19(100)→T20(40)"},
-"139_1_1":{a:"T19 T14 D20",m:""},
-"14_1_1":{a:"D7",m:""},
-"140_1_1":{a:"T20 T20 D10",m:""},
-"141_1_1":{a:"T16 T19 D18",m:"16S→S-B(D-B)→20T(17T)→40(24)残り"},
-"142_1_1":{a:"T17 T17 D20",m:"S17(125)→SB(100)→T20(40)"},
-"143_1_1":{a:"T18 T19 D16",m:"SNSで見かけたルート。1本目シングルならSBull→T20で40残り。"},
-"144_1_1":{a:"T18 T18 D18",m:""},
-"145_1_1":{a:"T20 T15 D20",m:""},
-"146_1_1":{a:"T19 T19 D16",m:"32が好きなあなたへ"},
-"147_1_1":{a:"T20 T17 D18",m:""},
-"148_1_1":{a:"T20 T20 D14",m:""},
-"149_1_1":{a:"T19 T20 D16",m:"1投目をシングルに外した場合、S20(129)、S19(130)となるため、S19の方が2投目以降のアレンジがしやすい。"},
-"15_1_1":{a:"S7 D4",m:""},
-"150_1_1":{a:"T19 T19 D18",m:""},
-"151_1_1":{a:"T20 T17 D20",m:""},
-"152_1_1":{a:"T20 T20 D16",m:""},
-"153_1_1":{a:"T20 T19 D18",m:""},
-"154_1_1":{a:"T20 T18 D20",m:""},
-"155_1_1":{a:"T20 T19 D19",m:""},
-"156_1_1":{a:"T20 T20 D18",m:""},
-"157_1_1":{a:"T19 T20 D20",m:"あまり上下を交互で打ちたくないので19からいきます!!"},
-"158_1_1":{a:"T18 T18 Inner Bull",m:"同じところを攻めれる。のと、シングル入ったら20Tへ行くというわかりやすさ。"},
-"16_1_1":{a:"D8",m:"シングル入っても4がある"},
-"160_1_1":{a:"T20 T20 D20",m:""},
-"161_1_1":{a:"T20 T17 Inner Bull",m:"1投目に20Sに入ったらそのまま20T→19Tで24残し"},
-"162_1_1":{a:"T20 T20 S10",m:"40アレンジ"},
-"164_1_1":{a:"T19 T19 Bull",m:""},
-"167_1_1":{a:"T19 T20 Inner Bull",m:"20Tからのインナーの方が19Tからのインナーより入る気がします！"},
-"17_1_1":{a:"S1 D8",m:"32、16、8絡みは安定"},
-"170_1_1":{a:"T20 T20 Inner Bull",m:""},
-"173_1_1":{a:"S19 T19 T19",m:"19のセブンマークでトップ残しになる"},
-"179_1_1":{a:"T19 T19 Outer Bull",m:"40残し！笑"},
-"18_1_1":{a:"D9",m:""},
-"180_1_1":{a:"T20 T20 S20",m:""},
-"19_1_1":{a:"S3 D8",m:"8絡みの安心感"},
-"2_1_1":{a:"D1",m:""},
-"20_1_1":{a:"D10",m:""},
-"201_1_1":{a:"T20 T11 D14",m:"第１"},
-"202_1_1":{a:"T18 T18 T18",m:"18ベッドでトップ"},
-"203_1_1":{a:"T19 T19 T19",m:"19ベッドで32残、外したら20に戻っていいかも"},
-"21_1_1":{a:"S17 D2",m:"同方向が楽な人向け"},
-"211_1_1":{a:"T19 T19 T19",m:"19ベッドでトップ"},
-"219_1_1":{a:"S20 S20 S19",m:"3本目を19にいかないと、シングルの場合にノーテンになる"},
-"22_1_1":{a:"D11",m:"にゃんにゃん"},
-"221_1_1":{a:"S20 S20 S20",m:"オール20でオッケー"},
-"222_1_1":{a:"S20 S20 S18",m:"全て20シングルだと残162となり上がり目無し　3本目は18に打って残164とする"},
-"223_1_1":{a:"S20 S20 S19",m:"全て20シングルだと残163となり上がり目無し　3本目は19に打って残164とする"},
-"224_1_1":{a:"S20 S20 S20",m:"オール20でオッケー"},
-"225_1_1":{a:"S20 S20 S18",m:"全て20シングルだと残165となり上がり目無し　3本目は18に打って残167とする"},
-"226_1_1":{a:"S20 S20 S19",m:"全て20シングルだと残166となり上がり目無し　3本目は19に打って残167とする"},
-"227_1_1":{a:"S20 S20 S20",m:"オール20でオッケー"},
-"228_1_1":{a:"S20 S20 S18",m:"全て20シングルだと残168となり上がり目無し　3本目は18に打って残170とする"},
-"229_1_1":{a:"S20 S20 S19",m:"全て20シングルだと残169となり上がり目無し　3本目は19に打って残170とする"},
-"23_1_1":{a:"S7 D8",m:"16アレンジ"},
-"230_1_1":{a:"S20 S20 S20",m:"オール20でオッケー"},
-"231_1_1":{a:"S20 S19",m:"オール20シングルだと上がり目無し"},
-"232_1_1":{a:"S20 S20 Outer Bull",m:"S20→S20→SB(167) 全てシングルナンバーで上がり目を出せる"},
-"233_1_1":{a:"S19 S19 Outer Bull",m:"S19→S19→SB(170) 全てシングルナンバーで上がり目を出せる"},
-"234_1_1":{a:"S20 S19 Outer Bull",m:"S20→S19→SB(170) 全てシングルナンバーで上がり目を出せる"},
-"235_1_1":{a:"S20 S20 Outer Bull",m:"S20→S20→SB(170) 全てシングルナンバーで上がり目を出せる"},
-"24_1_1":{a:"D12",m:""},
-"25_1_1":{a:"S9 D8",m:"16アレンジ"},
-"259_1_1":{a:"S19 S19 T19",m:"オール20で5本入れても残159となり上がり目無し　オール19で5本入れれば上がり目が出る"},
-"26_1_1":{a:"D13",m:""},
-"261_1_1":{a:"T20 S20 S20",m:"オール20で5本入れて上がり目が出る"},
-"262_1_1":{a:"S20 S18 T18",m:"1投目S20の場合、残り2投で18の4マーク。T20の場合は、S20(T20)→S18(T20)でOK。"},
-"263_1_1":{a:"S19 T19 S20",m:"オール20で5本入れても残163となり上がり目無し"},
-"264_1_1":{a:"T20 S20 S20",m:"オール20で5本入れれば上がり目が出る"},
-"265_1_1":{a:"S19 S19 T19",m:"オール20で5本入れても残165となり上がり目無し　オール19で5本入れば上がり目が出る"},
-"266_1_1":{a:"S19 T19 S20",m:"オール20で5本入れても残166となり上がり目無し"},
-"267_1_1":{a:"T20 S20 S20",m:"オール20で5本入れれば上がり目が出る"},
-"268_1_1":{a:"S19 T19 Outer Bull",m:"S19→T19→SBで上がり目を出せる　オール20で5本入れても残168となり上がり目無し"},
-"269_1_1":{a:"S19 S20 T20",m:"T19→S20→SB(167)でも良い　オール20で5本入れても上がり目無し"},
-"27_1_1":{a:"S11 D8",m:"16アレンジが好き"},
-"270_1_1":{a:"T20 S20 S20",m:""},
-"271_1_1":{a:"S19 T19 Outer Bull",m:"19を4本からのアウターで上がり目が出る　オール20で5本入れても上がり目無し"},
-"272_1_1":{a:"S20 T20 Outer Bull",m:"20を4本からのアウターで上がり目が出せる"},
-"273_1_1":{a:"T20 S18 Outer Bull",m:"一本目にT20を入れられれば、S18→アウターで上がり目出せる　一本目の刺さり方によってはスタッキングで180狙いもアリ"},
-"274_1_1":{a:"T20 S19 Bull",m:"一本目にT20が入れば、S19→アウターで省エネテンパイ"},
-"275_1_1":{a:"T20 S20 Outer Bull",m:"一本目にT20が入れば、S20→アウターで省エネテンパイ"},
-"28_1_1":{a:"D14",m:""},
-"29_1_1":{a:"S13 D8",m:"16アレンジ"},
-"291_1_1":{a:"T19 T19 T19",m:"これが出来たら完璧。脳汁ブシャー"},
-"294_1_1":{a:"S20 T20 T20",m:""},
-"295_1_1":{a:"S20 T20 T18",m:""},
-"296_1_1":{a:"S19 T19 T20",m:""},
-"297_1_1":{a:"S20 T20 T19",m:""},
-"298_1_1":{a:"S20 T20 T17",m:""},
-"299_1_1":{a:"S19 T20 T20",m:""},
-"3_1_1":{a:"S1 D1",m:""},
-"30_1_1":{a:"D15",m:""},
-"300_1_1":{a:"S20 T20 T20",m:""},
-"301_1_1":{a:"S20 T20 T20",m:"1本目は20から"},
-"302_1_1":{a:"T18 T18 T18",m:"スティールで1投目T18に入った場合、打ち替えずスタッキングでベットを狙うのがベスト"},
-"303_1_1":{a:"T19 T19 T19",m:""},
-"304_1_1":{a:"T20 T20 T20",m:""},
-"305_1_1":{a:"T20 T20 Outer Bull",m:"とりあず削るを優先　上手いこと60に2本入れば3本目はブルへ　18から行くのは定番"},
-"306_1_1":{a:"S19 T20 T20",m:"一投目T入ればそのままT19からのブル二本目SならT20へ"},
-"307_1_1":{a:"S20 T20 T20",m:""},
-"308_1_1":{a:"T18 T18 T18",m:""},
-"309_1_1":{a:"T19 T19 T19",m:""},
-"31_1_1":{a:"S3 D14",m:"17s→7d 19s→6d"},
-"32_1_1":{a:"D16",m:"7にだけは入れてはいけない。"},
-"321_1_1":{a:"T20 T20 T20",m:"ここも180で！"},
-"33_1_1":{a:"S17 D8",m:"16アレンジ"},
-"34_1_1":{a:"D17",m:""},
-"349_1_1":{a:"T19 T19 Outer Bull",m:"210残し"},
-"35_1_1":{a:"S3 D16",m:"16アレンジ　左右にズレてもS19→D16　S17→D9と上がり目が出る"},
-"350_1_1":{a:"T20 T20 T20",m:""},
-"36_1_1":{a:"D18",m:""},
-"37_1_1":{a:"S5 D16",m:""},
-"38_1_1":{a:"D19",m:""},
-"39_1_1":{a:"S7 D16",m:"32アレンジ"},
-"4_1_1":{a:"D2",m:""},
-"40_1_1":{a:"D20",m:""},
-"41_1_1":{a:"S17 D12",m:""},
-"42_1_1":{a:"S10 D16",m:""},
-"43_1_1":{a:"S3 D20",m:"S3とS19の間に投げればどちらに入ってもダブルが出る。S19の場合はD12残"},
-"44_1_1":{a:"S4 D20",m:""},
-"446_1_1":{a:"S19",m:""},
-"45_1_1":{a:"S13 D16",m:""},
-"46_1_1":{a:"S6 D20",m:"6と10のシングルを広く狙う。トリプル・ダブルのいずれかに入っても上がり目がある。"},
-"47_1_1":{a:"S7 D20",m:""},
-"479_1_1":{a:"S19 T20 T20",m:"1本目にS20だとその後60-60でも339残で次180でも159残で上がり目なし。7マーク相当の点数なら139点がベスト"},
-"48_1_1":{a:"S16 D16",m:""},
-"49_1_1":{a:"S9 D20",m:""},
-"5_1_1":{a:"S1 D2",m:""},
-"50_1_1":{a:"Bull",m:"カッコつけたいので…笑😎"},
-"501_1_1":{a:"T20 T20 T20",m:"頑張って入れる！"},
-"51_1_1":{a:"S11 D20",m:""},
-"52_1_1":{a:"S12 D20",m:""},
-"53_1_1":{a:"S13 D20",m:""},
-"54_1_1":{a:"S14 D20",m:""},
-"55_1_1":{a:"S15 D20",m:"t15→d5"},
-"56_1_1":{a:"S16 D20",m:"t16→d4"},
-"57_1_1":{a:"S17 D20",m:""},
-"58_1_1":{a:"S18 D20",m:""},
-"59_1_1":{a:"S19 D20",m:""},
-"6_1_1":{a:"D3",m:"スプリットするより多くダブル投げられるから。"},
-"60_1_1":{a:"S20 D20",m:""},
-"61_1_1":{a:"T11 D14",m:"S11→bull"},
-"62_1_1":{a:"T18 D4",m:"S18(44)→S4(40)S8(36)S12(32)"},
-"63_1_1":{a:"T17 D6",m:"S17(46)→S6(40)S10(36)S14(32)"},
-"64_1_1":{a:"T16 D8",m:"S16(48)→S8(40)S12(36)S16(32)[8と16が隣りあうエリアなので、シングルを広く狙いやすい]"},
-"65_1_1":{a:"T19 D4",m:"S19(46)→S6(40)S10(36)S14(32) [6と10が隣り合うエリアなので、広くシングルが狙いやすい]"},
-"66_1_1":{a:"T14 D12",m:"S14(52)→S12(40)   残り2投なら16T→9D"},
-"67_1_1":{a:"T9 D20",m:"S9(58)→S18(40)   残り2投なら17T→8D"},
-"68_1_1":{a:"T12 D16",m:"S12→S16→D20"},
-"69_1_1":{a:"T15 D12",m:"残り2投なら19から"},
-"7_1_1":{a:"S3 D2",m:""},
-"70_1_1":{a:"T10 D20",m:"残り2投なら20から"},
-"71_1_1":{a:"T13 D16",m:"S13(58)→S18(40)→D20"},
-"72_1_1":{a:"T16 D12",m:"S16(56)→S16(40)"},
-"73_1_1":{a:"T19 D8",m:"S19で54残"},
-"74_1_1":{a:"T18 D10",m:"シングル18に入った時はシングル20で36、シングル16で40が残る。32作りたい人以外はこちらがオススメ。D20打ちたいのにS20に刺さったダーツが邪魔！という事態を回避できるのがミソ"},
-"75_1_1":{a:"T17 D12",m:"2投持ちならSB→DB"},
-"76_1_1":{a:"T20 D8",m:"s20→s16→d20                                            s20→t16→d4"},
-"77_1_1":{a:"T15 D16",m:"相手がテンパイでない時に限ります。"},
-"78_1_1":{a:"D19 D20",m:"S19(59)→S19(40)"},
-"79_1_1":{a:"T13 D20",m:"相手がテンパイでない時に限ります。"},
-"8_1_1":{a:"D4",m:""},
-"80_1_1":{a:"T16 D16",m:"相手に上り目なく余裕ある時かな。トップ入りにくいと思った日はアリ程度で選択。"},
-"81_1_1":{a:"T19 D12",m:"リカバリー：S19(62)→T10(32)→D16など"},
-"82_1_1":{a:"Bull D16",m:"インナートライしてアウターでも25 > 57"},
-"83_1_1":{a:"Outer Bull S18 D20",m:"インナー入ってもシングル挟んでいける"},
-"84_1_1":{a:"T20 D12",m:"1投目に20Sに入ったら16Tか8T狙いで16か40残しで上がりを狙う"},
-"85_1_1":{a:"Outer Bull S20 D20",m:"81〜85まではS-Bに入れれば3本目にD20のチャンスが残ります。"},
-"86_1_1":{a:"T18 D16",m:""},
-"87_1_1":{a:"T17 D18",m:""},
-"88_1_1":{a:"T20 D14",m:""},
-"89_1_1":{a:"T19 D16",m:""},
-"9_1_1":{a:"S1 D4",m:""},
-"90_1_1":{a:"T20 D15",m:"18から行くと1本目でシングルに外した時、次でトリプルかダブルに入れないと3本目はダブルにトライできない。S20→T20→D5orS20→S20→DB"},
-"91_1_1":{a:"T17 D20",m:""},
-"92_1_1":{a:"T20 D16",m:""},
-"93_1_1":{a:"T19 D18",m:"s19→t18→d10                                             s19→s18→t6 28残　s6 40残"},
-"94_1_1":{a:"T18 D20",m:"s18→t20→d8                                               s18→s20→t16 8残　s16で40残"},
-"95_1_1":{a:"Inner Bull S13 D16",m:"ブルから行けばSB→S20(T20)→DB(D5)の目が残る。相手テンパイ等で絶対ダブルトライしたい場合に"},
-"96_1_1":{a:"S20 D19 D19",m:"スティールで1本目の20の刺さり位置＆スタッキングに自信のある場合(PDCでもたまにこのアレンジ出ます)"},
-"97_1_1":{a:"T19 D20",m:""},
-"98_1_1":{a:"T20 D19",m:""},
-"99_1_1":{a:"T19 S10 D16",m:"s19→t20→d10"},
-"10_1_2":{a:"D5",m:""},
-"100_1_2":{a:"DB DB",m:""},
-"101_1_2":{a:"Inner Bull T17",m:""},
-"102_1_2":{a:"T17 T17",m:""},
-"103_1_2":{a:"T19 S14 D16",m:""},
-"104_1_2":{a:"Outer Bull S19 T20",m:""},
-"105_1_2":{a:"Outer Bull S20 T20",m:""},
-"11_1_2":{a:"S3 D4",m:""},
-"110_1_2":{a:"Inner Bull T20",m:"ブルがアウターでも、45-40が残る"},
-"116_1_2":{a:"S19 T19 D20",m:""},
-"118_1_2":{a:"T20 S18 D8",m:"18から狙うと54に入ったとき64残り。14→50かトリプルをもう一本入れなければならない"},
-"12_1_2":{a:"D6",m:""},
-"120_1_2":{a:"Outer Bull S20 Outer Bull",m:""},
-"121_1_2":{a:"T20 S11 Inner Bull",m:"ブルアレンジは難しい"},
-"123_1_2":{a:"T18 S9 T20",m:"JAPAN用S18ならT19-T16"},
-"124_1_2":{a:"T19 S7 T20",m:"JAPAN用S19ならT19-T16"},
-"125_1_2":{a:"Inner Bull S15 T20",m:"JAPAN用アウターならT20-D20"},
-"126_1_2":{a:"T18 S12 T20",m:"JAPAN用S18ならT18-T18。"},
-"127_1_2":{a:"T19 S10 T20",m:"JAPAN用。2本目がT10でもD20。1本目がS19ならT18-T18。"},
-"128_1_2":{a:"T20 S20 T16",m:"JAPAN用。S20ならT18-T18。1本目に刺さった場所次第ではT20-T16も。"},
-"129_1_2":{a:"T19 S12 T20",m:"JAPAN用。S19ならT20-D25"},
-"13_1_2":{a:"T1 D5",m:""},
-"130_1_2":{a:"T10 T20 D20",m:"JAPAN用。S10ならT20-T20。個人的には1本目S20だった場合のT20-D25を避けたい。"},
-"131_1_2":{a:"T20 T17 D10",m:"JAPAN用。S20ならT17-T20"},
-"132_1_2":{a:"T18 S18 T20",m:"JAPAN用。18に4本入れてT20。アウターBULLからだとT19-D25。インナーでも82残り。マスターアウトだとBULLからは美味くない。"},
-"133_1_2":{a:"T19 S16 T20",m:"JAPAN用。S19ならT54-T20。2本目の114をT19-T19行きたくなるがS19だと95残りで美味くない"},
-"135_1_2":{a:"T18 T19 D12",m:"S18-T57-T57"},
-"14_1_2":{a:"D7",m:""},
-"15_1_2":{a:"T5",m:""},
-"156_1_2":{a:"T20 T20 D18",m:""},
-"16_1_2":{a:"D8",m:""},
-"163_0_2":{a:"Bull T19 D12",m:"32残り"},
-"164_1_2":{a:"T20 T18 Inner Bull",m:""},
-"166_0_2":{a:"Bull Bull D17",m:"32残り"},
-"167_1_2":{a:"T20 T19 Inner Bull",m:""},
-"168_1_2":{a:"T20 T20 T16",m:""},
-"169_0_2":{a:"Bull T19 D15",m:"32残り"},
-"17_1_2":{a:"T3 D4",m:""},
-"170_1_2":{a:"T20 T20 Inner Bull",m:""},
-"171_1_2":{a:"T20 T20 T17",m:""},
-"172_0_2":{a:"Bull Bull D20",m:"32残り"},
-"173_0_2":{a:"T19 T16 D18",m:"32残り、19シングルでBull→18Tで50残り、19T、16シングルでBUllで50残り"},
-"174_1_2":{a:"T20 T20 T18",m:""},
-"175_0_2":{a:"Bull T19 D18",m:"32残り、18シングルで50残り"},
-"176_0_2":{a:"T16 T16 T16",m:"32残り、1本目シングルでBull→Bullで60残り"},
-"177_1_2":{a:"T20 T20 T19",m:""},
-"178_0_2":{a:"Bull T20 S18",m:"50残り"},
-"18_1_2":{a:"D9",m:""},
-"180_1_2":{a:"T20 T20 T20",m:""},
-"181_0_2":{a:"Bull T17 T16",m:"32残り"},
-"181_1_2":{a:"T20 T20 T11",m:"28残にできる"},
-"182_0_2":{a:"Bull Bull Bull",m:"32残り"},
-"183_0_2":{a:"Bull Bull T17",m:"32残り"},
-"184_0_2":{a:"Bull T18 T16",m:"32残り"},
-"185_0_2":{a:"T15 T20 T16",m:"32残り、15シングル→20T→20Tで50残り、15T→20シングル→20Tで60残り"},
-"186_0_2":{a:"Bull Bull T18",m:"32残り"},
-"187_0_2":{a:"Bull T19 T16",m:"32残り"},
-"188_0_2":{a:"T17 T19 T16",m:"32残り"},
-"189_0_2":{a:"Bull Bull T19",m:"32残り"},
-"19_1_2":{a:"T3 D5",m:""},
-"190_0_2":{a:"Bull T18 T18",m:"32残り"},
-"191_0_2":{a:"T19 T19 T15",m:"32残り"},
-"192_0_2":{a:"Bull Bull T20",m:"32残り"},
-"192_1_2":{a:"S18",m:"2本投げ終わって192残り。手元には1本3投目はどこに投げる？20に投げるとシングルに入った時ノーテンします。昔中継で2回繰り返した人がいました。"},
-"193_0_2":{a:"Bull Bull T19",m:"36残り"},
-"194_0_2":{a:"T20 T18 T16",m:"32残り"},
-"195_0_2":{a:"Bull Bull T15",m:"50残り"},
-"196_0_2":{a:"Bull T19 T19",m:"32残り"},
-"197_0_2":{a:"T19 T19 T17",m:"32残り"},
-"198_0_2":{a:"Bull Bull T16",m:"Bull残り"},
-"199_0_2":{a:"Bull T19 T20",m:"32残り"},
-"2_1_2":{a:"D1",m:""},
-"20_1_2":{a:"D10",m:""},
-"200_0_2":{a:"Bull Bull Bull",m:"50残り"},
-"201_0_2":{a:"Bull Bull T17",m:"50残り"},
-"202_0_2":{a:"Bull T17 T17",m:"50残り"},
-"203_0_2":{a:"T17 T17 T17",m:"50残り"},
-"204_0_2":{a:"Bull Bull T18",m:"50残り"},
-"205_0_2":{a:"Bull T17 T18",m:"50残り"},
-"206_0_2":{a:"T20 T19 T19",m:"32残り"},
-"207_0_2":{a:"T17 T17 T19",m:"48残り"},
-"208_0_2":{a:"Bull Bull T20",m:"48残り"},
-"209_0_2":{a:"T20 T20 T19",m:"32残り"},
-"21_1_2":{a:"T7",m:""},
-"210_0_2":{a:"Bull Bull T20",m:"50残り"},
-"211_0_2":{a:"Bull T17 T20",m:"50残り"},
-"212_0_2":{a:"T20 T20 T20",m:"32残り"},
-"213_0_2":{a:"T17 T17 T17",m:"60残り"},
-"214_0_2":{a:"Bull T20 T18",m:"50残り"},
-"215_0_2":{a:"T15 T20 T20",m:"50残り"},
-"216_0_2":{a:"T18 T17 T17",m:"60残り"},
-"217_0_2":{a:"Bull T20 T19",m:"50残り"},
-"218_0_2":{a:"T20 T18 T18",m:"50残り"},
-"219_0_2":{a:"T19 T20 T20",m:"42残り"},
-"219_1_2":{a:"T19 T19 T19",m:""},
-"22_1_2":{a:"D11",m:""},
-"220_0_2":{a:"Bull T20 T20",m:"50残り"},
-"221_0_2":{a:"T17 T20 T20",m:"50残り"},
-"222_0_2":{a:"T20 T19 T19",m:"48残り"},
-"224_0_2":{a:"T20 T20 T18",m:"50残り"},
-"225_0_2":{a:"T20",m:""},
-"227_0_2":{a:"T20 T20 T19",m:"50残り"},
-"228_0_2":{a:"T20",m:""},
-"23_1_2":{a:"T7 D1",m:""},
-"230_0_2":{a:"Bull",m:"Bull1本で180残り"},
-"231_0_2":{a:"T20",m:""},
-"24_1_2":{a:"D12",m:""},
-"25_1_2":{a:"T5 D5",m:""},
-"259_1_2":{a:"S20 S20 T20",m:"2投目までで20の4マークだった場合、3投目は「19」でもOK。"},
-"26_1_2":{a:"D13",m:""},
-"261_1_2":{a:"S18 S18 T18",m:"3投で20の5マーク→「△」(ダブルアウトは「〇」)。19の5マーク→「✕」"},
-"262_1_2":{a:"S20 S20 T20",m:"3投で19の5マーク→「△」(ダブルアウトは「〇」)"},
-"263_1_2":{a:"S19 S19 T19",m:"3投で20の5マーク→「✕」"},
-"264_1_2":{a:"S18 S18 T18",m:"3投で20の5マーク→「△」(ダブルアウトは「〇」)。19の5マーク→「✕」"},
-"265_1_2":{a:"T19 S19 S19",m:""},
-"266_1_2":{a:"S19 S19 T19",m:""},
-"269_1_2":{a:"S19 S19 T19",m:""},
-"27_1_2":{a:"T9",m:""},
-"271_1_2":{a:"T19 S19 Outer Bull",m:""},
-"272_1_2":{a:"T20 S20 Outer Bull",m:""},
-"273_1_2":{a:"T20 S18 Outer Bull",m:""},
-"274_1_2":{a:"T20 S19 Outer Bull",m:""},
-"275_1_2":{a:"T20 S20 Outer Bull",m:""},
-"28_1_2":{a:"D14",m:""},
-"280_1_2":{a:"S20 S20 T20",m:""},
-"281_1_2":{a:"T19 S19 Outer Bull",m:""},
-"282_1_2":{a:"S20 T20 Outer Bull",m:""},
-"285_1_2":{a:"S20 T20 Outer Bull",m:""},
-"29_1_2":{a:"T7 D4",m:""},
-"296_1_2":{a:"T19 T20 T20",m:""},
-"297_1_2":{a:"T20 T20 T20",m:""},
-"298_1_2":{a:"T18 T20 T20",m:""},
-"299_1_2":{a:"T19 T20 T20",m:""},
-"3_1_2":{a:"S1 D1",m:""},
-"30_1_2":{a:"D15",m:""},
-"300_1_2":{a:"T20 T20 T20",m:""},
-"301_0_2":{a:"Bull Bull Bull",m:""},
-"301_1_2":{a:"S20 T20 T20",m:""},
-"302_1_2":{a:"T18 T18 T18",m:""},
-"303_1_2":{a:"T19 T19 S19",m:""},
-"304_1_2":{a:"S19 T19 T19",m:"20の7マーク→「△」(ダブルアウトは「〇」)"},
-"305_1_2":{a:"S20 T20 T20",m:""},
-"306_1_2":{a:"T19 T20 T19",m:"1投目19行かないと上がり目出ない。57-60-（57-19）で132/170が残る。それか19-57-60で170残り。"},
-"307_1_2":{a:"S19 T19 T19",m:"20の7マーク→「△」"},
-"308_0_2":{a:"S18 T20 T20",m:""},
-"308_1_2":{a:"S20 T20 T20",m:""},
-"309_1_2":{a:"T18 Inner Bull Outer Bull",m:"1投目「S18」の場合は、残り2投は「T20」。2投目「S-B」の場合は、残り1投は「T20」"},
-"31_1_2":{a:"T7 D5",m:""},
-"310_1_2":{a:"S19 T19 T19",m:"20の7マーク→「△」"},
-"311_1_2":{a:"S20 T20 T20",m:""},
-"312_1_2":{a:"T18 T18 T18",m:"1投目「S18」の場合、残り2投は「T20」。2投目「S18」の場合、残り1投は「T20」。"},
-"313_1_2":{a:"S19 T19 T19",m:""},
-"314_1_2":{a:"S20 T20 T20",m:""},
-"32_1_2":{a:"D16",m:""},
-"33_1_2":{a:"T11",m:""},
-"34_1_2":{a:"D17",m:""},
-"35_1_2":{a:"T9 D4",m:""},
-"351_0_2":{a:"T19 T19 T19",m:"S19だとしても最終82残り、S20だと最終81残りでトリプル必須なので351は19推奨"},
-"358_1_2":{a:"T20 T20",m:""},
-"359_1_2":{a:"T20 T20 Outer Bull",m:""},
-"36_1_2":{a:"D18",m:""},
-"360_0_2":{a:"T20 T20 T20",m:"180残り"},
-"360_1_2":{a:"T20 T20 T20",m:"180残し"},
-"37_1_2":{a:"T9 D5",m:""},
-"38_1_2":{a:"D19",m:""},
-"39_1_2":{a:"T13",m:""},
-"4_1_2":{a:"D2",m:""},
-"40_1_2":{a:"D20",m:""},
-"41_1_2":{a:"T9 D7",m:""},
-"42_1_2":{a:"T14",m:""},
-"43_1_2":{a:"T11 D5",m:""},
-"44_1_2":{a:"T12 D4",m:""},
-"45_1_2":{a:"T15",m:""},
-"46_1_2":{a:"T10 D8",m:""},
-"47_1_2":{a:"T11 D7",m:""},
-"48_1_2":{a:"T16",m:""},
-"49_1_2":{a:"T11 D8",m:""},
-"5_1_2":{a:"S1 D2",m:""},
-"50_1_2":{a:"DB",m:""},
-"500_0_2":{a:"Bull",m:""},
-"500_1_2":{a:"T20 T20 T20",m:""},
-"501_1_2":{a:"T20 T20 T20",m:""},
-"51_1_2":{a:"T17",m:""},
-"52_1_2":{a:"DB D1",m:""},
-"53_1_2":{a:"T13 D7",m:""},
-"54_1_2":{a:"T18",m:""},
-"55_1_2":{a:"S15 D20",m:""},
-"56_1_2":{a:"DB D3",m:""},
-"57_1_2":{a:"T19",m:""},
-"58_1_2":{a:"DB D4",m:""},
-"59_1_2":{a:"T13 D10",m:""},
-"6_1_2":{a:"D3",m:""},
-"60_1_2":{a:"T20",m:""},
-"61_1_2":{a:"T15 D8",m:""},
-"62_1_2":{a:"T14 D10",m:"S14→T16"},
-"63_1_2":{a:"T13 D12",m:""},
-"64_1_2":{a:"DB D7",m:""},
-"65_1_2":{a:"T19 D4",m:"3本持ちの場合のみ"},
-"66_1_2":{a:"DB D8",m:""},
-"67_1_2":{a:"T17 D8",m:""},
-"68_1_2":{a:"DB D9",m:""},
-"69_1_2":{a:"T19 D6",m:""},
-"7_1_2":{a:"S3 D2",m:"狙うところが近いから"},
-"70_1_2":{a:"DB D10",m:""},
-"71_1_2":{a:"T17 D10",m:""},
-"72_1_2":{a:"T12 D18",m:""},
-"73_1_2":{a:"T19 D8",m:""},
-"74_1_2":{a:"DB D12",m:""},
-"75_0_2":{a:"T17 D12",m:"S17→58"},
-"75_1_2":{a:"Outer Bull Outer Bull Outer Bull",m:"ジャパンマスターアウトならありの上がり"},
-"76_1_2":{a:"T20 D8",m:""},
-"77_1_2":{a:"T19 D10",m:""},
-"78_1_2":{a:"DB D14",m:""},
-"79_1_2":{a:"T19 D11",m:""},
-"8_1_2":{a:"D4",m:""},
-"80_1_2":{a:"DB D15",m:""},
-"81_1_2":{a:"T19 D12",m:""},
-"82_1_2":{a:"Outer Bull T19",m:""},
-"83_1_2":{a:"T17 D16",m:""},
-"84_1_2":{a:"DB D17",m:""},
-"85_1_2":{a:"T15 D20",m:"万が一外しても修正が効く"},
-"86_1_2":{a:"DB D18",m:""},
-"87_1_2":{a:"T17 D18",m:""},
-"88_1_2":{a:"DB D19",m:""},
-"89_1_2":{a:"T19 D16",m:""},
-"9_1_2":{a:"S3 D3",m:""},
-"90_1_2":{a:"DB D20",m:""},
-"91_1_2":{a:"T17 D20",m:""},
-"92_1_2":{a:"Outer Bull T17 D8",m:"アウターなら17トリプルなら8D、17シングルならインナートライ(相手がテンパイ状況)"},
-"93_1_2":{a:"T19 D18",m:""},
-"94_1_2":{a:"T18 D20",m:""},
-"95_1_2":{a:"T19 D19",m:""},
-"96_1_2":{a:"T20 D18",m:""},
-"97_1_2":{a:"T19 D20",m:""},
-"98_1_2":{a:"T20 D19",m:""},
-"99_1_2":{a:"T17 T16",m:""}
-};
+function getSvgCoords(svg, e) {
+  let pt = svg.createSVGPoint();
+  if (e.touches && e.touches.length > 0) {
+    pt.x = e.touches[0].clientX; pt.y = e.touches[0].clientY;
+  } else if (e.changedTouches && e.changedTouches.length > 0) {
+    pt.x = e.changedTouches[0].clientX; pt.y = e.changedTouches[0].clientY;
+  } else {
+    pt.x = e.clientX; pt.y = e.clientY;
+  }
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+function drawDart(x, y, targetId) {
+  const svg = document.getElementById('dartboard');
+  const dart = document.createElementNS(ns, 'g');
+  dart.setAttribute('class', 'thrown-dart');
+  dart.setAttribute('data-target', targetId);
+  
+  const angle = 15 + Math.random() * 15; 
+  dart.setAttribute('transform', `translate(${x}, ${y}) scale(1.3) rotate(${angle})`);
+  
+  const shadow = document.createElementNS(ns, 'path');
+  shadow.setAttribute('d', 'M0,0 L-5,-10 L-5,-28 L0,-22 L4,-28 L4,-10 Z');
+  shadow.setAttribute('fill', 'rgba(0,0,0,0.5)');
+  shadow.setAttribute('transform', 'translate(4, 4) skewX(20)');
+  dart.appendChild(shadow);
+
+  const tip = document.createElementNS(ns, 'polygon');
+  tip.setAttribute('points', '-1,-5 1,-5 0,0');
+  tip.setAttribute('fill', '#E0E0E0');
+  dart.appendChild(tip);
+
+  const barrel = document.createElementNS(ns, 'rect');
+  barrel.setAttribute('x', '-2'); barrel.setAttribute('y', '-16');
+  barrel.setAttribute('width', '4'); barrel.setAttribute('height', '11');
+  barrel.setAttribute('rx', '1');
+  barrel.setAttribute('fill', '#999');
+  barrel.setAttribute('stroke', '#333'); barrel.setAttribute('stroke-width', '0.5');
+  dart.appendChild(barrel);
+  
+  for(let by = -14; by <= -7; by += 2) {
+     const cut = document.createElementNS(ns, 'line');
+     cut.setAttribute('x1', '-2'); cut.setAttribute('y1', by);
+     cut.setAttribute('x2', '2'); cut.setAttribute('y2', by);
+     cut.setAttribute('stroke', '#222'); cut.setAttribute('stroke-width', '0.5');
+     dart.appendChild(cut);
+  }
+
+  const shaft = document.createElementNS(ns, 'rect');
+  shaft.setAttribute('x', '-1'); shaft.setAttribute('y', '-25');
+  shaft.setAttribute('width', '2'); shaft.setAttribute('height', '9');
+  shaft.setAttribute('fill', '#E8EEE8');
+  dart.appendChild(shaft);
+
+  const flight = document.createElementNS(ns, 'path');
+  flight.setAttribute('d', 'M0,-22 L-9,-31 L-7,-38 L0,-34 L7,-38 L9,-31 Z');
+  flight.setAttribute('fill', 'var(--pk)');
+  flight.setAttribute('stroke', '#1C100A');
+  flight.setAttribute('stroke-width', '0.5');
+  dart.appendChild(flight);
+  
+  const flightDetail = document.createElementNS(ns, 'path');
+  flightDetail.setAttribute('d', 'M0,-22 L0,-34 L7,-38 L9,-31 Z');
+  flightDetail.setAttribute('fill', 'rgba(0,0,0,0.15)');
+  dart.appendChild(flightDetail);
+  
+  dart.setAttribute('pointer-events', 'none');
+  svg.appendChild(dart);
+}
+
+function mkPath(svg,label,val,d,fill,ev){
+  const p=document.createElementNS(ns,'path');
+  p.setAttribute('d',d);p.setAttribute('fill',fill);
+  p.setAttribute('data-orig-fill',fill);p.setAttribute('stroke',PHX.wire);p.setAttribute('stroke-width','0.4');
+  p.setAttribute('data-seg',label);p.setAttribute('data-val',val);
+  if(ev){p.style.cursor='pointer';p.addEventListener('click',(e)=>onTap(label,val,e));}
+  svg.appendChild(p);return p;
+}
+
+function buildBoard(){
+  const svg=document.getElementById('dartboard');svg.innerHTML='';
+  const bg=document.createElementNS(ns,'circle');
+  bg.setAttribute('cx',CX);bg.setAttribute('cy',CY);bg.setAttribute('r',R.do_+12);
+  bg.setAttribute('fill','#0C0C0A');svg.appendChild(bg);
+  const nr=document.createElementNS(ns,'circle');
+  nr.setAttribute('cx',CX);nr.setAttribute('cy',CY);nr.setAttribute('r',R.do_+7);
+  nr.setAttribute('fill','#181208');svg.appendChild(nr);
+  for(let i=0;i<N;i++){
+    const num=SECTORS[i],a1=i*DEG-DEG/2,a2=a1+DEG,even=i%2===0;
+    const sc=even?PHX.blk:PHX.crm,bc=even?PHX.red:PHX.grn;
+    mkPath(svg,`S${num}`,num,arc(R.to,R.di,a1,a2),sc,true);
+    mkPath(svg,`D${num}`,num*2,arc(R.di,R.do_,a1,a2),bc,true);
+    mkPath(svg,`S${num}`,num,arc(R.bo,R.ti,a1,a2),sc,true);
+    mkPath(svg,`T${num}`,num*3,arc(R.ti,R.to,a1,a2),bc,true);
+  }
+  mkPath(svg,'S25',25,arc(R.bi,R.bo,0,359.99),PHX.bull_out_fill,true);
+  const bi=document.createElementNS(ns,'circle');
+  bi.setAttribute('cx',CX);bi.setAttribute('cy',CY);bi.setAttribute('r',R.bi);
+  bi.setAttribute('fill','#0A0A0A');bi.setAttribute('data-orig-fill','#0A0A0A');
+  bi.setAttribute('stroke','#6A6050');bi.setAttribute('stroke-width','1.2');
+  bi.setAttribute('data-seg','Bull');bi.setAttribute('data-val','50');
+  bi.style.cursor='pointer';bi.addEventListener('click',(e)=>onTap('Bull',50,e));
+  svg.appendChild(bi);
+  for(let i=0;i<N;i++){
+    const num=SECTORS[i],[lx,ly]=polar(R.do_+20,i*DEG);
+    const t=document.createElementNS(ns,'text');
+    t.setAttribute('x',lx);t.setAttribute('y',ly);
+    t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','middle');
+    t.setAttribute('font-size','22');t.setAttribute('font-family','Courier New,monospace');
+    t.setAttribute('fill','#D8CCA0');t.setAttribute('font-weight','bold');
+    t.setAttribute('pointer-events','none');t.textContent=num;svg.appendChild(t);
+  }
+  [R.bi,R.bo,R.ti,R.to,R.di,R.do_].forEach(r=>{
+    const c=document.createElementNS(ns,'circle');
+    c.setAttribute('cx',CX);c.setAttribute('cy',CY);c.setAttribute('r',r);
+    c.setAttribute('fill','none');c.setAttribute('stroke',PHX.wire);c.setAttribute('stroke-width','1.5');c.setAttribute('pointer-events','none');svg.appendChild(c);
+  });
+  for(let i=0;i<N;i++){
+    const deg=i*DEG-DEG/2,[x1,y1]=polar(R.bo,deg),[x2,y2]=polar(R.do_,deg);
+    const l=document.createElementNS(ns,'line');
+    l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);
+    l.setAttribute('stroke',PHX.wire);l.setAttribute('stroke-width','1.5');l.setAttribute('pointer-events','none');svg.appendChild(l);
+  }
+}
+let _hl=[];
+function clearHL(){
+  _hl.forEach(({el,f})=>{const orig=el.getAttribute('data-orig-fill');el.setAttribute('fill',orig||f);});
+  _hl=[];
+  document.querySelectorAll('.thrown-dart').forEach(el => el.remove());
+}
+function hlSeg(label,color){
+  document.querySelectorAll(`[data-seg="${label}"]`).forEach(el=>{
+    const orig=el.getAttribute('data-orig-fill');
+    _hl.push({el,f:orig||el.getAttribute('fill')});el.setAttribute('fill',color);
+  });
+}
+function flashSeg(label){
+  document.querySelectorAll(`[data-seg="${label}"]`).forEach(el=>{el.classList.remove('seg-flash');void el.offsetWidth;el.classList.add('seg-flash');});
+}
+
+// 🎯 全934パターンの完全ハードコード化
+window.CUSTOM_DB={"1_0_0":{a:"S1",m:""},"10_0_0":{a:"S10",m:""},"100_0_0":{a:"Bull Bull",m:""},"101_0_0":{a:"Bull Bull S1",m:""},"102_0_0":{a:"Bull Bull S2",m:""},"103_0_0":{a:"Bull Bull S3",m:""},"104_0_0":{a:"Bull Bull S4",m:""},"105_0_0":{a:"T19 T16",m:""},"106_0_0":{a:"Bull Bull S6",m:""},"107_0_0":{a:"Bull Bull S7",m:""},"108_0_0":{a:"Bull Bull S8",m:""},"109_0_0":{a:"Bull Bull S9",m:""},"11_0_0":{a:"S11",m:""},"110_0_0":{a:"Bull Bull S10",m:""},"111_0_0":{a:"Bull Bull S11",m:""},"112_0_0":{a:"Bull Bull S12",m:""},"113_0_0":{a:"Bull Bull S13",m:""},"114_0_0":{a:"Bull Bull S14",m:""},"115_0_0":{a:"Bull Bull S15",m:""},"116_0_0":{a:"Bull Bull S16",m:""},"117_0_0":{a:"Bull Bull S17",m:""},"118_0_0":{a:"Bull Bull S18",m:""},"119_0_0":{a:"Bull Bull S19",m:""},"12_0_0":{a:"S12",m:""},"120_0_0":{a:"Bull Bull S20",m:""},"121_0_0":{a:"T17 S20 Bull",m:""},"122_0_0":{a:"Bull D11 Bull",m:""},"126_0_0":{a:"Bull Bull D13",m:""},"13_0_0":{a:"S13",m:""},"133_0_0":{a:"Bull T17 D16",m:""},"14_0_0":{a:"S14",m:""},"140_0_0":{a:"T20 S20 T20",m:""},"144_0_0":{a:"T18 T18 D18",m:""},"15_0_0":{a:"S15",m:""},"16_0_0":{a:"S16",m:""},"17_0_0":{a:"S17",m:""},"174_0_0":{a:"T20 T18 T20",m:""},"177_0_0":{a:"T20 T19 T20",m:""},"18_0_0":{a:"S18",m:""},"180_0_0":{a:"T20 T20 T20",m:"迷わずトンパ、外したらブルへシフト"},"19_0_0":{a:"S19",m:""},"2_0_0":{a:"S2",m:""},"20_0_0":{a:"S20",m:""},"21_0_0":{a:"S7 S7 S7",m:""},"22_0_0":{a:"S11 S11",m:""},"23_0_0":{a:"S6 S17",m:""},"24_0_0":{a:"D12",m:""},"25_0_0":{a:"S20 S5",m:""},"26_0_0":{a:"S13 S13",m:""},"27_0_0":{a:"S9 S9 S9",m:""},"28_0_0":{a:"S14 S14",m:""},"29_0_0":{a:"S20 S9",m:""},"3_0_0":{a:"S3",m:""},"30_0_0":{a:"S15 S15",m:""},"31_0_0":{a:"S20 S11",m:""},"32_0_0":{a:"D16",m:""},"33_0_0":{a:"S20 S13",m:""},"34_0_0":{a:"S17 S17",m:""},"35_0_0":{a:"S19 S16",m:"3や7に入っても上がれる数字　15狙いで10や2に入るとちょっと難しい数字か上がれない数字が残る"},"36_0_0":{a:"S18 S18",m:""},"360_0_0":{a:"T20 T20 T20",m:"次のトンパチへ繋ぐ"},"37_0_0":{a:"S20 S17",m:""},"38_0_0":{a:"S19 S19",m:""},"39_0_0":{a:"S13 S13 S13",m:""},"4_0_0":{a:"S4",m:""},"40_0_0":{a:"S20 S20",m:""},"41_0_0":{a:"S20 S20 S1",m:""},"42_0_0":{a:"S14 S14 S14",m:""},"43_0_0":{a:"S20 S20 S3",m:""},"44_0_0":{a:"S20 S20 S4",m:""},"45_0_0":{a:"S15 S15 S15",m:""},"46_0_0":{a:"S20 S20 S6",m:""},"47_0_0":{a:"S20 S20 S7",m:""},"48_0_0":{a:"S20 S20 S8",m:""},"49_0_0":{a:"S20 S20 S9",m:""},"5_0_0":{a:"S5",m:""},"50_0_0":{a:"Bull",m:""},"51_0_0":{a:"S17 S17 S17",m:""},"52_0_0":{a:"Bull S2",m:""},"53_0_0":{a:"Bull S3",m:""},"54_0_0":{a:"S18 S18 S18",m:""},"55_0_0":{a:"Bull S5",m:""},"56_0_0":{a:"Bull S6",m:""},"57_0_0":{a:"S19 S19 S19",m:""},"58_0_0":{a:"Bull S8",m:""},"59_0_0":{a:"Bull S9",m:""},"6_0_0":{a:"S6",m:""},"60_0_0":{a:"S10 Bull",m:"残り2本ならこれ！6、10、15のシングル、ダブル、トリプルどこに入ってもテンパイが残る"},"61_0_0":{a:"Bull S11",m:""},"62_0_0":{a:"Bull S12",m:""},"63_0_0":{a:"Bull S13",m:""},"64_0_0":{a:"Bull S14",m:""},"65_0_0":{a:"Bull S15",m:""},"66_0_0":{a:"Bull S16",m:""},"67_0_0":{a:"Bull S17",m:""},"68_0_0":{a:"Bull S18",m:""},"69_0_0":{a:"Bull S19",m:""},"7_0_0":{a:"S7",m:""},"70_0_0":{a:"Bull S20",m:""},"71_0_0":{a:"T17 S20",m:"一投目シングルなら54残"},"72_0_0":{a:"Bull S11 S11",m:""},"73_0_0":{a:"T19 S8 S8",m:""},"74_0_0":{a:"Bull S12 S12",m:""},"75_0_0":{a:"T17 S12 S12",m:""},"76_0_0":{a:"T19 S19",m:"19を4本"},"77_0_0":{a:"T20 S17",m:"一投目シングルなら57残"},"78_0_0":{a:"Bull S14 S14",m:""},"79_0_0":{a:"T19 S11 S11",m:""},"8_0_0":{a:"S8",m:""},"80_0_0":{a:"Bull S15 S15",m:""},"81_0_0":{a:"T15 D18",m:"ヒューゴがアレンジしてた"},"82_0_0":{a:"Bull S16 S16",m:""},"83_0_0":{a:"T20 S10 S13",m:""},"84_0_0":{a:"Bull S17 S17",m:""},"85_0_0":{a:"T19 S14 S14",m:""},"86_0_0":{a:"Bull S18 S18",m:""},"87_0_0":{a:"T17 S18 S18",m:""},"88_0_0":{a:"Bull S19 S19",m:""},"89_0_0":{a:"T19 S16 S16",m:""},"9_0_0":{a:"S9",m:""},"90_0_0":{a:"Bull S20 S20",m:""},"91_0_0":{a:"Bull T10 S11",m:""},"92_0_0":{a:"Bull T10 S12",m:""},"93_0_0":{a:"Bull T10 S13",m:""},"94_0_0":{a:"Bull T10 S14",m:""},"95_0_0":{a:"Bull T10 S15",m:""},"96_0_0":{a:"Bull T10 S16",m:""},"97_0_0":{a:"T19 S20 S20",m:""},"98_0_0":{a:"Bull T10 S18",m:""},"99_0_0":{a:"T20 S20 S19",m:""},"10_0_1":{a:"D5",m:""},"100_0_1":{a:"T20 D20",m:""},"11_0_1":{a:"T1 D4",m:""},"110_0_1":{a:"Bull S20 D20",m:""},"117_0_1":{a:"T20 S17 D20",m:"一投目がS20の場合でもT19でD20が残せる"},"118_0_1":{a:"T20 S18 D20",m:""},"12_0_1":{a:"D6",m:""},"122_0_1":{a:"Bull Bull D11",m:""},"123_0_1":{a:"T19 Bull D8",m:""},"13_0_1":{a:"T1 D5",m:""},"14_0_1":{a:"D7",m:""},"143_0_1":{a:"Bull T19 D18",m:""},"16_0_1":{a:"D8",m:""},"17_0_1":{a:"T3 D4",m:""},"170_0_1":{a:"T20 T20 Bull",m:""},"173_0_1":{a:"T19 T19 S19",m:""},"18_0_1":{a:"D9",m:""},"19_0_1":{a:"T3 D5",m:""},"2_0_1":{a:"D1",m:""},"20_0_1":{a:"D10",m:""},"22_0_1":{a:"D11",m:""},"23_0_1":{a:"T7 D1",m:""},"24_0_1":{a:"D12",m:""},"25_0_1":{a:"T5 D5",m:""},"26_0_1":{a:"D13",m:""},"28_0_1":{a:"D14",m:""},"29_0_1":{a:"T7 D4",m:""},"3_0_1":{a:"S1 D1",m:""},"30_0_1":{a:"D15",m:""},"309_0_1":{a:"T19 Bull T20",m:""},"31_0_1":{a:"T7 D5",m:""},"32_0_1":{a:"D16",m:""},"34_0_1":{a:"D17",m:""},"35_0_1":{a:"T9 D4",m:""},"36_0_1":{a:"D18",m:""},"37_0_1":{a:"T9 D5",m:""},"38_0_1":{a:"D19",m:""},"4_0_1":{a:"D2",m:""},"40_0_1":{a:"S8 D16",m:"よく投げる32に合わせて"},"41_0_1":{a:"T9 D7",m:""},"43_0_1":{a:"T11 D5",m:""},"44_0_1":{a:"T12 D4",m:""},"46_0_1":{a:"T10 D8",m:""},"47_0_1":{a:"T11 D7",m:""},"49_0_1":{a:"T11 D8",m:""},"5_0_1":{a:"S1 D2",m:""},"50_0_1":{a:"Bull",m:""},"52_0_1":{a:"Bull D1",m:""},"53_0_1":{a:"T13 D7",m:""},"55_0_1":{a:"S15 D20",m:""},"56_0_1":{a:"Bull D3",m:""},"58_0_1":{a:"Bull D4",m:""},"59_0_1":{a:"T13 D10",m:""},"6_0_1":{a:"D3",m:""},"61_0_1":{a:"T15 D8",m:""},"62_0_1":{a:"Bull D6",m:""},"63_0_1":{a:"T13 D12",m:""},"64_0_1":{a:"Bull D7",m:""},"65_0_1":{a:"T15 D10",m:""},"66_0_1":{a:"Bull D8",m:""},"67_0_1":{a:"T17 D8",m:""},"68_0_1":{a:"Bull D9",m:""},"69_0_1":{a:"T19 D6",m:""},"7_0_1":{a:"T1 D2",m:""},"70_0_1":{a:"Bull D10",m:""},"71_0_1":{a:"T17 D10",m:""},"72_0_1":{a:"T12 D18",m:""},"73_0_1":{a:"T19 D8",m:""},"74_0_1":{a:"Bull D12",m:""},"75_0_1":{a:"T17 D12",m:""},"76_0_1":{a:"Bull D13",m:""},"77_0_1":{a:"T19 D10",m:""},"78_0_1":{a:"Bull D14",m:""},"79_0_1":{a:"T19 D11",m:""},"8_0_1":{a:"D4",m:""},"80_0_1":{a:"Bull D15",m:""},"81_0_1":{a:"T15 D18",m:"オモロイ"},"82_0_1":{a:"Bull D16",m:""},"83_0_1":{a:"T17 D16",m:""},"84_0_1":{a:"Bull D17",m:""},"85_0_1":{a:"T15 D20",m:""},"86_0_1":{a:"Bull D18",m:""},"87_0_1":{a:"T17 D18",m:""},"88_0_1":{a:"Bull D19",m:""},"89_0_1":{a:"T19 D16",m:"57-32で32アレンジ"},"9_0_1":{a:"T1 D3",m:""},"90_0_1":{a:"Bull D20",m:""},"91_0_1":{a:"T17 D20",m:""},"92_0_1":{a:"T20 D16",m:""},"93_0_1":{a:"T19 D18",m:""},"94_0_1":{a:"T18 D20",m:""},"95_0_1":{a:"T19 D19",m:""},"96_0_1":{a:"T20 D18",m:""},"97_0_1":{a:"T19 D20",m:""},"98_0_1":{a:"T20 D19",m:""},"99_0_1":{a:"T19 S10 D16",m:""},"10_0_2":{a:"D5",m:""},"100_0_2":{a:"Bull Bull",m:""},"101_0_2":{a:"Bull T17",m:""},"102_0_2":{a:"T17 T17",m:"外してもリカバリーが効くアレンジ"},"103_0_2":{a:"Bull S3 Bull",m:""},"104_0_2":{a:"Bull T18",m:""},"105_0_2":{a:"T19 T16",m:"19シングルなら→50→18ダブル"},"106_0_2":{a:"Bull S6 Bull",m:""},"107_0_2":{a:"Bull T19",m:""},"108_0_2":{a:"Bull S8 Bull",m:""},"109_0_2":{a:"Bull S9 Bull",m:""},"11_0_2":{a:"S3 D4",m:""},"110_0_2":{a:"Bull T20",m:"T20外してもD20でトライ出来るのが好き"},"111_0_2":{a:"Bull S11 Bull",m:""},"112_0_2":{a:"Bull S12 Bull",m:""},"113_0_2":{a:"Bull S13 Bull",m:""},"114_0_2":{a:"Bull S14 Bull",m:""},"115_0_2":{a:"Bull S15 Bull",m:""},"116_0_2":{a:"Bull S16 Bull",m:""},"117_0_2":{a:"T19 T20",m:"1投目外してもリカバリーが効くアレンジ"},"118_0_2":{a:"T20 S18 D20",m:"20-60-38\\n1-57-20 40残\\n5-60-12 40残\\n3-60-14 40残\\n15-60-11 32残"},"119_0_2":{a:"Bull S19 Bull",m:""},"12_0_2":{a:"D6",m:""},"120_0_2":{a:"T20 T20",m:""},"121_0_2":{a:"T17 S20 Bull",m:"17シングルの場合はブル、54"},"122_0_2":{a:"T18 S18 Bull",m:"1本目　2本目どちらかかがトリプル入れば50残りになる　　オープンアウトならブルからが有効"},"123_0_2":{a:"T20 T20 T1",m:"真澄チャレンジ"},"124_0_2":{a:"Bull Bull D12",m:""},"125_0_2":{a:"T15 T16 D16",m:"T15外しても、T20でトライ出来るし、2投目のT20を外してもD20やBULLでリカバリー出来る"},"126_0_2":{a:"Bull Bull D13",m:""},"127_0_2":{a:"T20 S17 Bull",m:""},"128_0_2":{a:"Bull Bull D14",m:""},"129_0_2":{a:"T19 S12 T20",m:""},"13_0_2":{a:"S5 D4",m:""},"130_0_2":{a:"T20 S20 Bull",m:"1本目か2本目にトリプル入ればブル行ける、最初にブル行くと2本持ちの80になるので個人的には苦手"},"131_0_2":{a:"T17 D15 Bull",m:"シングル１７に外しても114でT19、2本で上がれる"},"132_0_2":{a:"T20 T16 D12",m:"1投目外してもS12→BULLでリカバリーできるし、2投目に外してもS16→40残、S6→BULL残に出来るから使いやすい"},"133_0_2":{a:"T19 S19 T19",m:"シングル外れてもそのまま57"},"134_0_2":{a:"Bull Bull D17",m:""},"135_0_2":{a:"T15 Bull D20",m:"シングルに外れたら60→60"},"136_0_2":{a:"Bull Bull D18",m:""},"137_0_2":{a:"T17 Bull D18",m:"シングルに外れたら60→60"},"138_0_2":{a:"Bull Bull D19",m:""},"139_0_2":{a:"T19 Bull D16",m:"シングルに外れたら60→60"},"14_0_2":{a:"D7",m:""},"140_0_2":{a:"Bull Bull D20",m:""},"141_0_2":{a:"T20 T17 D15",m:""},"142_0_2":{a:"Bull Bull T14",m:""},"143_0_2":{a:"Bull T19 D18",m:""},"144_0_2":{a:"Bull T18 D20",m:""},"145_0_2":{a:"Bull Bull T15",m:""},"146_0_2":{a:"Bull T16 T16",m:""},"147_0_2":{a:"Bull T19 D20",m:""},"148_0_2":{a:"Bull Bull T16",m:""},"149_0_2":{a:"Bull T17 T16",m:""},"15_0_2":{a:"T5",m:""},"150_0_2":{a:"Bull Bull Bull",m:""},"151_0_2":{a:"Bull Bull T17",m:""},"152_0_2":{a:"Bull T20 T14",m:""},"153_0_2":{a:"T20 T19 D18",m:""},"154_0_2":{a:"Bull Bull T18",m:""},"155_0_2":{a:"Bull T19 T16",m:""},"156_0_2":{a:"T20 T20 D18",m:""},"157_0_2":{a:"Bull Bull T19",m:""},"158_0_2":{a:"Bull T18 T18",m:""},"159_0_2":{a:"T20 T17 T16",m:""},"16_0_2":{a:"D8",m:""},"160_0_2":{a:"Bull Bull T20",m:""},"161_0_2":{a:"T17 T20 Bull",m:""},"162_0_2":{a:"T14 T20 T20",m:"1本目外したら148 2本目以降ブル"},"164_0_2":{a:"Bull T19 T19",m:""},"165_0_2":{a:"T15 T20 T20",m:""},"167_0_2":{a:"T19 Bull T20",m:"下から上"},"168_0_2":{a:"T19 T19 T18",m:""},"17_0_2":{a:"S9 D4",m:""},"170_0_2":{a:"T20 T20 Bull",m:"T20を決めた"},"171_0_2":{a:"T19 T19 T19",m:"オシャレあがり！😎"},"174_0_2":{a:"T20 T20 T18",m:"T20を狙う方がなれてるはず"},"177_0_2":{a:"T20 T20 T19",m:"これしかない"},"179_0_2":{a:"Bull T20 S19",m:""},"18_0_2":{a:"D9",m:""},"180_0_2":{a:"T20 T20 T20",m:"頑張ってトンパチ"},"19_0_2":{a:"S3 D8",m:""},"2_0_2":{a:"D1",m:""},"20_0_2":{a:"D10",m:""},"21_0_2":{a:"T7",m:""},"22_0_2":{a:"S6 D8",m:"S10に入ったら残り12"},"23_0_2":{a:"S7 D8",m:""},"234_0_2":{a:"T20",m:""},"237_0_2":{a:"T20",m:""},"24_0_2":{a:"D12",m:""},"240_0_2":{a:"T20",m:""},"25_0_2":{a:"S9 D8",m:""},"26_0_2":{a:"D13",m:""},"27_0_2":{a:"T9",m:""},"28_0_2":{a:"D14",m:""},"29_0_2":{a:"S13 D8",m:""},"3_0_2":{a:"S1 D1",m:"シングルに外れてもそのままD1"},"30_0_2":{a:"D15",m:""},"31_0_2":{a:"S15 D8",m:""},"32_0_2":{a:"D16",m:"シングルでも16残りでD8。ダブルだからマスターでもダブルアウトでもOK。便利。"},"321_0_2":{a:"T20 T20 T20",m:"ひたすらT20狙い！"},"33_0_2":{a:"S1 D16",m:""},"34_0_2":{a:"D17",m:""},"35_0_2":{a:"S3 D16",m:""},"36_0_2":{a:"D18",m:"S4に外れたらD16"},"361_0_2":{a:"T20",m:"180"},"37_0_2":{a:"S5 D16",m:""},"38_0_2":{a:"D19",m:""},"39_0_2":{a:"T13",m:""},"4_0_2":{a:"D2",m:""},"40_0_2":{a:"D20",m:""},"41_0_2":{a:"S9 D16",m:""},"42_0_2":{a:"T14",m:""},"43_0_2":{a:"S11 D16",m:""},"44_0_2":{a:"S12 D16",m:""},"45_0_2":{a:"T15",m:""},"46_0_2":{a:"S10 D18",m:"S6に外れたらD20"},"47_0_2":{a:"S15 D16",m:""},"48_0_2":{a:"T16",m:""},"49_0_2":{a:"S17 D16",m:""},"5_0_2":{a:"D1 T1",m:"1しか狙えないマン"},"50_0_2":{a:"Bull",m:""},"501_0_2":{a:"T20 T20 T20",m:"ひたすらT20狙い！"},"51_0_2":{a:"T17",m:""},"52_0_2":{a:"S20 D16",m:""},"53_0_2":{a:"S3 Bull",m:""},"54_0_2":{a:"T18",m:""},"55_0_2":{a:"S5 Bull",m:""},"56_0_2":{a:"S6 Bull",m:""},"57_0_2":{a:"T19",m:""},"58_0_2":{a:"S8 Bull",m:""},"59_0_2":{a:"T9 D16",m:"外れてもS9→BULL"},"6_0_2":{a:"T2",m:"下のダブル難しい"},"60_0_2":{a:"T20",m:""},"61_0_2":{a:"S11 Bull",m:""},"62_0_2":{a:"S12 Bull",m:""},"63_0_2":{a:"S13 Bull",m:""},"64_0_2":{a:"S14 Bull",m:""},"65_0_2":{a:"S15 Bull",m:""},"66_0_2":{a:"S16 Bull",m:""},"67_0_2":{a:"S17 Bull",m:"トリプル寄り。トリプルで16。3シングルで64"},"68_0_2":{a:"S18 Bull",m:"ダブル寄り。ダブルで32"},"69_0_2":{a:"S19 Bull",m:""},"7_0_2":{a:"S3 D2",m:""},"70_0_2":{a:"S20 Bull",m:""},"71_0_2":{a:"T17 D10",m:"S17→54"},"72_0_2":{a:"T12 D18",m:"S12→T20"},"73_0_2":{a:"T19 D8",m:"S19→54"},"74_0_2":{a:"T14 D16",m:"42→32　14シングル入っても60残りなのが良い"},"76_0_2":{a:"T16 D14",m:"S16-T20"},"77_0_2":{a:"T15 D16",m:"S15-S12-Bull"},"78_0_2":{a:"Bull D14",m:""},"79_0_2":{a:"T13 D20",m:"S13→66"},"8_0_2":{a:"D4",m:""},"80_0_2":{a:"D20 D20",m:"1本目にトリプル入ると10Dになるのであまり好きではないトリプルダブルより　ダブルダブルの方が成功確率が高いはず、1本目にシングル入ったら2本目はトリプル狙ってシングル入ったらダブル、20で完結させたほうが良いかと思われる"},"81_0_2":{a:"T19 D12",m:""},"82_0_2":{a:"Bull D16",m:""},"83_0_2":{a:"T17 D16",m:"S17-S16-Bull"},"84_0_2":{a:"T20 D12",m:"S20-S14-Bull"},"85_0_2":{a:"T15 D20",m:"S15-S20-Bull"},"86_0_2":{a:"Bull D18",m:""},"87_0_2":{a:"T17 D18",m:"S17-S20-Bull"},"88_0_2":{a:"D19 Bull",m:"マスターアウトの場合はブル→19Dねらって、19残りになるのをさける為、先に19ダブルを狙う、シングル入ったらもう1本19行ってブル、そもそも上がるにはブルに入れるのがマストなので最後ブルに持って行っても確率は変わらないし、何より決めた時カッコいい"},"89_0_2":{a:"T19 D16",m:""},"9_0_2":{a:"T3",m:""},"90_0_2":{a:"Bull D20",m:""},"91_0_2":{a:"T17 D20",m:""},"92_0_2":{a:"Bull T14",m:""},"93_0_2":{a:"T17 T14",m:""},"94_0_2":{a:"T18 D20",m:""},"95_0_2":{a:"Bull T15",m:""},"96_0_2":{a:"T20 D18",m:""},"97_0_2":{a:"T19 D20",m:""},"98_0_2":{a:"Bull T16",m:""},"99_0_2":{a:"T16 T17",m:""},"10_1_1":{a:"D5",m:""},"100_1_1":{a:"T20 D20",m:"s20→t20→d10                                            s20→s20→s20 40残"},"101_1_1":{a:"T19 S4 D20",m:"S19(82)→T14(40) 残り1投で101残りの場合はアウターブルに入れて76残りとする(80以下はシングル2本以内でダブルが打てる数字)"},"102_1_1":{a:"T18 S8 D20",m:"S18(84)→20T(24) 残り1投で102残りの場合はアウターブルに入れて77残りとする(80以下はシングル2本以内でダブルが打てる数字)"},"103_1_1":{a:"T19 S6 D20",m:"S19(84)→T20(24) 残り1投で103残りの場合はアウターブルに入れて78残りとする(80以下はシングル2本以内でダブルが打てる数字)"},"104_1_1":{a:"T19 S19 D14",m:"19狙いでS7に外しても次でT19ならD20残　S3に外しでもT17→DBの目が残る"},"105_1_1":{a:"S19 T18 D16",m:"最後に「32」を残したいなら、このアレンジです。"},"106_1_1":{a:"T20 S6 D20",m:""},"107_1_1":{a:"T20 S7 D20",m:""},"108_1_1":{a:"T19 S19 D16",m:"17を4本入れてトップ"},"109_1_1":{a:"T20 S9 D20",m:""},"11_1_1":{a:"S3 D4",m:""},"110_1_1":{a:"T19 S17 D18",m:"オシャレアウト😎詳細は菊山動画にて"},"111_1_1":{a:"T20 S11 D20",m:""},"112_1_1":{a:"T18 S18 D20",m:"18を4本入れてトップ"},"113_1_1":{a:"T20 S13 D20",m:""},"114_1_1":{a:"T19 S17 D20",m:""},"115_1_1":{a:"T20 S15 D20",m:""},"116_1_1":{a:"T19 S19 D20",m:"19を4本入れてトップ"},"117_1_1":{a:"T20 S17 D20",m:"20s→19t→20d"},"118_1_1":{a:"T20 S18 D20",m:"18からだと54のときにもう1本トリプルかブルが必要"},"119_1_1":{a:"T19 T12 D13",m:""},"12_1_1":{a:"D6",m:""},"120_1_1":{a:"T20 S20 D20",m:""},"121_1_1":{a:"S25 T20 D18",m:"D-Bull(71)→T13(32)→D16"},"122_1_1":{a:"S25 T19 D20",m:"ブル以外から投げるメリットがわからない　50→48→24"},"123_1_1":{a:"T19 T16 D9",m:"S19でも104残り"},"124_1_1":{a:"T20 T14 D11",m:""},"125_1_1":{a:"Bull T17 D12",m:"25でも100残り"},"126_1_1":{a:"T19 T19 D6",m:"シングル外してもインナーチャレンジ残るから"},"127_1_1":{a:"T20 T17 D8",m:""},"128_1_1":{a:"T18 T18 D10",m:"S18(110)→T20(50)"},"129_1_1":{a:"T19 T16 D12",m:"S19(110)→T20(50)"},"13_1_1":{a:"S5 D4",m:""},"130_1_1":{a:"T20 T20 D5",m:""},"131_1_1":{a:"T19 T14 D16",m:"S19→T20(S20)→S12(T20)→40(32)残り"},"132_1_1":{a:"Bull Bull D16",m:"SB(107)→T19(50)"},"133_1_1":{a:"T19 D19 D19",m:"憧れる"},"134_1_1":{a:"T19 T19 D10",m:"S19(115)→SB(90)→DB(40) SB(65)"},"135_1_1":{a:"Bull T15 D20",m:""},"136_1_1":{a:"T16 T16 D20",m:"トップを残したい"},"137_1_1":{a:"T19 T16 D16",m:""},"138_1_1":{a:"T19 T19 D12",m:"S19(119)→S19(100)→T20(40)"},"139_1_1":{a:"T19 T14 D20",m:""},"14_1_1":{a:"D7",m:""},"140_1_1":{a:"T20 T20 D10",m:""},"141_1_1":{a:"T16 T19 D18",m:"16S→S-B(D-B)→20T(17T)→40(24)残り"},"142_1_1":{a:"T17 T17 D20",m:"S17(125)→SB(100)→T20(40)"},"143_1_1":{a:"T18 T19 D16",m:"SNSで見かけたルート。1本目シングルならSBull→T20で40残り。"},"144_1_1":{a:"T18 T18 D18",m:""},"145_1_1":{a:"T20 T15 D20",m:""},"146_1_1":{a:"T19 T19 D16",m:"32が好きなあなたへ"},"147_1_1":{a:"T20 T17 D18",m:""},"148_1_1":{a:"T20 T20 D14",m:""},"149_1_1":{a:"T19 T20 D16",m:"1投目をシングルに外した場合、S20(129)、S19(130)となるため、S19の方が2投目以降のアレンジがしやすい。"},"15_1_1":{a:"S7 D4",m:""},"150_1_1":{a:"T19 T19 D18",m:""},"151_1_1":{a:"T20 T17 D20",m:""},"152_1_1":{a:"T20 T20 D16",m:""},"153_1_1":{a:"T20 T19 D18",m:""},"154_1_1":{a:"T20 T18 D20",m:""},"155_1_1":{a:"T20 T19 D19",m:""},"156_1_1":{a:"T20 T20 D18",m:""},"157_1_1":{a:"T19 T20 D20",m:"あまり上下を交互で打ちたくないので19からいきます!!"},"158_1_1":{a:"T18 T18 Bull",m:"同じところを攻めれる。のと、シングル入ったら20Tへ行くというわかりやすさ。"},"16_1_1":{a:"D8",m:"シングル入っても4がある"},"160_1_1":{a:"T20 T20 D20",m:""},"161_1_1":{a:"T20 T17 Bull",m:"1投目に20Sに入ったらそのまま20T→19Tで24残し"},"162_1_1":{a:"T20 T20 S10",m:"40アレンジ"},"164_1_1":{a:"T19 T19 Bull",m:""},"167_1_1":{a:"T19 T20 Bull",m:"20Tからのインナーの方が19Tからのインナーより入る気がします！"},"17_1_1":{a:"S1 D8",m:"32、16、8絡みは安定"},"170_1_1":{a:"T20 T20 Bull",m:""},"173_1_1":{a:"S19 T19 T19",m:"19のセブンマークでトップ残しになる"},"179_1_1":{a:"T19 T19 S25",m:"40残し！笑"},"18_1_1":{a:"D9",m:""},"180_1_1":{a:"T20 T20 S20",m:""},"19_1_1":{a:"S3 D8",m:"8絡みの安心感"},"2_1_1":{a:"D1",m:""},"20_1_1":{a:"D10",m:""},"201_1_1":{a:"T20 T11 D14",m:"第１"},"202_1_1":{a:"T18 T18 T18",m:"18ベッドでトップ"},"203_1_1":{a:"T19 T19 T19",m:"19ベッドで32残、外したら20に戻っていいかも"},"21_1_1":{a:"S17 D2",m:"同方向が楽な人向け"},"211_1_1":{a:"T19 T19 T19",m:"19ベッドでトップ"},"219_1_1":{a:"S20 S20 S19",m:"3本目を19にいかないと、シングルの場合にノーテンになる"},"22_1_1":{a:"D11",m:"にゃんにゃん"},"221_1_1":{a:"S20 S20 S20",m:"オール20でオッケー"},"222_1_1":{a:"S20 S20 S18",m:"全て20シングルだと残162となり上がり目無し　3本目は18に打って残164とする"},"223_1_1":{a:"S20 S20 S19",m:"全て20シングルだと残163となり上がり目無し　3本目は19に打って残164とする"},"224_1_1":{a:"S20 S20 S20",m:"オール20でオッケー"},"225_1_1":{a:"S20 S20 S18",m:"全て20シングルだと残165となり上がり目無し　3本目は18に打って残167とする"},"226_1_1":{a:"S20 S20 S19",m:"全て20シングルだと残166となり上がり目無し　3本目は19に打って残167とする"},"227_1_1":{a:"S20 S20 S20",m:"オール20でオッケー"},"228_1_1":{a:"S20 S20 S18",m:"全て20シングルだと残168となり上がり目無し　3本目は18に打って残170とする"},"229_1_1":{a:"S20 S20 S19",m:"全て20シングルだと残169となり上がり目無し　3本目は19に打って残170とする"},"23_1_1":{a:"S7 D8",m:"16アレンジ"},"230_1_1":{a:"S20 S20 S20",m:"オール20でオッケー"},"231_1_1":{a:"S20 S19",m:"オール20シングルだと上がり目無し"},"232_1_1":{a:"S20 S20 S25",m:"S20→S20→SB(167) 全てシングルナンバーで上がり目を出せる"},"233_1_1":{a:"S19 S19 S25",m:"S19→S19→SB(170) 全てシングルナンバーで上がり目を出せる"},"234_1_1":{a:"S20 S19 S25",m:"S20→S19→SB(170) 全てシングルナンバーで上がり目を出せる"},"235_1_1":{a:"S20 S20 S25",m:"S20→S20→SB(170) 全てシングルナンバーで上がり目を出せる"},"24_1_1":{a:"D12",m:""},"25_1_1":{a:"S9 D8",m:"16アレンジ"},"259_1_1":{a:"S19 S19 T19",m:"オール20で5本入れても残159となり上がり目無し　オール19で5本入れれば上がり目が出る"},"26_1_1":{a:"D13",m:""},"261_1_1":{a:"T20 S20 S20",m:"オール20で5本入れて上がり目が出る"},"262_1_1":{a:"S20 S18 T18",m:"1投目S20の場合、残り2投で18の4マーク。T20の場合は、S20(T20)→S18(T20)でOK。"},"263_1_1":{a:"S19 T19 S20",m:"オール20で5本入れても残163となり上がり目無し"},"264_1_1":{a:"T20 S20 S20",m:"オール20で5本入れれば上がり目が出る"},"265_1_1":{a:"S19 S19 T19",m:"オール20で5本入れても残165となり上がり目無し　オール19で5本入れば上がり目が出る"},"266_1_1":{a:"S19 T19 S20",m:"オール20で5本入れても残166となり上がり目無し"},"267_1_1":{a:"T20 S20 S20",m:"オール20で5本入れれば上がり目が出る"},"268_1_1":{a:"S19 T19 S25",m:"S19→T19→SBで上がり目を出せる　オール20で5本入れても残168となり上がり目無し"},"269_1_1":{a:"S19 S20 T20",m:"T19→S20→SB(167)でも良い　オール20で5本入れても上がり目無し"},"27_1_1":{a:"S11 D8",m:"16アレンジが好き"},"270_1_1":{a:"T20 S20 S20",m:""},"271_1_1":{a:"S19 T19 S25",m:"19を4本からのアウターで上がり目が出る　オール20で5本入れても上がり目無し"},"272_1_1":{a:"S20 T20 S25",m:"20を4本からのアウターで上がり目が出せる"},"273_1_1":{a:"T20 S18 S25",m:"一本目にT20を入れられれば、S18→アウターで上がり目出せる　一本目の刺さり方によってはスタッキングで180狙いもアリ"},"274_1_1":{a:"T20 S19 Bull",m:"一本目にT20が入れば、S19→アウターで省エネテンパイ"},"275_1_1":{a:"T20 S20 S25",m:"一本目にT20が入れば、S20→アウターで省エネテンパイ"},"28_1_1":{a:"D14",m:""},"29_1_1":{a:"S13 D8",m:"16アレンジ"},"291_1_1":{a:"T19 T19 T19",m:"これが出来たら完璧。脳汁ブシャー"},"294_1_1":{a:"S20 T20 T20",m:""},"295_1_1":{a:"S20 T20 T18",m:""},"296_1_1":{a:"S19 T19 T20",m:""},"297_1_1":{a:"S20 T20 T19",m:""},"298_1_1":{a:"S20 T20 T17",m:""},"299_1_1":{a:"S19 T20 T20",m:""},"3_1_1":{a:"S1 D1",m:""},"30_1_1":{a:"D15",m:""},"300_1_1":{a:"S20 T20 T20",m:""},"301_1_1":{a:"S20 T20 T20",m:"1本目は20から"},"302_1_1":{a:"T18 T18 T18",m:"スティールで1投目T18に入った場合、打ち替えずスタッキングでベットを狙うのがベスト"},"303_1_1":{a:"T19 T19 T19",m:""},"304_1_1":{a:"T20 T20 T20",m:""},"305_1_1":{a:"T20 T20 S25",m:"とりあず削るを優先　上手いこと60に2本入れば3本目はブルへ　18から行くのは定番"},"306_1_1":{a:"S19 T20 T20",m:"一投目T入ればそのままT19からのブル二本目SならT20へ"},"307_1_1":{a:"S20 T20 T20",m:""},"308_1_1":{a:"T18 T18 T18",m:""},"309_1_1":{a:"T19 T19 T19",m:""},"31_1_1":{a:"S3 D14",m:"17s→7d 19s→6d"},"32_1_1":{a:"D16",m:"7にだけは入れてはいけない。"},"321_1_1":{a:"T20 T20 T20",m:"ここも180で！"},"33_1_1":{a:"S17 D8",m:"16アレンジ"},"34_1_1":{a:"D17",m:""},"349_1_1":{a:"T19 T19 S25",m:"210残し"},"35_1_1":{a:"S3 D16",m:"16アレンジ　左右にズレてもS19→D16　S17→D9と上がり目が出る"},"350_1_1":{a:"T20 T20 T20",m:""},"36_1_1":{a:"D18",m:""},"37_1_1":{a:"S5 D16",m:""},"38_1_1":{a:"D19",m:""},"39_1_1":{a:"S7 D16",m:"32アレンジ"},"4_1_1":{a:"D2",m:""},"40_1_1":{a:"D20",m:""},"41_1_1":{a:"S17 D12",m:""},"42_1_1":{a:"S10 D16",m:""},"43_1_1":{a:"S3 D20",m:"S3とS19の間に投げればどちらに入ってもダブルが出る。S19の場合はD12残"},"44_1_1":{a:"S4 D20",m:""},"446_1_1":{a:"S19",m:""},"45_1_1":{a:"S13 D16",m:""},"46_1_1":{a:"S6 D20",m:"6と10のシングルを広く狙う。トリプル・ダブルのいずれかに入っても上がり目がある。"},"47_1_1":{a:"S7 D20",m:""},"479_1_1":{a:"S19 T20 T20",m:"1本目にS20だとその後60-60でも339残で次180でも159残で上がり目なし。7マーク相当の点数なら139点がベスト"},"48_1_1":{a:"S16 D16",m:""},"49_1_1":{a:"S9 D20",m:""},"5_1_1":{a:"S1 D2",m:""},"50_1_1":{a:"Bull",m:"カッコつけたいので…笑😎"},"501_1_1":{a:"T20 T20 T20",m:"頑張って入れる！"},"51_1_1":{a:"S11 D20",m:""},"52_1_1":{a:"S12 D20",m:""},"53_1_1":{a:"S13 D20",m:""},"54_1_1":{a:"S14 D20",m:""},"55_1_1":{a:"S15 D20",m:"t15→d5"},"56_1_1":{a:"S16 D20",m:"t16→d4"},"57_1_1":{a:"S17 D20",m:""},"58_1_1":{a:"S18 D20",m:""},"59_1_1":{a:"S19 D20",m:""},"6_1_1":{a:"D3",m:"スプリットするより多くダブル投げられるから。"},"60_1_1":{a:"S20 D20",m:""},"61_1_1":{a:"T11 D14",m:"S11→bull"},"62_1_1":{a:"T18 D4",m:"S18(44)→S4(40)S8(36)S12(32)"},"63_1_1":{a:"T17 D6",m:"S17(46)→S6(40)S10(36)S14(32)"},"64_1_1":{a:"T16 D8",m:"S16(48)→S8(40)S12(36)S16(32)[8と16が隣りあうエリアなので、シングルを広く狙いやすい]"},"65_1_1":{a:"T19 D4",m:"S19(46)→S6(40)S10(36)S14(32) [6と10が隣り合うエリアなので、広くシングルが狙いやすい]"},"66_1_1":{a:"T14 D12",m:"S14(52)→S12(40)   残り2投なら16T→9D"},"67_1_1":{a:"T9 D20",m:"S9(58)→S18(40)   残り2投なら17T→8D"},"68_1_1":{a:"T12 D16",m:"S12→S16→D20"},"69_1_1":{a:"T15 D12",m:"残り2投なら19から"},"7_1_1":{a:"S3 D2",m:""},"70_1_1":{a:"T10 D20",m:"残り2投なら20から"},"71_1_1":{a:"T13 D16",m:"S13(58)→S18(40)→D20"},"72_1_1":{a:"T16 D12",m:"S16(56)→S16(40)"},"73_1_1":{a:"T19 D8",m:"S19で54残"},"74_1_1":{a:"T18 D10",m:"シングル18に入った時はシングル20で36、シングル16で40が残る。32作りたい人以外はこちらがオススメ。D20打ちたいのにS20に刺さったダーツが邪魔！という事態を回避できるのがミソ"},"75_1_1":{a:"T17 D12",m:"2投持ちならSB→DB"},"76_1_1":{a:"T20 D8",m:"s20→s16→d20                                            s20→t16→d4"},"77_1_1":{a:"T15 D16",m:"相手がテンパイでない時に限ります。"},"78_1_1":{a:"D19 D20",m:"S19(59)→S19(40)"},"79_1_1":{a:"T13 D20",m:"相手がテンパイでない時に限ります。"},"8_1_1":{a:"D4",m:""},"80_1_1":{a:"T16 D16",m:"相手に上り目なく余裕ある時かな。トップ入りにくいと思った日はアリ程度で選択。"},"81_1_1":{a:"T19 D12",m:"リカバリー：S19(62)→T10(32)→D16など"},"82_1_1":{a:"Bull D16",m:"インナートライしてアウターでも25 > 57"},"83_1_1":{a:"S25 S18 D20",m:"インナー入ってもシングル挟んでいける"},"84_1_1":{a:"T20 D12",m:"1投目に20Sに入ったら16Tか8T狙いで16か40残しで上がりを狙う"},"85_1_1":{a:"S25 S20 D20",m:"81〜85まではS-Bに入れれば3本目にD20のチャンスが残ります。"},"86_1_1":{a:"T18 D16",m:""},"87_1_1":{a:"T17 D18",m:""},"88_1_1":{a:"T20 D14",m:""},"89_1_1":{a:"T19 D16",m:""},"9_1_1":{a:"S1 D4",m:""},"90_1_1":{a:"T20 D15",m:"18から行くと1本目でシングルに外した時、次でトリプルかダブルに入れないと3本目はダブルにトライできない。S20→T20→D5orS20→S20→DB"},"91_1_1":{a:"T17 D20",m:""},"92_1_1":{a:"T20 D16",m:""},"93_1_1":{a:"T19 D18",m:"s19→t18→d10                                             s19→s18→t6 28残　s6 40残"},"94_1_1":{a:"T18 D20",m:"s18→t20→d8                                               s18→s20→t16 8残　s16で40残"},"95_1_1":{a:"Bull S13 D16",m:"ブルから行けばSB→S20(T20)→DB(D5)の目が残る。相手テンパイ等で絶対ダブルトライしたい場合に"},"96_1_1":{a:"S20 D19 D19",m:"スティールで1本目の20の刺さり位置＆スタッキングに自信のある場合(PDCでもたまにこのアレンジ出ます)"},"97_1_1":{a:"T19 D20",m:""},"98_1_1":{a:"T20 D19",m:""},"99_1_1":{a:"T19 S10 D16",m:"s19→t20→d10"},"10_1_2":{a:"D5",m:""},"100_1_2":{a:"Bull Bull",m:""},"101_1_2":{a:"Bull T17",m:""},"102_1_2":{a:"T17 T17",m:""},"103_1_2":{a:"T19 S14 D16",m:""},"104_1_2":{a:"S25 S19 T20",m:""},"105_1_2":{a:"S25 S20 T20",m:""},"11_1_2":{a:"S3 D4",m:""},"110_1_2":{a:"Bull T20",m:"ブルがアウターでも、45-40が残る"},"116_1_2":{a:"S19 T19 D20",m:""},"118_1_2":{a:"T20 S18 D8",m:"18から狙うと54に入ったとき64残り。14→50かトリプルをもう一本入れなければならない"},"12_1_2":{a:"D6",m:""},"120_1_2":{a:"S25 S20 S25",m:""},"121_1_2":{a:"T20 S11 Bull",m:"ブルアレンジは難しい"},"123_1_2":{a:"T18 S9 T20",m:"JAPAN用S18ならT19-T16"},"124_1_2":{a:"T19 S7 T20",m:"JAPAN用S19ならT19-T16"},"125_1_2":{a:"Bull S15 T20",m:"JAPAN用アウターならT20-D20"},"126_1_2":{a:"T18 S12 T20",m:"JAPAN用S18ならT18-T18。"},"127_1_2":{a:"T19 S10 T20",m:"JAPAN用。2本目がT10でもD20。1本目がS19ならT18-T18。"},"128_1_2":{a:"T20 S20 T16",m:"JAPAN用。S20ならT18-T18。1本目に刺さった場所次第ではT20-T16も。"},"129_1_2":{a:"T19 S12 T20",m:"JAPAN用。S19ならT20-D25"},"13_1_2":{a:"T1 D5",m:""},"130_1_2":{a:"T10 T20 D20",m:"JAPAN用。S10ならT20-T20。個人的には1本目S20だった場合のT20-D25を避けたい。"},"131_1_2":{a:"T20 T17 D10",m:"JAPAN用。S20ならT17-T20"},"132_1_2":{a:"T18 S18 T20",m:"JAPAN用。18に4本入れてT20。アウターBULLからだとT19-D25。インナーでも82残り。マスターアウトだとBULLからは美味くない。"},"133_1_2":{a:"T19 S16 T20",m:"JAPAN用。S19ならT54-T20。2本目の114をT19-T19行きたくなるがS19だと95残りで美味くない"},"135_1_2":{a:"T18 T19 D12",m:"S18-T57-T57"},"14_1_2":{a:"D7",m:""},"15_1_2":{a:"T5",m:""},"156_1_2":{a:"T20 T20 D18",m:""},"16_1_2":{a:"D8",m:""},"163_0_2":{a:"Bull T19 D12",m:"32残り"},"164_1_2":{a:"T20 T18 Bull",m:""},"166_0_2":{a:"Bull Bull D17",m:"32残り"},"167_1_2":{a:"T20 T19 Bull",m:""},"168_1_2":{a:"T20 T20 T16",m:""},"169_0_2":{a:"Bull T19 D15",m:"32残り"},"17_1_2":{a:"T3 D4",m:""},"170_1_2":{a:"T20 T20 Bull",m:""},"171_1_2":{a:"T20 T20 T17",m:""},"172_0_2":{a:"Bull Bull D20",m:"32残り"},"173_0_2":{a:"T19 T16 D18",m:"32残り、19シングルでBull→18Tで50残り、19T、16シングルでBUllで50残り"},"174_1_2":{a:"T20 T20 T18",m:""},"175_0_2":{a:"Bull T19 D18",m:"32残り、18シングルで50残り"},"176_0_2":{a:"T16 T16 T16",m:"32残り、1本目シングルでBull→Bullで60残り"},"177_1_2":{a:"T20 T20 T19",m:""},"178_0_2":{a:"Bull T20 S18",m:"50残り"},"18_1_2":{a:"D9",m:""},"180_1_2":{a:"T20 T20 T20",m:""},"181_0_2":{a:"Bull T17 T16",m:"32残り"},"181_1_2":{a:"T20 T20 T11",m:"28残にできる"},"182_0_2":{a:"Bull Bull Bull",m:"32残り"},"183_0_2":{a:"Bull Bull T17",m:"32残り"},"184_0_2":{a:"Bull T18 T16",m:"32残り"},"185_0_2":{a:"T15 T20 T16",m:"32残り、15シングル→20T→20Tで50残り、15T→20シングル→20Tで60残り"},"186_0_2":{a:"Bull Bull T18",m:"32残り"},"187_0_2":{a:"Bull T19 T16",m:"32残り"},"188_0_2":{a:"T17 T19 T16",m:"32残り"},"189_0_2":{a:"Bull Bull T19",m:"32残り"},"19_1_2":{a:"T3 D5",m:""},"190_0_2":{a:"Bull T18 T18",m:"32残り"},"191_0_2":{a:"T19 T19 T15",m:"32残り"},"192_0_2":{a:"Bull Bull T20",m:"32残り"},"192_1_2":{a:"S18",m:"2本投げ終わって192残り。手元には1本3投目はどこに投げる？20に投げるとシングルに入った時ノーテンします。昔中継で2回繰り返した人がいました。"},"193_0_2":{a:"Bull Bull T19",m:"36残り"},"194_0_2":{a:"T20 T18 T16",m:"32残り"},"195_0_2":{a:"Bull Bull T15",m:"50残り"},"196_0_2":{a:"Bull T19 T19",m:"32残り"},"197_0_2":{a:"T19 T19 T17",m:"32残り"},"198_0_2":{a:"Bull Bull T16",m:"Bull残り"},"199_0_2":{a:"Bull T19 T20",m:"32残り"},"2_1_2":{a:"D1",m:""},"20_1_2":{a:"D10",m:""},"200_0_2":{a:"Bull Bull Bull",m:"50残り"},"201_0_2":{a:"Bull Bull T17",m:"50残り"},"202_0_2":{a:"Bull T17 T17",m:"50残り"},"203_0_2":{a:"T17 T17 T17",m:"50残り"},"204_0_2":{a:"Bull Bull T18",m:"50残り"},"205_0_2":{a:"Bull T17 T18",m:"50残り"},"206_0_2":{a:"T20 T19 T19",m:"32残り"},"207_0_2":{a:"T17 T17 T19",m:"48残り"},"208_0_2":{a:"Bull Bull T20",m:"48残り"},"209_0_2":{a:"T20 T20 T19",m:"32残り"},"21_1_2":{a:"T7",m:""},"210_0_2":{a:"Bull Bull T20",m:"50残り"},"211_0_2":{a:"Bull T17 T20",m:"50残り"},"212_0_2":{a:"T20 T20 T20",m:"32残り"},"213_0_2":{a:"T17 T17 T17",m:"60残り"},"214_0_2":{a:"Bull T20 T18",m:"50残り"},"215_0_2":{a:"T15 T20 T20",m:"50残り"},"216_0_2":{a:"T18 T17 T17",m:"60残り"},"217_0_2":{a:"Bull T20 T19",m:"50残り"},"218_0_2":{a:"T20 T18 T18",m:"50残り"},"219_0_2":{a:"T19 T20 T20",m:"42残り"},"219_1_2":{a:"T19 T19 T19",m:""},"22_1_2":{a:"D11",m:""},"220_0_2":{a:"Bull T20 T20",m:"50残り"},"221_0_2":{a:"T17 T20 T20",m:"50残り"},"222_0_2":{a:"T20 T19 T19",m:"48残り"},"224_0_2":{a:"T20 T20 T18",m:"50残り"},"225_0_2":{a:"T20",m:""},"227_0_2":{a:"T20 T20 T19",m:"50残り"},"228_0_2":{a:"T20",m:""},"23_1_2":{a:"T7 D1",m:""},"230_0_2":{a:"Bull",m:"Bull1本で180残り"},"231_0_2":{a:"T20",m:""},"24_1_2":{a:"D12",m:""},"25_1_2":{a:"T5 D5",m:""},"259_1_2":{a:"S20 S20 T20",m:"2投目までで20の4マークだった場合、3投目は「19」でもOK。"},"26_1_2":{a:"D13",m:""},"261_1_2":{a:"S18 S18 T18",m:"3投で20の5マーク→「△」(ダブルアウトは「〇」)。19の5マーク→「✕」"},"262_1_2":{a:"S20 S20 T20",m:"3投で19の5マーク→「△」(ダブルアウトは「〇」)"},"263_1_2":{a:"S19 S19 T19",m:"3投で20の5マーク→「✕」"},"264_1_2":{a:"S18 S18 T18",m:"3投で20の5マーク→「△」(ダブルアウトは「〇」)。19の5マーク→「✕」"},"265_1_2":{a:"T19 S19 S19",m:""},"266_1_2":{a:"S19 S19 T19",m:""},"269_1_2":{a:"S19 S19 T19",m:""},"27_1_2":{a:"T9",m:""},"271_1_2":{a:"T19 S19 S25",m:""},"272_1_2":{a:"T20 S20 S25",m:""},"273_1_2":{a:"T20 S18 S25",m:""},"274_1_2":{a:"T20 S19 S25",m:""},"275_1_2":{a:"T20 S20 S25",m:""},"28_1_2":{a:"D14",m:""},"280_1_2":{a:"S20 S20 T20",m:""},"281_1_2":{a:"T19 S19 S25",m:""},"282_1_2":{a:"S20 T20 S25",m:""},"285_1_2":{a:"S20 T20 S25",m:""},"29_1_2":{a:"T7 D4",m:""},"296_1_2":{a:"T19 T20 T20",m:""},"297_1_2":{a:"T20 T20 T20",m:""},"298_1_2":{a:"T18 T20 T20",m:""},"299_1_2":{a:"T19 T20 T20",m:""},"3_1_2":{a:"S1 D1",m:""},"30_1_2":{a:"D15",m:""},"300_1_2":{a:"T20 T20 T20",m:""},"301_0_2":{a:"Bull Bull Bull",m:""},"301_1_2":{a:"S20 T20 T20",m:""},"302_1_2":{a:"T18 T18 T18",m:""},"303_1_2":{a:"T19 T19 S19",m:""},"304_1_2":{a:"S19 T19 T19",m:"20の7マーク→「△」(ダブルアウトは「〇」)"},"305_1_2":{a:"S20 T20 T20",m:""},"306_1_2":{a:"T19 T20 T19",m:"1投目19行かないと上がり目出ない。57-60-（57-19）で132/170が残る。それか19-57-60で170残り。"},"307_1_2":{a:"S19 T19 T19",m:"20の7マーク→「△」"},"308_0_2":{a:"S18 T20 T20",m:""},"308_1_2":{a:"S20 T20 T20",m:""},"309_1_2":{a:"T18 Bull S25",m:"1投目「S18」の場合は、残り2投は「T20」。2投目「S-B」の場合は、残り1投は「T20」"},"31_1_2":{a:"T7 D5",m:""},"310_1_2":{a:"S19 T19 T19",m:"20の7マーク→「△」"},"311_1_2":{a:"S20 T20 T20",m:""},"312_1_2":{a:"T18 T18 T18",m:"1投目「S18」の場合、残り2投は「T20」。2投目「S18」の場合、残り1投は「T20」。"},"313_1_2":{a:"S19 T19 T19",m:""},"314_1_2":{a:"S20 T20 T20",m:""},"32_1_2":{a:"D16",m:""},"33_1_2":{a:"T11",m:""},"34_1_2":{a:"D17",m:""},"35_1_2":{a:"T9 D4",m:""},"351_0_2":{a:"T19 T19 T19",m:"S19だとしても最終82残り、S20だと最終81残りでトリプル必須なので351は19推奨"},"358_1_2":{a:"T20 T20",m:""},"359_1_2":{a:"T20 T20 S25",m:""},"36_1_2":{a:"D18",m:""},"360_0_2":{a:"T20 T20 T20",m:"180残り"},"360_1_2":{a:"T20 T20 T20",m:"180残し"},"37_1_2":{a:"T9 D5",m:""},"38_1_2":{a:"D19",m:""},"39_1_2":{a:"T13",m:""},"4_1_2":{a:"D2",m:""},"40_1_2":{a:"D20",m:""},"41_1_2":{a:"T9 D7",m:""},"42_1_2":{a:"T14",m:""},"43_1_2":{a:"T11 D5",m:""},"44_1_2":{a:"T12 D4",m:""},"45_1_2":{a:"T15",m:""},"46_1_2":{a:"T10 D8",m:""},"47_1_2":{a:"T11 D7",m:""},"48_1_2":{a:"T16",m:""},"49_1_2":{a:"T11 D8",m:""},"5_1_2":{a:"S1 D2",m:""},"50_1_2":{a:"Bull",m:""},"500_0_2":{a:"Bull",m:""},"500_1_2":{a:"T20 T20 T20",m:""},"501_1_2":{a:"T20 T20 T20",m:""},"51_1_2":{a:"T17",m:""},"52_1_2":{a:"Bull D1",m:""},"53_1_2":{a:"T13 D7",m:""},"54_1_2":{a:"T18",m:""},"55_1_2":{a:"S15 D20",m:""},"56_1_2":{a:"Bull D3",m:""},"57_1_2":{a:"T19",m:""},"58_1_2":{a:"Bull D4",m:""},"59_1_2":{a:"T13 D10",m:""},"6_1_2":{a:"D3",m:""},"60_1_2":{a:"T20",m:""},"61_1_2":{a:"T15 D8",m:""},"62_1_2":{a:"T14 D10",m:"S14→T16"},"63_1_2":{a:"T13 D12",m:""},"64_1_2":{a:"Bull D7",m:""},"65_1_2":{a:"T19 D4",m:"3本持ちの場合のみ"},"66_1_2":{a:"Bull D8",m:""},"67_1_2":{a:"T17 D8",m:""},"68_1_2":{a:"Bull D9",m:""},"69_1_2":{a:"T19 D6",m:""},"7_1_2":{a:"S3 D2",m:"狙うところが近いから"},"70_1_2":{a:"Bull D10",m:""},"71_1_2":{a:"T17 D10",m:""},"72_1_2":{a:"T12 D18",m:""},"73_1_2":{a:"T19 D8",m:""},"74_1_2":{a:"Bull D12",m:""},"75_0_2":{a:"T17 D12",m:"S17→58"},"75_1_2":{a:"S25 S25 S25",m:"ジャパンマスターアウトならありの上がり"},"76_1_2":{a:"T20 D8",m:""},"77_1_2":{a:"T19 D10",m:""},"78_1_2":{a:"Bull D14",m:""},"79_1_2":{a:"T19 D11",m:""},"8_1_2":{a:"D4",m:""},"80_1_2":{a:"Bull D15",m:""},"81_1_2":{a:"T19 D12",m:""},"82_1_2":{a:"S25 T19",m:""},"83_1_2":{a:"T17 D16",m:""},"84_1_2":{a:"Bull D17",m:""},"85_1_2":{a:"T15 D20",m:"万が一外しても修正が効く"},"86_1_2":{a:"Bull D18",m:""},"87_1_2":{a:"T17 D18",m:""},"88_1_2":{a:"Bull D19",m:""},"89_1_2":{a:"T19 D16",m:""},"9_1_2":{a:"S3 D3",m:""},"90_1_2":{a:"Bull D20",m:""},"91_1_2":{a:"T17 D20",m:""},"92_1_2":{a:"S25 T17 D8",m:"アウターなら17トリプルなら8D、17シングルならインナートライ(相手がテンパイ状況)"},"93_1_2":{a:"T19 D18",m:""},"94_1_2":{a:"T18 D20",m:""},"95_1_2":{a:"T19 D19",m:""},"96_1_2":{a:"T20 D18",m:""},"97_1_2":{a:"T19 D20",m:""},"98_1_2":{a:"T20 D19",m:""},"99_1_2":{a:"T17 T16",m:""}};
 
 // データのマッピングロジック
 function mapCustomArrange(str) {
@@ -1313,8 +755,8 @@ function _buildQueue(){
   } else {
      if(ST.level==='easy') pool = pool.filter(a=>a.score<=60);
      else if(ST.level==='normal') pool = pool.filter(a=>a.score>=61 && a.score<=110);
-     else if(ST.level==='hard') pool = pool.filter(a=>a.score>=111 && a.score<=179);
-     else if(ST.level==='setup') pool = pool.filter(a=>a.score>=180);
+     else if(ST.level==='hard') pool = pool.filter(a=>a.score>=111 && a.score<=180);
+     else if(ST.level==='setup') pool = pool.filter(a=>a.score>=181);
   }
   const arr=[...pool];
   for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
@@ -1377,6 +819,32 @@ function onTap(label,val,e){
     drawDart(baseX + ox, baseY + oy, targetId);
   }
   ST.input.push(n); renderLog();
+}
+
+function segVal(label){
+  if(label==='Bull')return 50; if(label==='S25')return 25;
+  if(label.startsWith('T'))return parseInt(label.slice(1),10)*3;
+  if(label.startsWith('D'))return parseInt(label.slice(1),10)*2;
+  if(label.startsWith('S'))return parseInt(label.slice(1),10);
+  return 0;
+}
+
+function isMathOut(input, targetScore, outMode) {
+  let sum = 0;
+  for(let i=0; i<input.length; i++) {
+    let val = segVal(input[i]);
+    sum += val;
+    if (i < input.length - 1 && sum >= targetScore) return false; 
+  }
+  if (sum !== targetScore) return false;
+
+  let lastDart = input[input.length - 1];
+  let isDouble = lastDart.startsWith('D') || lastDart === 'Bull';
+  let isTriple = lastDart.startsWith('T');
+
+  if (outMode === 'double') return isDouble;
+  else if (outMode === 'master') return isDouble || isTriple;
+  else return true;
 }
 
 function renderLog(evalClass, msgExt){
@@ -1476,7 +944,9 @@ function rmThrow(i){
 function checkAnswer(){
   if(!ST.current||ST.answered)return; ST.answered=true;
   const q=ST.current, correct=q.throws, input=ST.input;
+  
   const exactOk = JSON.stringify(input) === JSON.stringify(correct);
+  const mathOk = isMathOut(input, q.score, ST.outMode);
   
   let evaluation = 'miss';
   let msgExt = "";
@@ -1484,6 +954,17 @@ function checkAnswer(){
   if (exactOk) {
     evaluation = 'exc';
     msgExt = "最優秀アレンジ";
+  } else if (mathOk) {
+    if (input.length < correct.length) {
+       evaluation = 'exc';
+       msgExt = "ショートカット成立！";
+    } else if (input.length === correct.length) {
+       evaluation = 'good';
+       msgExt = "ナイスアレンジ(別解)！";
+    } else {
+       evaluation = 'par';
+       msgExt = "イレギュラー上がり(手数が多め)";
+    }
   } else if (correct.length > 0 && checkOrder(input, correct)) {
     evaluation = 'par';
     msgExt = "上がり目残し(順序違い)";
@@ -1495,7 +976,7 @@ function checkAnswer(){
   if(evaluation === 'exc' || evaluation === 'good'){ 
       input.forEach(s=>hlSeg(s,PHX.sel_ok)); SND.ok(); 
   } else if(evaluation === 'par'){ 
-      correct.forEach(s=>hlSeg(s,PHX.sel_or)); 
+      if(mathOk) input.forEach(s=>hlSeg(s,PHX.sel_or)); else correct.forEach(s=>hlSeg(s,PHX.sel_or)); 
       SND.ng(); 
   } else {
     if(correct.length > 0) correct.forEach(s=>hlSeg(s,PHX.sel_ok));
@@ -1516,6 +997,10 @@ function checkAnswer(){
     ban.className='result-banner show correct'; 
     document.getElementById('result-icon').textContent='◎';
     document.getElementById('result-text').textContent=`Perfect! [${msgExt}] `;
+  } else if(evaluation === 'good'){
+    ban.className='result-banner show correct'; 
+    document.getElementById('result-icon').textContent='◯';
+    document.getElementById('result-text').textContent=`Nice! [${msgExt}] `;
   } else if(evaluation === 'par'){
     ban.className='result-banner show partial'; document.getElementById('result-icon').textContent='△';
     document.getElementById('result-text').textContent=`Partial: [${msgExt}] 正解例：${correct.join(' → ')}`;
@@ -1545,7 +1030,7 @@ function nextQuestion(){
   ST.current=_pickNext();
   if(!ST.current) {
     document.getElementById('current-score').textContent = '—';
-    document.getElementById('throw-counter').textContent = 'この設定に対応するデータがありません。';
+    document.getElementById('throw-counter').textContent = '設定に該当するデータがありません';
     return;
   }
 
@@ -1569,7 +1054,7 @@ function showAnswer(){
 
 function renderTheory(q,isPartial,msgExt){
   let h='';
-  if(q.theory){ h+=`<div class="tsec"><strong>■ My Arrange メモ</strong><br>${q.theory.replace(/\n/g,'<br>')}</div>`; }
+  if(q.theory){ h+=`<div class="tsec"><strong>■ My Arrange メモ</strong><br>${q.theory.replace(/\\n/g,'<br>')}</div>`; }
   
   if(msgExt) {
      h+=`<div class="order-note" style="color:var(--gr);border-color:var(--gd);background:rgba(0,255,127,0.08);"><b>✓ 成立！</b> ${msgExt}</div>`;
@@ -1699,7 +1184,7 @@ function showTAResult(){
             <span style="color:var(--mu); font-size:10px;">あなたの回答:</span> <span style="font-family:var(--mo); font-weight:bold; font-size:13px;">${inStr || 'なし'}</span>
           </div>
           ${h.eval !== 'exc' ? `<div style="color:var(--gr); margin-bottom:6px;">
-            <span style="color:var(--mu); font-size:10px;">セオリー:</span> <span style="font-family:var(--mo); font-weight:bold; font-size:13px;">${correctStr}</span>
+            <span style="color:var(--mu); font-size:10px;">最優秀ルート:</span> <span style="font-family:var(--mo); font-weight:bold; font-size:13px;">${correctStr}</span>
           </div>` : ''}
         </div>
       `;
@@ -1762,8 +1247,8 @@ function renderTable(){
   
   if(tblFilter==='bull') data=pool.filter(a=>a.throws.includes('Bull')||a.throws.includes('S25'));
   if(tblFilter==='double') data=pool.filter(a=>a.throws.length>0 && a.throws[a.throws.length-1].startsWith('D'));
-  if(tblFilter==='high') data=pool.filter(a=>a.score>=120 && a.score<=179);
-  if(tblFilter==='setup') data=pool.filter(a=>a.score>=180);
+  if(tblFilter==='high') data=pool.filter(a=>a.score>=120 && a.score<=180);
+  if(tblFilter==='setup') data=pool.filter(a=>a.score>=181);
 
   const c=document.getElementById('arrange-table');c.innerHTML='';
   
@@ -1780,13 +1265,13 @@ function renderTable(){
     let tags = '';
     if(a.throws.includes('Bull')||a.throws.includes('S25')) tags += `<span class="ar-tag bull">BULL</span>`;
     if(a.throws.length>0 && a.throws[a.throws.length-1].startsWith('D')) tags += `<span class="ar-tag double">DOUBLE</span>`;
-    if(a.score>=120 && a.score<=179) tags += `<span class="ar-tag key">HIGH</span>`;
-    if(a.score>=180) tags += `<span class="ar-tag key" style="background:rgba(255,77,140,0.15);color:var(--pk);">SETUP</span>`;
+    if(a.score>=120 && a.score<=180) tags += `<span class="ar-tag key">HIGH</span>`;
+    if(a.score>=181) tags += `<span class="ar-tag key" style="background:rgba(255,77,140,0.15);color:var(--pk);">SETUP</span>`;
 
     row.innerHTML=`<span class="ar-s">${a.score}</span><div class="ar-t">${ts}<small>${a.theory?a.theory.substring(0,25)+'…':''}</small></div>${tags}`;
     if(a.theory){
       const det=document.createElement('div');det.className='arr-det';
-      let h=`<strong>メモ：</strong><br>${a.theory.replace(/\n/g,'<br>')}`;
+      let h=`<strong>メモ：</strong><br>${a.theory.replace(/\\n/g,'<br>')}`;
       det.innerHTML=h; row.onclick=()=>det.classList.toggle('open');
       wrap.appendChild(row);wrap.appendChild(det);
     }else{wrap.appendChild(row);}
