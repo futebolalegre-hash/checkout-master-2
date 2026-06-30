@@ -26,7 +26,6 @@ html,body{height:100%;overflow:hidden;background:#000;}
   --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
 }
 
-/* 🎯 亮平さんのスマホ縮尺（9:19.5）に完全ロックするレスポンシブコンテナ */
 .app-viewport-lock {
   position: absolute;
   top: 50%;
@@ -56,7 +55,7 @@ html,body{height:100%;overflow:hidden;background:#000;}
 }
 
 header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + var(--st));display:flex;align-items:center;justify-content:space-between;flex-shrink:0;min-height:52px;}
-.logo{display:flex;flex-direction:column;justify-content:center;}
+.logo{display:flex;flex-direction:column;justify-content:center;cursor:pointer;}
 .logo-top{display:flex;align-items:baseline;gap:5px;}
 .logo-main{font-family:'Oleo Script',cursive;font-size:22px;letter-spacing:0.5px;color:var(--pk);text-shadow:0 0 12px rgba(255,77,140,0.5), 0 2px 4px rgba(0,0,0,0.8);line-height:1;}
 .logo-sub{font-family:'Oleo Script',cursive;font-size:14px;letter-spacing:0.5px;color:var(--pk);text-shadow:0 0 12px rgba(255,77,140,0.5), 0 2px 4px rgba(0,0,0,0.8);line-height:1;margin-top:4px;}
@@ -195,7 +194,7 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
   </div>
 
   <header>
-    <div class="logo">
+    <div class="logo" onclick="resetToHome()">
       <div class="logo-top"><span class="logo-main">Checkout Master</span><span class="logo-ver">ver.1.00</span></div>
       <span class="logo-sub">for Puku Freaks</span>
     </div>
@@ -313,7 +312,7 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
         <div id="ta-rank-comment" style="font-size:12px;color:var(--mu);text-align:center;max-width:280px;line-height:1.6;margin-top:8px;padding:0 8px;"></div>
         
         <div style="display:flex; gap:10px; margin-top:12px; margin-bottom:10px; width:100%; max-width:280px;">
-          <button class="btn btn-secondary" onclick="setMode(document.querySelectorAll('.ctrl-btn')[0],'quiz')" style="flex:1; padding:10px 5px;">🏠 ホーム</button>
+          <button class="btn btn-secondary" onclick="resetToHome()" style="flex:1; padding:10px 5px;">🏠 ホーム</button>
           <button class="btn btn-pink" onclick="startTimeAttack()" style="flex:1; padding:10px 5px;">▶ もう一度</button>
         </div>
         
@@ -327,7 +326,8 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
       <div class="throw-log" id="throw-log"></div>
       
       <div class="btn-row" id="confirm-btn-row" style="display:none; margin-bottom:4px;">
-        <button class="btn btn-primary" style="background:var(--pk);color:#0D1117;font-size:15px;padding:12px;" onclick="checkAnswer()">🎯 確定</button>
+        <button class="btn btn-secondary" onclick="resetToHome()" style="flex:0.5; padding:12px 5px; font-size:15px;" title="ホームに戻る">🏠</button>
+        <button class="btn btn-primary" style="background:var(--pk);color:#0D1117;font-size:15px;padding:12px;flex:2.5;" onclick="checkAnswer()">🎯 確定</button>
       </div>
       
       <div class="result-banner" id="result-banner">
@@ -346,13 +346,22 @@ header{border-bottom:1px solid #1E2A1E;padding:8px 14px;padding-top:calc(8px + v
         <div class="tpt">ARRANGE THEORY</div>
         <div id="theory-content"></div>
       </div>
+      
       <div class="btn-row" id="main-btns">
-        <button class="btn btn-secondary" onclick="showAnswer()" id="btn-hint">答えを見る</button>
-        <button class="btn btn-primary"   onclick="nextQuestion()">次へ →</button>
+        <button class="btn btn-secondary" onclick="resetToHome()" style="flex:0.5; padding:11px 0px; font-size:15px;" title="ホームに戻る">🏠</button>
+        <button class="btn btn-secondary" onclick="showAnswer()" id="btn-hint" style="flex:1;">答えを見る</button>
+        <button class="btn btn-primary"   onclick="nextQuestion()" style="flex:1.5;">次へ →</button>
       </div>
+      
       <div class="btn-row" id="ta-start-btn" style="display:none">
-        <button class="btn btn-pink" onclick="startTimeAttack()">▶ スタート</button>
+        <button class="btn btn-secondary" onclick="resetToHome()" style="flex:0.5; padding:11px 0px; font-size:15px;" title="ホームに戻る">🏠</button>
+        <button class="btn btn-pink" onclick="startTimeAttack()" style="flex:2.5;">▶ スタート</button>
       </div>
+
+      <div class="btn-row" id="ta-playing-btn" style="display:none; margin-top:4px;">
+        <button class="btn btn-secondary" onclick="resetToHome()" style="width:100%; border-color:#662222; color:var(--rd);">⏹ ゲームを中断してホームに戻る</button>
+      </div>
+
     </div>
   </div>
 
@@ -874,7 +883,7 @@ const ARRANGES = [
   {score:11, fat:["S3","D4"], sep:["S3","D4"], tags:['double'], theory:'【MyArrange 1位】S3→D4\nT3(9)に入ってもD1で上がれます。', miss:'S3外れT3(2)→次D1に入れれば上がれます。'},
   {score:10, fat:["D5"], sep:["D5"], tags:['double'], theory:'【MyArrange 1位】D5 (1本フィニッシュ)\n満場一致のルートです。', miss:'D5外れS5(5)→次S1に入れればD2で上がれます。'},
   {score:9, fat:["S1","D4"], sep:["S1","D4"], tags:['double'], theory:'【MyArrange 1位】S1→D4\nT1(3)に入ってもD3で上がれます。', miss:'S1外れT1(6)→次D3に入れれば上がれます。'},
-  {score:8, fat:["D4"], sep:["D4"], tags:['double'], theory:'【MyArrange 1位】D4 (1本フィニッシュ)\n面積が最大で最も狙いやすいダブルです。', miss:'D4外れS4(4)→次D2に入れれば上がれます。'},
+  {score:8, fat:["D4"], sep:["D4"], tags:['double'], theory:'【MyArrange 1位】D4 (1本フィニッシュ)\n満場一致のルートです。', miss:'D4外れS4(4)→次D2に入れれば上がれます。'},
   {score:7, fat:["S3","D2"], sep:["S3","D2"], tags:['double'], theory:'【MyArrange 1位】S3→D2\nT3のバーストに注意。', miss:'S3狙いでT3に入った場合、バースト(残り0点未満)となり上がり目が消滅します。'},
   {score:6, fat:["D3"], sep:["D3"], tags:['double'], theory:'【MyArrange 1位】D3 (1本フィニッシュ)\n満場一致のルートです。', miss:'D3外れS3(3)→次S1に入れればD1で上がれます。'},
   {score:5, fat:["S1","D2"], sep:["S1","D2"], tags:['double'], theory:'【MyArrange 1位】S1→D2\nT1(3)に入ってもD1で上がれます。', miss:'S1外れT1(2)→次D1に入れれば上がれます。'},
@@ -901,10 +910,8 @@ function getThrows(a){
     if(a.score === 162) return ["T20","T20","T14"];
     if(a.score === 159) return ["T19","T19","T15"];
   }
-  
   let route = ST.bullMode==='sep'?a.sep:a.fat;
   if(!route) route = [];
-  
   if(ST.outMode === 'master' || ST.outMode === 'open') {
      if(a.score <= 60 && a.score % 3 === 0) return [`T${a.score/3}`];
      if(a.score === 50) return ['Bull'];
@@ -952,6 +959,7 @@ function getPool(){
   if(ST.level==='normal') return v.filter(a=>a.score>=36&&a.score<=140);
   return v;
 }
+
 function _buildQueue(){
   let pool = getPool();
   if(ST.mode === 'weak' && ST._weakPool) { pool = ST._weakPool.filter(a => !ST._weakAnswered.has(a.score)); if(pool.length === 0) pool = ST._weakPool; }
@@ -959,16 +967,32 @@ function _buildQueue(){
   for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
   ST._queue=arr;
 }
+
 function _pickNext(){
   if(ST._queue.length===0) _buildQueue();
   if(ST._queue.length>1 && ST._queue[0].score===ST._lastScore){ ST._queue.push(ST._queue.shift()); }
   const q=ST._queue.shift(); ST._lastScore=q.score; return q;
 }
+
 function normBull(seg){if(ST.bullMode==='fat'&&seg==='S25')return'Bull'; return seg;}
 function checkOrder(input,correct){
   if(input.length!==correct.length)return false;
   const si=[...input].sort().join(','),sc=[...correct].sort().join(',');
   return si===sc&&JSON.stringify(input)!==JSON.stringify(correct);
+}
+
+function resetToHome() {
+  if(ST.ta.timer) {
+    clearInterval(ST.ta.timer);
+    ST.ta.timer = null;
+  }
+  ST.ta.active = false;
+  BGM.stop();
+  ST._queue = []; 
+  ST._lastScore = null;
+  
+  const quizBtn = document.querySelectorAll('.ctrl-btn')[0];
+  setMode(quizBtn, 'quiz');
 }
 
 function onTap(label,val,e){
@@ -1027,7 +1051,7 @@ function renderLog(evalClass, msgExt){
   }
   
   const indicator = document.getElementById('darts-indicator');
-  if(indicator && ST.mode !== 'timeattack' || (ST.ta && ST.ta.active)) {
+  if(indicator) {
     if(document.getElementById('ta-result').classList.contains('show')) {
       indicator.style.display = 'none';
     } else {
@@ -1062,14 +1086,36 @@ function renderLog(evalClass, msgExt){
   if(!ST.answered){ ctr.textContent=rem>0?`あと${rem}本スロー（確定ボタンで完了）`:'（確定ボタンで完了）'; } 
   else { ctr.textContent=''; }
   
-  const confirmBtn = document.getElementById('confirm-btn-row'); const mainBtns = document.getElementById('main-btns');
+  const confirmBtn = document.getElementById('confirm-btn-row'); 
+  const mainBtns = document.getElementById('main-btns');
+  const taStartBtn = document.getElementById('ta-start-btn');
+  const taPlayingBtn = document.getElementById('ta-playing-btn');
+
   if(!ST.answered && ST.input.length > 0) {
-    confirmBtn.style.display = 'flex'; if(mainBtns) mainBtns.style.display = 'none';
+    if(confirmBtn) confirmBtn.style.display = 'flex'; 
+    if(mainBtns) mainBtns.style.display = 'none';
+    if(taStartBtn) taStartBtn.style.display = 'none';
+    if(taPlayingBtn) taPlayingBtn.style.display = 'none';
   } else {
-    confirmBtn.style.display = 'none';
-    if(mainBtns) {
-      if(ST.mode === 'quiz' || ST.mode === 'study') { mainBtns.style.display = 'flex'; } 
-      else if(ST.mode === 'weak' && ST.answered) { mainBtns.style.display = 'flex'; }
+    if(confirmBtn) confirmBtn.style.display = 'none';
+    if(ST.mode === 'timeattack') {
+       if(!ST.ta.active) {
+          if(mainBtns) mainBtns.style.display = 'none';
+          if(taStartBtn) taStartBtn.style.display = 'flex';
+          if(taPlayingBtn) taPlayingBtn.style.display = 'none';
+       } else {
+          if(mainBtns) mainBtns.style.display = 'none';
+          if(taStartBtn) taStartBtn.style.display = 'none';
+          if(taPlayingBtn) taPlayingBtn.style.display = 'flex';
+       }
+    } else if(ST.mode === 'weak' && !ST.answered) {
+       if(mainBtns) mainBtns.style.display = 'none';
+       if(taStartBtn) taStartBtn.style.display = 'none';
+       if(taPlayingBtn) taPlayingBtn.style.display = 'none';
+    } else {
+       if(mainBtns) mainBtns.style.display = 'flex';
+       if(taStartBtn) taStartBtn.style.display = 'none';
+       if(taPlayingBtn) taPlayingBtn.style.display = 'none';
     }
   }
 }
@@ -1147,15 +1193,24 @@ function checkAnswer(){
   }
   renderLog(evaluation, msgExt); renderTheory(q, evaluation==='par', msgExt);
   document.getElementById('theory-panel').classList.add('show'); updateStats();
-  document.getElementById('btn-hint').style.display='none';
   saveHist({type:`quiz_${evaluation}`, score:q.score, throws:correct.length>0?correct.join(' → '):"なし", ts:Date.now()});
 }
 
 function nextQuestion(){
-  ST.answered=false;ST.input=[];clearHL(); if(ST.mode==='timeattack'&&!ST.ta.active)return;
+  ST.answered=false;ST.input=[];clearHL(); 
+  
+  if(ST.mode==='timeattack' && !ST.ta.active) {
+    ST.current = null;
+    document.getElementById('current-score').textContent = '—';
+    document.getElementById('result-banner').className='result-banner'; 
+    document.getElementById('theory-panel').classList.remove('show'); 
+    renderLog();
+    return;
+  }
+
   ST.current=_pickNext();
   if(ST.current) { const scoreEl = document.getElementById('current-score'); scoreEl.textContent=ST.current.score; }
-  document.getElementById('result-banner').className='result-banner'; document.getElementById('btn-hint').style.display='';
+  document.getElementById('result-banner').className='result-banner'; 
   document.getElementById('theory-panel').classList.remove('show'); renderLog();
   if(ST.mode==='study'||ST.showTheory){renderTheory(ST.current,false,"");document.getElementById('theory-panel').classList.add('show');}
 }
@@ -1169,7 +1224,7 @@ function showAnswer(){
   const cMsg = correct.length > 0 ? correct.join(' → ') : "上がり目なし";
   document.getElementById('result-text').textContent='答え確認：' + cMsg;
   renderTheory(q,false,"");document.getElementById('theory-panel').classList.add('show');
-  document.getElementById('btn-hint').style.display='none'; updateStats();
+  updateStats();
 }
 
 function renderTheory(q,isPartial,msgExt){
@@ -1198,9 +1253,6 @@ function startTimeAttack(){
   document.getElementById('ta-result').classList.remove('show'); 
   document.getElementById('board-area').style.display='flex';
   document.querySelector('.bottom-panel').style.display='block';
-  document.getElementById('main-btns').style.display='none'; 
-  document.getElementById('btn-hint').style.display='none';
-  document.getElementById('ta-start-btn').style.display='none';
   
   const indicator = document.getElementById('darts-indicator');
   if(indicator) indicator.style.display = 'flex';
@@ -1347,14 +1399,12 @@ function setMode(btn,mode){
   const indicator = document.getElementById('darts-indicator');
   if(indicator) indicator.style.display = 'flex';
 
-  document.getElementById('main-btns').style.display=(ta||isWeak)?'none':'flex';
-  document.getElementById('confirm-btn-row').style.display='none';
-  document.getElementById('ta-start-btn').style.display=ta?'flex':'none';
   document.getElementById('theory-toggle-label').style.display=(ta||isWeak)?'none':'flex';
   if(ta){document.getElementById('timer-display').textContent=ST.taTime;document.getElementById('timer-bar').style.width='100%';}
 
   if(isWeak){ startWeakMode(); } else { nextQuestion(); }
 }
+
 function setOutMode(btn,mode){
   document.querySelectorAll('#out-master,#out-open, #out-double').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');ST.outMode=mode; ST._queue=[];ST._lastScore=null; nextQuestion();
