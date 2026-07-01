@@ -5,37 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Checkout Master</title>
 <style>
-    /* 画面を確実に表示させるための修正CSS */
     html, body { margin: 0; padding: 0; background: #0D1117; color: #E8EEE8; height: 100%; }
     .app-container { display: flex; flex-direction: column; height: 100vh; }
-    
     header { padding: 15px; border-bottom: 1px solid #333; }
     .logo-main { font-family: sans-serif; font-size: 20px; color: #FF4D8C; }
-    
-    .board-area { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 300px; }
+    .board-area { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
     #dartboard { width: 90%; max-width: 400px; height: auto; }
-    
     .bottom-panel { padding: 20px; text-align: center; }
     .btn { padding: 15px 40px; background: #00FF7F; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: #0D1117; }
 </style>
 </head>
 <body>
     <div class="app-container">
-        <header>
-            <div class="logo"><span class="logo-main">Checkout Master</span> <small>ver.1.07</small></div>
-        </header>
-        
+        <header><div class="logo"><span class="logo-main">Checkout Master</span> <small>ver.1.07</small></div></header>
         <div class="board-area">
-            <svg id="dartboard" viewBox="0 0 400 400">
-                <circle cx="200" cy="200" r="180" fill="#333" stroke="#9A9070" stroke-width="5"/>
-                <circle cx="200" cy="200" r="20" fill="#B8172A"/>
-                <text x="200" y="210" text-anchor="middle" fill="white" font-size="24">BOARD</text>
-            </svg>
+            <svg id="dartboard" viewBox="0 0 400 400"></svg>
         </div>
-        
-        <div class="bottom-panel">
-            <button class="btn" onclick="alert('動作確認OK')">🎯 確定</button>
-        </div>
+        <div class="bottom-panel"><button class="btn" onclick="alert('ボード動作確認')">🎯 確定</button></div>
     </div>
+    <script>
+        function buildBoard() {
+            const svg = document.getElementById('dartboard');
+            svg.innerHTML = '';
+            // 簡易的な的の描画（放射状の線）
+            for(let i=0; i<20; i++) {
+                const angle = i * 18 * Math.PI / 180;
+                const x2 = 200 + 180 * Math.cos(angle);
+                const y2 = 200 + 180 * Math.sin(angle);
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', '200'); line.setAttribute('y1', '200');
+                line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+                line.setAttribute('stroke', '#9A9070'); line.setAttribute('stroke-width', '2');
+                svg.appendChild(line);
+            }
+            const outer = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            outer.setAttribute('cx','200'); outer.setAttribute('cy','200'); outer.setAttribute('r','180');
+            outer.setAttribute('fill','none'); outer.setAttribute('stroke','#9A9070'); outer.setAttribute('stroke-width','5');
+            svg.appendChild(outer);
+        }
+        buildBoard();
+    </script>
 </body>
 </html>
