@@ -5,24 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Checkout Master</title>
 <style>
-    body { background: #0D1117; color: #E8EEE8; display: flex; flex-direction: column; height: 100vh; margin: 0; }
-    .board-area { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-    #dartboard { width: 100%; max-width: 400px; }
+    /* 画面を確実に表示させるための修正CSS */
+    html, body { margin: 0; padding: 0; background: #0D1117; color: #E8EEE8; height: 100%; }
+    .app-container { display: flex; flex-direction: column; height: 100vh; }
+    
+    header { padding: 15px; border-bottom: 1px solid #333; }
+    .logo-main { font-family: sans-serif; font-size: 20px; color: #FF4D8C; }
+    
+    .board-area { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 300px; }
+    #dartboard { width: 90%; max-width: 400px; height: auto; }
+    
     .bottom-panel { padding: 20px; text-align: center; }
-    .btn { padding: 15px 30px; background: #00FF7F; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .btn { padding: 15px 40px; background: #00FF7F; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: #0D1117; }
 </style>
 </head>
 <body>
-    <div class="board-area">
-        <svg id="dartboard" viewBox="0 0 400 400">
-            <!-- テスト用の簡易円 -->
-            <circle cx="200" cy="200" r="180" fill="#333" stroke="#9A9070" stroke-width="5"/>
-            <circle cx="200" cy="200" r="20" fill="#B8172A"/>
-            <text x="200" y="210" text-anchor="middle" fill="white">TEST</text>
-        </svg>
-    </div>
-    <div class="bottom-panel">
-        <button class="btn" onclick="alert('動作OK')">🎯 確定</button>
+    <div class="app-container">
+        <header>
+            <div class="logo"><span class="logo-main">Checkout Master</span> <small>ver.1.07</small></div>
+        </header>
+        
+        <div class="board-area">
+            <svg id="dartboard" viewBox="0 0 400 400">
+                <circle cx="200" cy="200" r="180" fill="#333" stroke="#9A9070" stroke-width="5"/>
+                <circle cx="200" cy="200" r="20" fill="#B8172A"/>
+                <text x="200" y="210" text-anchor="middle" fill="white" font-size="24">BOARD</text>
+            </svg>
+        </div>
+        
+        <div class="bottom-panel">
+            <button class="btn" onclick="alert('動作確認OK')">🎯 確定</button>
+        </div>
     </div>
 </body>
 </html>
