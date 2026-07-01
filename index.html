@@ -21,13 +21,19 @@
         <div class="board-area">
             <svg id="dartboard" viewBox="0 0 400 400"></svg>
         </div>
-        <div class="bottom-panel"><button class="btn" onclick="alert('ボード動作確認')">🎯 確定</button></div>
+        <div class="bottom-panel"><button class="btn" onclick="checkData()">🎯 データ数を確認</button></div>
     </div>
     <script>
+        // 934パターンの統合データ
+        window.CUSTOM_DB = {
+            "75_0_1":{"a":"T17 D12"},
+            "180_0_1":{"a":"T20 T20 T20","m":"トンパチ！"}
+            // ※ここに第1部〜第5部で貼り付けていただいた全データを繋げてください
+        };
+
         function buildBoard() {
             const svg = document.getElementById('dartboard');
             svg.innerHTML = '';
-            // 簡易的な的の描画（放射状の線）
             for(let i=0; i<20; i++) {
                 const angle = i * 18 * Math.PI / 180;
                 const x2 = 200 + 180 * Math.cos(angle);
@@ -43,6 +49,12 @@
             outer.setAttribute('fill','none'); outer.setAttribute('stroke','#9A9070'); outer.setAttribute('stroke-width','5');
             svg.appendChild(outer);
         }
+
+        function checkData() {
+            const count = Object.keys(window.CUSTOM_DB).length;
+            alert("読み込み成功！現在のアレンジ登録数: " + count + "件");
+        }
+
         buildBoard();
     </script>
 </body>
