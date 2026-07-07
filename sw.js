@@ -1,4 +1,4 @@
-const CACHE = 'checkout-master-v45';
+const CACHE = 'checkout-master-v46';
 const ASSETS = [
   './',
   './index.html',
